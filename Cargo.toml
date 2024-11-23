@@ -1,0 +1,10 @@
+[package]
+name = "partial-deser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = "1.0.215"
+
+[dev-dependencies]
+serde_json = "1.0.133"
