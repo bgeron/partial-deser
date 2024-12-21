@@ -1,14 +1,100 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+//! Deserialize with Serde from partial JSON and more
+//!
+//! This crate reads incomplete JSON and parses it for your
+//! data structures that implement [`Deserialize`]:
+//!
+//! ```
+//! # use serde::Deserialize;
+//! #[derive(Debug, Deserialize)]
+//! struct TravelMode {
+//!    mode: String,
+//!    benefit: Option<String>
+//! }
+//!
+//! let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
+//! let modes: Vec<TravelMode> = serde_partial::from_json_str(json).unwrap();
+//! assert_eq!(format!("{modes:?}"), r#"[
+//!    TravelMode { mode: "foot", benefit: Some("healthy") },
+//!    TravelMode { mode: "aeropl", benefit: None }
+//! ]"#);
+//! ```
+//!
+//! This crate is generic for many or all data formats, not just JSON. There is merely
+//! a tweak specific to JSON to be able to parse unfinished strings.
+//!
+//! <!-- todo: list other data formats that work -->
+//!
+//! ## How this works
+//!
+//! todo
+//!
+//! ## Limitations
+//!
+//! Partial deserialization
+//!
+//! -
+//!
+
+use std::sync::Arc;
+
+use serde::Deserialize;
+
+mod error;
+mod r#impl;
+mod source;
+mod reporter;
+
+pub use error::Error;
+pub use source::Source;
+
+#[cfg(feature = "serde_json")]
+const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
+
+#[derive(Clone, Debug)]
+pub struct Options {
+    /// This is a random string that forms part of a suffix we add to
+    /// the input JSON.
+    ///
+    /// As of Dec 2024, we don't stabilize the specific string format.
+    #[cfg(feature = "serde_json")]
+    parse_partial_json_tag: Option<Arc<str>>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Deserialize the with [`serde_json`]
+#[cfg(feature = "serde_json")]
+pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
+    todo!()
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl Options {
+    /// Default options for JSON.
+    ///
+    /// This currently will generate a short random string for improved deserialization of
+    /// partial strings.
+    #[cfg(feature = "serde_json")]
+    pub fn new_json() -> Self {
+        use rand::distributions::{Alphanumeric, DistString};
+        use rand::thread_rng;
+
+        let tag = Alphanumeric.sample_string(&mut thread_rng(), RANDOM_PARTIAL_JSON_TAG_LEN);
+        Self {
+            parse_partial_json_tag: Some(tag.into()),
+            ..Self::new_generic()
+        }
+    }
+
+    pub fn new_generic() -> Self {
+        Self {
+            #[cfg(feature = "serde_json")]
+            parse_partial_json_tag: None,
+        }
+    }
+
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_str<T>(&self, json: &str) -> Result<T, Error<serde_json::Error>> {
+        todo!()
     }
 }
+
+
+
