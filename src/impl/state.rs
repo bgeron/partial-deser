@@ -1,18 +1,16 @@
-use crate::Options;
+use crate::{Config, DefaultOptions};
 
-
-
-pub(crate) struct State<Source, Reporter> {
+pub(crate) struct State<Options: crate::options::Options> {
     n_attempt: usize,
-    options: Options,
-    reporter:
+    config: Config,
+    reporter: Options::Reporter,
 }
 
-impl Options {
-    pub(crate) fn build_generic(self, ) -> State {
+impl Config {
+    pub(crate) fn build_generic(self) -> State<DefaultOptions> {
         State {
             n_attempt: 0,
-            options: self.clone(),
+            config: self,
         }
     }
 }

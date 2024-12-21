@@ -37,21 +37,21 @@
 
 use std::sync::Arc;
 
-use serde::Deserialize;
-
 mod error;
 mod r#impl;
-mod source;
+mod options;
 mod reporter;
+mod source;
 
 pub use error::Error;
+pub use options::DefaultOptions;
 pub use source::Source;
 
 #[cfg(feature = "serde_json")]
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
 
 #[derive(Clone, Debug)]
-pub struct Options {
+pub struct Config {
     /// This is a random string that forms part of a suffix we add to
     /// the input JSON.
     ///
@@ -66,8 +66,8 @@ pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
     todo!()
 }
 
-impl Options {
-    /// Default options for JSON.
+impl Config {
+    /// Default config for JSON.
     ///
     /// This currently will generate a short random string for improved deserialization of
     /// partial strings.
@@ -95,6 +95,3 @@ impl Options {
         todo!()
     }
 }
-
-
-

@@ -1,15 +1,14 @@
 
 mod state;
-mod reporter;
 
 pub(crate) use state::State;
 
-use crate::Error;
+use crate::{DefaultOptions, Error};
 
 
 /// This is the deserializer with all options, including unstable interfaces.
-struct Deserializer<'a, Inner, Reporter> {
-    state: &'a mut State,
+struct Deserializer<'a, Inner, Options=DefaultOptions> {
+    state: &'a mut State<Options>,
     inner: Inner,
 }
 
