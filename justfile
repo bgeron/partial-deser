@@ -15,6 +15,9 @@ test: clippy
     cargo test --all-features --doc
     cargo test --all-targets
 
+fmt:
+    cargo fmt
+
 doc:
     cargo doc --all-features
 

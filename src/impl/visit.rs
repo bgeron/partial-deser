@@ -2,16 +2,20 @@ use crate::options::ExtraOptions;
 
 use super::State;
 
+/// Something that creates a data value, if only you tell it what the format is like.
 pub(crate) struct Visitor<'a, Inner, Extra>
 where
     Inner: serde::de::Visitor<'a>,
     Extra: ExtraOptions,
 {
-    state: &'a mut State<Extra>,
-    inner: Inner,
+    pub(super) state: &'a mut State<Extra>,
+
+    /// This should always be set to `Some` while the inner deserializer is being called,
+    /// and thus while the [`serde::de::Visitor`] methods of [`Visitor`] are called.
+    pub(super) inner: Option<Inner>,
 }
 
-impl<'a, Inner, Extra> serde::de::Visitor<'a> for Visitor<'a, Inner, Extra>
+impl<'a, Inner, Extra> serde::de::Visitor<'a> for &'a mut Visitor<'a, Inner, Extra>
 where
     Inner: serde::de::Visitor<'a>,
     Extra: ExtraOptions,
@@ -19,7 +23,7 @@ where
     type Value = Inner::Value;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        self.inner.expecting(formatter)
+        self.inner.as_ref().expect("the inner visitor has not been consumed while the external deserializer is running").expecting(formatter)
     }
 
     fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
@@ -76,7 +80,7 @@ where
         E: serde::de::Error,
     {
         // todo
-       todo!()
+        todo!()
     }
 
     fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
@@ -119,7 +123,7 @@ where
         E: serde::de::Error,
     {
         // todo
-       todo!()
+        todo!()
     }
 
     fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>

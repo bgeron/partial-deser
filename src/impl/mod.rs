@@ -2,8 +2,10 @@ mod state;
 mod visit;
 
 pub(crate) use state::State;
+use tap::Tap as _;
+use visit::Visitor;
 
-use crate::{options::ExtraOptions, DefaultExtraOptions, Error};
+use crate::{options::ExtraOptions, reporter::Reporter, DefaultExtraOptions, Error};
 
 /// This is the deserializer with all options, including unstable interfaces.
 struct Deserializer<'a, Inner, Extra>
@@ -15,7 +17,7 @@ where
     inner: Inner,
 }
 
-impl<'a, Inner, Extra> serde::Deserializer<'a> for Deserializer<'a, Inner,Extra>
+impl<'a, Inner, Extra> serde::Deserializer<'a> for Deserializer<'a, Inner, Extra>
 where
     Inner: serde::Deserializer<'a>,
     Extra: ExtraOptions,
@@ -27,6 +29,11 @@ where
         V: serde::de::Visitor<'a>,
     {
         todo!()
+        // self.state.reporter.report_deserialize_start_any();
+        // let wrapped = self.state.visitor(visitor);
+        // self.inner
+        //     .deserialize_any()
+        //     .tap(|result| self.state.reporter.report_deserialize_end(result.err()))
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>

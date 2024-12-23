@@ -63,10 +63,10 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     extra: Extra,
 }
 
-/// Deserialize the with [`serde_json`]
+/// Partially deserialize the input with [`serde_json`].
 #[cfg(feature = "serde_json")]
 pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
-    todo!()
+    Options::new_json().from_json_str(json)
 }
 
 impl Options {
@@ -91,7 +91,6 @@ impl Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
             extra: DefaultExtraOptions,
-            
         }
     }
 
