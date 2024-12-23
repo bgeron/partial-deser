@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["serde_json"]
+default = ["serde_json", "tracing"]
 unstable = []
 
 [dependencies]
@@ -12,8 +12,9 @@ unstable = []
 rand = "0.8"
 serde = "1.0.215"
 serde_json = { version = "1.0.133", optional = true}
+static_assertions = "1.1.0"
 thiserror = "2.0.3"
-tracing = "0.1"
+tracing = { version = "0.1", optional = true }
 
 [dev-dependencies]
 tracing-subscriber = "0.3"

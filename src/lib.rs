@@ -44,20 +44,23 @@ mod reporter;
 mod source;
 
 pub use error::Error;
-pub use options::DefaultOptions;
+pub use options::DefaultExtraOptions;
+use options::ExtraOptions;
 pub use source::Source;
 
 #[cfg(feature = "serde_json")]
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
 
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     /// This is a random string that forms part of a suffix we add to
     /// the input JSON.
     ///
     /// As of Dec 2024, we don't stabilize the specific string format.
     #[cfg(feature = "serde_json")]
     parse_partial_json_tag: Option<Arc<str>>,
+
+    extra: Extra,
 }
 
 /// Deserialize the with [`serde_json`]
@@ -66,13 +69,13 @@ pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
     todo!()
 }
 
-impl Config {
+impl Options {
     /// Default config for JSON.
     ///
     /// This currently will generate a short random string for improved deserialization of
     /// partial strings.
     #[cfg(feature = "serde_json")]
-    pub fn new_json() -> Self {
+    pub fn new_json() -> Options<DefaultExtraOptions> {
         use rand::distributions::{Alphanumeric, DistString};
         use rand::thread_rng;
 
@@ -83,10 +86,12 @@ impl Config {
         }
     }
 
-    pub fn new_generic() -> Self {
+    pub fn new_generic() -> Options<DefaultExtraOptions> {
         Self {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
+            extra: DefaultExtraOptions,
+            
         }
     }
 

@@ -1,131 +1,157 @@
-
 mod state;
+mod visit;
 
 pub(crate) use state::State;
 
-use crate::{DefaultOptions, Error};
-
+use crate::{options::ExtraOptions, DefaultExtraOptions, Error};
 
 /// This is the deserializer with all options, including unstable interfaces.
-struct Deserializer<'a, Inner, Options=DefaultOptions> {
-    state: &'a mut State<Options>,
+struct Deserializer<'a, Inner, Extra>
+where
+    Inner: serde::Deserializer<'a>,
+    Extra: ExtraOptions,
+{
+    state: &'a mut State<Extra>,
     inner: Inner,
 }
 
-impl<'a, Inner: serde::Deserializer<'a>> serde::Deserializer<'a> for Deserializer<'a, Inner> {
+impl<'a, Inner, Extra> serde::Deserializer<'a> for Deserializer<'a, Inner,Extra>
+where
+    Inner: serde::Deserializer<'a>,
+    Extra: ExtraOptions,
+{
     type Error = Error<Inner::Error>;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
@@ -135,7 +161,8 @@ impl<'a, Inner: serde::Deserializer<'a>> serde::Deserializer<'a> for Deserialize
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
@@ -145,19 +172,22 @@ impl<'a, Inner: serde::Deserializer<'a>> serde::Deserializer<'a> for Deserialize
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
@@ -168,13 +198,15 @@ impl<'a, Inner: serde::Deserializer<'a>> serde::Deserializer<'a> for Deserialize
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
@@ -185,7 +217,8 @@ impl<'a, Inner: serde::Deserializer<'a>> serde::Deserializer<'a> for Deserialize
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
@@ -196,19 +229,22 @@ impl<'a, Inner: serde::Deserializer<'a>> serde::Deserializer<'a> for Deserialize
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a> {
+        V: serde::de::Visitor<'a>,
+    {
         todo!()
     }
 }
