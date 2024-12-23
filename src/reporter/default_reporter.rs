@@ -24,141 +24,345 @@ impl DefaultReporter {
 }
 
 impl Reporter for DefaultReporter {
-    fn report_end_visit_primitive(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_deserialize_start_any(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_any");
+    }
+
+    fn report_deserialize_start_bool(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_bool");
+    }
+
+    fn report_deserialize_start_i8(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_i8");
+    }
+
+    fn report_deserialize_start_i16(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_i16");
+    }
+
+    fn report_deserialize_start_i32(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_i32");
+    }
+
+    fn report_deserialize_start_i64(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_i64");
+    }
+
+    fn report_deserialize_start_i128(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_i128");
+    }
+
+    fn report_deserialize_start_u8(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_u8");
+    }
+
+    fn report_deserialize_start_u16(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_u16");
+    }
+
+    fn report_deserialize_start_u32(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_u32");
+    }
+
+    fn report_deserialize_start_u64(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_u64");
+    }
+
+    fn report_deserialize_start_u128(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_u128");
+    }
+
+    fn report_deserialize_start_f32(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_f32");
+    }
+
+    fn report_deserialize_start_f64(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_f64");
+    }
+
+    fn report_deserialize_start_char(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_char");
+    }
+
+    fn report_deserialize_start_str(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_str");
+    }
+
+    fn report_deserialize_start_string(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_string");
+    }
+
+    fn report_deserialize_start_bytes(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_bytes");
+    }
+
+    fn report_deserialize_start_byte_buf(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_byte_buf");
+    }
+
+    fn report_deserialize_start_option(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_option");
+    }
+
+    fn report_deserialize_start_unit(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_unit");
+    }
+
+    fn report_deserialize_start_unit_struct(&mut self, name: &'static str) {
         trace!(
             nesting_level = self.level,
-            error = error,
-            "end_visit_primitive"
+            name,
+            "start deserialize_unit_struct"
         );
     }
 
-    fn report_start_visit_bool(&mut self, v: bool) {
+    fn report_deserialize_start_newtype_struct(&mut self, name: &'static str) {
+        trace!(
+            nesting_level = self.level,
+            name,
+            "start deserialize_newtype_struct"
+        );
+    }
+
+    fn report_deserialize_start_seq(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_seq");
+    }
+
+    fn report_deserialize_start_tuple(&mut self, len: usize) {
+        trace!(nesting_level = self.level, len, "start deserialize_tuple");
+    }
+
+    fn report_deserialize_start_tuple_struct(&mut self, name: &'static str, len: usize) {
+        trace!(
+            nesting_level = self.level,
+            name,
+            len,
+            "start deserialize_tuple_struct"
+        );
+    }
+
+    fn report_deserialize_start_map(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_map");
+    }
+
+    fn report_deserialize_start_struct(
+        &mut self,
+        name: &'static str,
+        fields: &'static [&'static str],
+    ) {
+        trace!(
+            nesting_level = self.level,
+            name,
+            ?fields,
+            "start deserialize_struct"
+        );
+    }
+
+    fn report_deserialize_start_enum(
+        &mut self,
+        name: &'static str,
+        variants: &'static [&'static str],
+    ) {
+        trace!(
+            nesting_level = self.level,
+            name,
+            ?variants,
+            "start deserialize_enum"
+        );
+    }
+
+    fn report_deserialize_start_identifier(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_identifier");
+    }
+
+    fn report_deserialize_start_ignored_any(&mut self) {
+        trace!(nesting_level = self.level, "start deserialize_ignored_any");
+    }
+
+    fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'static)>) {
+        trace!(nesting_level = self.level, error = error, "end deserialize");
+    }
+
+    /*
+
+        fn report_deserialize_start_any(&mut self);
+    fn report_deserialize_start_bool(&mut self);
+    fn report_deserialize_start_i8(&mut self);
+    fn report_deserialize_start_i16(&mut self);
+    fn report_deserialize_start_i32(&mut self);
+    fn report_deserialize_start_i64(&mut self);
+    fn report_deserialize_start_i128(&mut self);
+    fn report_deserialize_start_u8(&mut self);
+    fn report_deserialize_start_u16(&mut self);
+    fn report_deserialize_start_u32(&mut self);
+    fn report_deserialize_start_u64(&mut self);
+    fn report_deserialize_start_u128(&mut self);
+    fn report_deserialize_start_f32(&mut self);
+    fn report_deserialize_start_f64(&mut self);
+    fn report_deserialize_start_char(&mut self);
+    fn report_deserialize_start_str(&mut self);
+    fn report_deserialize_start_string(&mut self);
+    fn report_deserialize_start_bytes(&mut self);
+    fn report_deserialize_start_byte_buf(&mut self);
+    fn report_deserialize_start_option(&mut self);
+    fn report_deserialize_start_unit(&mut self);
+    fn report_deserialize_start_unit_struct(&mut self, name: &'static str);
+    fn report_deserialize_start_newtype_struct(&mut self, name: &'static str);
+    fn report_deserialize_start_seq(&mut self);
+    fn report_deserialize_start_tuple(&mut self, len: usize);
+    fn report_deserialize_start_tuple_struct(&mut self, name: &'static str, len: usize);
+    fn report_deserialize_start_map(&mut self);
+    fn report_deserialize_start_struct(
+        &mut self,
+        name: &'static str,
+        fields: &'static [&'static str],
+    );
+    fn report_deserialize_start_enum(
+        &mut self,
+        name: &'static str,
+        variants: &'static [&'static str],
+    );
+    fn report_deserialize_start_identifier(&mut self);
+    fn report_deserialize_start_ignored_any(&mut self);
+    fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'static)>);
+
+     */
+
+    fn report_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'static)>) {
+        trace!(
+            nesting_level = self.level,
+            error = error,
+            "end visit_primitive"
+        );
+    }
+
+    fn report_visit_start_bool(&mut self, v: bool) {
         trace!(nesting_level = self.level, v, "visit_bool");
     }
 
-    fn report_start_visit_i8(&mut self, v: i8) {
+    fn report_visit_start_i8(&mut self, v: i8) {
         trace!(nesting_level = self.level, v, "visit_i8");
     }
 
-    fn report_start_visit_i16(&mut self, v: i16) {
+    fn report_visit_start_i16(&mut self, v: i16) {
         trace!(nesting_level = self.level, v, "visit_i16");
     }
 
-    fn report_start_visit_i32(&mut self, v: i32) {
+    fn report_visit_start_i32(&mut self, v: i32) {
         trace!(nesting_level = self.level, v, "visit_i32");
     }
 
-    fn report_start_visit_i64(&mut self, v: i64) {
+    fn report_visit_start_i64(&mut self, v: i64) {
         trace!(nesting_level = self.level, v, "visit_i64");
     }
 
-    fn report_start_visit_i128(&mut self, v: i128) {
+    fn report_visit_start_i128(&mut self, v: i128) {
         trace!(nesting_level = self.level, v, "visit_i128");
     }
 
-    fn report_start_visit_u8(&mut self, v: u8) {
+    fn report_visit_start_u8(&mut self, v: u8) {
         trace!(nesting_level = self.level, v, "visit_u8");
     }
 
-    fn report_start_visit_u16(&mut self, v: u16) {
+    fn report_visit_start_u16(&mut self, v: u16) {
         trace!(nesting_level = self.level, v, "visit_u16");
     }
 
-    fn report_start_visit_u32(&mut self, v: u32) {
+    fn report_visit_start_u32(&mut self, v: u32) {
         trace!(nesting_level = self.level, v, "visit_u32");
     }
 
-    fn report_start_visit_u64(&mut self, v: u64) {
+    fn report_visit_start_u64(&mut self, v: u64) {
         trace!(nesting_level = self.level, v, "visit_u64");
     }
 
-    fn report_start_visit_u128(&mut self, v: u128) {
+    fn report_visit_start_u128(&mut self, v: u128) {
         trace!(nesting_level = self.level, v, "visit_u128");
     }
 
-    fn report_start_visit_f32(&mut self, v: f32) {
+    fn report_visit_start_f32(&mut self, v: f32) {
         trace!(nesting_level = self.level, v, "visit_f32");
     }
 
-    fn report_start_visit_f64(&mut self, v: f64) {
+    fn report_visit_start_f64(&mut self, v: f64) {
         trace!(nesting_level = self.level, v, "visit_f64");
     }
 
-    fn report_start_visit_char(&mut self, v: char) {
+    fn report_visit_start_char(&mut self, v: char) {
         trace!(nesting_level = self.level, ?v, "visit_char");
     }
 
-    fn report_start_visit_str(&mut self, v: &str) {
+    fn report_visit_start_str(&mut self, v: &str) {
         trace!(nesting_level = self.level, v, "visit_str");
     }
 
-    fn report_start_visit_borrowed_bytes(&mut self, v: &[u8]) {
+    fn report_visit_start_borrowed_bytes(&mut self, v: &[u8]) {
         trace!(nesting_level = self.level, v, "visit_borrowed_bytes");
     }
 
-    fn report_start_visit_byte_buf(&mut self, v: &Vec<u8>) {
+    fn report_visit_start_byte_buf(&mut self, v: &Vec<u8>) {
         trace!(nesting_level = self.level, ?v, "visit_byte_buf");
     }
 
-    fn report_start_visit_none(&mut self) {
+    fn report_visit_start_none(&mut self) {
         trace!(nesting_level = self.level, "visit_none");
     }
 
-    fn report_start_visit_some(&mut self) {
+    fn report_visit_start_some(&mut self) {
         trace!(nesting_level = self.level, "visit_some");
         self.level += 1;
     }
 
-    fn report_end_visit_some(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_visit_end_some(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end_visit_some");
+        trace!(nesting_level = self.level, error = error, "end visit_some");
     }
 
-    fn report_start_visit_unit(&mut self) {
+    fn report_visit_start_unit(&mut self) {
         trace!(nesting_level = self.level, "visit_unit");
     }
 
-    fn report_start_visit_newtype_struct(&mut self) {
+    fn report_visit_start_newtype_struct(&mut self) {
         trace!(nesting_level = self.level, "visit_newtype_struct");
         self.level += 1;
     }
 
-    fn report_end_visit_newtype_struct(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error,
-            "end_visit_newtype_struct"
+            "end visit_newtype_struct"
         );
     }
 
-    fn report_start_visit_seq(&mut self) {
+    fn report_visit_start_seq(&mut self) {
         trace!(nesting_level = self.level, "visit_seq");
         self.level += 1;
     }
 
-    fn report_end_visit_seq(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end_visit_seq");
+        trace!(nesting_level = self.level, error = error, "end visit_seq");
     }
 
-    fn report_start_visit_map(&mut self) {
+    fn report_visit_start_map(&mut self) {
         trace!(nesting_level = self.level, "visit_map");
         self.level += 1;
     }
 
-    fn report_end_visit_map(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_visit_end_map(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end_visit_map");
+        trace!(nesting_level = self.level, error = error, "end visit_map");
     }
 
-    fn report_start_visit_enum(&mut self) {
+    fn report_visit_start_enum(&mut self) {
         trace!(nesting_level = self.level, "visit_enum");
         self.level += 1;
     }
 
-    fn report_end_visit_enum(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end_visit_enum");
+        trace!(nesting_level = self.level, error = error, "end visit_enum");
     }
 }

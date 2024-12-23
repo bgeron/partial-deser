@@ -2,6 +2,7 @@
 name = "partial-deser"
 version = "0.1.0"
 edition = "2021"
+description = "Deserialize with Serde from partial JSON and more"
 
 [features]
 default = ["serde_json", "tracing"]

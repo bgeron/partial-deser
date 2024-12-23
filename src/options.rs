@@ -1,4 +1,4 @@
-use crate::reporter::{DefaultReporter, Reporter};
+use crate::reporter::DefaultReporter;
 
 pub struct DefaultExtraOptions;
 
