@@ -38,6 +38,7 @@
 use std::sync::Arc;
 
 mod error;
+mod fallback;
 mod r#impl;
 mod options;
 mod reporter;
@@ -47,6 +48,8 @@ pub use error::Error;
 pub use options::DefaultExtraOptions;
 use options::ExtraOptions;
 pub use source::Source;
+#[cfg(feature = "unstable")]
+pub use {fallback::Fallbacks, reporter::Reporter};
 
 #[cfg(feature = "serde_json")]
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;

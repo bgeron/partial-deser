@@ -1,5 +1,6 @@
 mod state;
 mod visit;
+pub(crate) mod empty_access;
 
 pub(crate) use state::State;
 use tap::Tap as _;

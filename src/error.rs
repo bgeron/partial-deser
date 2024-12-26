@@ -14,15 +14,31 @@ pub struct Error<DeserializerErr> {
 
 #[derive(Debug, thiserror::Error)]
 enum ErrorImpl<DeserializerErr> {
+    /// The wrapped deserializer returned an error.
+    ///
+    /// (todo: keep? I guess most deserializer errors in practice are sort of equivalent to EOF?)
     #[error(transparent)]
     Deserializer(DeserializerErr),
-    /// The
+    /// The deserializer behaved in an inconsistent / nondeterministic way.
     #[error(transparent)]
-    InvalidFormat(InvalidFormatErr),
+    InconsistentDeserializer(InconsistentDeserializerErr),
+    /// One of the [`crate::fallback::Fallbacks`] failed to compute.
+    ///
+    /// The concrete error type within is not stable.
+    #[error(transparent)]
+    Fallback(FallbackError),
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum InvalidFormatErr {}
+pub enum InconsistentDeserializerErr {}
+
+#[derive(Debug, thiserror::Error)]
+pub enum FallbackError {
+    #[error("The fallback took the visitor to compute a value, but didn't return a Result.")]
+    FallbackDidntCompute,
+    #[error("While constructing a fallback value: {0}")]
+    FallbackVisitor(serde::de::value::Error),
+}
 
 impl<DeserializerErr> Error<DeserializerErr> {
     fn from_de(err: DeserializerErr) -> Self {
@@ -31,6 +47,7 @@ impl<DeserializerErr> Error<DeserializerErr> {
         }
     }
 
+    /// Was it an error from the wrapped deserializer?
     pub fn as_deserializer_error(&self) -> Option<&DeserializerErr> {
         match &*self.err {
             ErrorImpl::Deserializer(err) => Some(err),
@@ -45,25 +62,34 @@ impl<DeserializerErr> Error<DeserializerErr> {
         }
     }
 
-    pub fn as_invalid_format_error(&self) -> Option<&InvalidFormatErr> {
+    /// Was the deserializer being inconsistent?
+    pub fn as_inconsistent_deserializer_error(&self) -> Option<&InconsistentDeserializerErr> {
         match &*self.err {
-            ErrorImpl::InvalidFormat(err) => Some(err),
+            ErrorImpl::InconsistentDeserializer(err) => Some(err),
             _ => None,
         }
     }
 
-    pub fn into_invalid_format_error(self) -> Option<InvalidFormatErr> {
+    pub fn into_inconsistent_deserializer_error(self) -> Option<InconsistentDeserializerErr> {
         match *self.err {
-            ErrorImpl::InvalidFormat(err) => Some(err),
+            ErrorImpl::InconsistentDeserializer(err) => Some(err),
             _ => None,
+        }
+    }
+
+    /// Did we try to construct a fallback error?
+    pub fn is_fallback_error(&self) -> bool {
+        match &*self.err {
+            ErrorImpl::Fallback(err) => true,
+            _ => false,
         }
     }
 }
 
-impl<DeserializerErr> From<InvalidFormatErr> for Error<DeserializerErr> {
-    fn from(err: InvalidFormatErr) -> Self {
+impl<DeserializerErr> From<InconsistentDeserializerErr> for Error<DeserializerErr> {
+    fn from(err: InconsistentDeserializerErr) -> Self {
         Self {
-            err: Box::new(ErrorImpl::InvalidFormat(err)),
+            err: Box::new(ErrorImpl::InconsistentDeserializer(err)),
         }
     }
 }
