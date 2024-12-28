@@ -183,186 +183,179 @@ impl Reporter for DefaultReporter {
         trace!(nesting_level = self.level, error = error, "end deserialize");
     }
 
-    /*
-
-        fn report_deserialize_start_any(&mut self);
-    fn report_deserialize_start_bool(&mut self);
-    fn report_deserialize_start_i8(&mut self);
-    fn report_deserialize_start_i16(&mut self);
-    fn report_deserialize_start_i32(&mut self);
-    fn report_deserialize_start_i64(&mut self);
-    fn report_deserialize_start_i128(&mut self);
-    fn report_deserialize_start_u8(&mut self);
-    fn report_deserialize_start_u16(&mut self);
-    fn report_deserialize_start_u32(&mut self);
-    fn report_deserialize_start_u64(&mut self);
-    fn report_deserialize_start_u128(&mut self);
-    fn report_deserialize_start_f32(&mut self);
-    fn report_deserialize_start_f64(&mut self);
-    fn report_deserialize_start_char(&mut self);
-    fn report_deserialize_start_str(&mut self);
-    fn report_deserialize_start_string(&mut self);
-    fn report_deserialize_start_bytes(&mut self);
-    fn report_deserialize_start_byte_buf(&mut self);
-    fn report_deserialize_start_option(&mut self);
-    fn report_deserialize_start_unit(&mut self);
-    fn report_deserialize_start_unit_struct(&mut self, name: &'static str);
-    fn report_deserialize_start_newtype_struct(&mut self, name: &'static str);
-    fn report_deserialize_start_seq(&mut self);
-    fn report_deserialize_start_tuple(&mut self, len: usize);
-    fn report_deserialize_start_tuple_struct(&mut self, name: &'static str, len: usize);
-    fn report_deserialize_start_map(&mut self);
-    fn report_deserialize_start_struct(
-        &mut self,
-        name: &'static str,
-        fields: &'static [&'static str],
-    );
-    fn report_deserialize_start_enum(
-        &mut self,
-        name: &'static str,
-        variants: &'static [&'static str],
-    );
-    fn report_deserialize_start_identifier(&mut self);
-    fn report_deserialize_start_ignored_any(&mut self);
-    fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'static)>);
-
-     */
-
-    fn report_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'static)>) {
         trace!(
             nesting_level = self.level,
             error = error,
-            "end visit_primitive"
+            "end receive visit_primitive"
         );
     }
 
-    fn report_visit_start_bool(&mut self, v: bool) {
-        trace!(nesting_level = self.level, v, "visit_bool");
+    fn report_recv_visit_start_bool(&mut self, v: bool) {
+        trace!(nesting_level = self.level, v, "receive visit_bool");
     }
 
-    fn report_visit_start_i8(&mut self, v: i8) {
-        trace!(nesting_level = self.level, v, "visit_i8");
+    fn report_recv_visit_start_i8(&mut self, v: i8) {
+        trace!(nesting_level = self.level, v, "receive visit_i8");
     }
 
-    fn report_visit_start_i16(&mut self, v: i16) {
-        trace!(nesting_level = self.level, v, "visit_i16");
+    fn report_recv_visit_start_i16(&mut self, v: i16) {
+        trace!(nesting_level = self.level, v, "receive visit_i16");
     }
 
-    fn report_visit_start_i32(&mut self, v: i32) {
-        trace!(nesting_level = self.level, v, "visit_i32");
+    fn report_recv_visit_start_i32(&mut self, v: i32) {
+        trace!(nesting_level = self.level, v, "receive visit_i32");
     }
 
-    fn report_visit_start_i64(&mut self, v: i64) {
-        trace!(nesting_level = self.level, v, "visit_i64");
+    fn report_recv_visit_start_i64(&mut self, v: i64) {
+        trace!(nesting_level = self.level, v, "receive visit_i64");
     }
 
-    fn report_visit_start_i128(&mut self, v: i128) {
-        trace!(nesting_level = self.level, v, "visit_i128");
+    fn report_recv_visit_start_i128(&mut self, v: i128) {
+        trace!(nesting_level = self.level, v, "receive visit_i128");
     }
 
-    fn report_visit_start_u8(&mut self, v: u8) {
-        trace!(nesting_level = self.level, v, "visit_u8");
+    fn report_recv_visit_start_u8(&mut self, v: u8) {
+        trace!(nesting_level = self.level, v, "receive visit_u8");
     }
 
-    fn report_visit_start_u16(&mut self, v: u16) {
-        trace!(nesting_level = self.level, v, "visit_u16");
+    fn report_recv_visit_start_u16(&mut self, v: u16) {
+        trace!(nesting_level = self.level, v, "receive visit_u16");
     }
 
-    fn report_visit_start_u32(&mut self, v: u32) {
-        trace!(nesting_level = self.level, v, "visit_u32");
+    fn report_recv_visit_start_u32(&mut self, v: u32) {
+        trace!(nesting_level = self.level, v, "receive visit_u32");
     }
 
-    fn report_visit_start_u64(&mut self, v: u64) {
-        trace!(nesting_level = self.level, v, "visit_u64");
+    fn report_recv_visit_start_u64(&mut self, v: u64) {
+        trace!(nesting_level = self.level, v, "receive visit_u64");
     }
 
-    fn report_visit_start_u128(&mut self, v: u128) {
-        trace!(nesting_level = self.level, v, "visit_u128");
+    fn report_recv_visit_start_u128(&mut self, v: u128) {
+        trace!(nesting_level = self.level, v, "receive visit_u128");
     }
 
-    fn report_visit_start_f32(&mut self, v: f32) {
-        trace!(nesting_level = self.level, v, "visit_f32");
+    fn report_recv_visit_start_f32(&mut self, v: f32) {
+        trace!(nesting_level = self.level, v, "receive visit_f32");
     }
 
-    fn report_visit_start_f64(&mut self, v: f64) {
-        trace!(nesting_level = self.level, v, "visit_f64");
+    fn report_recv_visit_start_f64(&mut self, v: f64) {
+        trace!(nesting_level = self.level, v, "receive visit_f64");
     }
 
-    fn report_visit_start_char(&mut self, v: char) {
-        trace!(nesting_level = self.level, ?v, "visit_char");
+    fn report_recv_visit_start_char(&mut self, v: char) {
+        trace!(nesting_level = self.level, ?v, "receive visit_char");
     }
 
-    fn report_visit_start_str(&mut self, v: &str) {
-        trace!(nesting_level = self.level, v, "visit_str");
+    fn report_recv_visit_start_str(&mut self, v: &str) {
+        trace!(nesting_level = self.level, v, "receive visit_str");
     }
 
-    fn report_visit_start_borrowed_bytes(&mut self, v: &[u8]) {
-        trace!(nesting_level = self.level, v, "visit_borrowed_bytes");
+    fn report_recv_visit_start_borrowed_bytes(&mut self, v: &[u8]) {
+        trace!(
+            nesting_level = self.level,
+            v,
+            "receive visit_borrowed_bytes"
+        );
     }
 
-    fn report_visit_start_byte_buf(&mut self, v: &Vec<u8>) {
-        trace!(nesting_level = self.level, ?v, "visit_byte_buf");
+    fn report_recv_visit_start_byte_buf(&mut self, v: &Vec<u8>) {
+        trace!(nesting_level = self.level, ?v, "receive visit_byte_buf");
     }
 
-    fn report_visit_start_none(&mut self) {
-        trace!(nesting_level = self.level, "visit_none");
+    fn report_recv_visit_start_none(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_none");
     }
 
-    fn report_visit_start_some(&mut self) {
-        trace!(nesting_level = self.level, "visit_some");
+    fn report_recv_visit_start_some(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_some");
         self.level += 1;
     }
 
-    fn report_visit_end_some(&mut self, error: Option<&(dyn StdError + 'static)>) {
-        self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end visit_some");
-    }
-
-    fn report_visit_start_unit(&mut self) {
-        trace!(nesting_level = self.level, "visit_unit");
-    }
-
-    fn report_visit_start_newtype_struct(&mut self) {
-        trace!(nesting_level = self.level, "visit_newtype_struct");
-        self.level += 1;
-    }
-
-    fn report_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_some(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error,
-            "end visit_newtype_struct"
+            "end receive visit_some"
         );
     }
 
-    fn report_visit_start_seq(&mut self) {
-        trace!(nesting_level = self.level, "visit_seq");
+    fn report_recv_visit_start_unit(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_unit");
+    }
+
+    fn report_recv_visit_start_newtype_struct(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_newtype_struct");
         self.level += 1;
     }
 
-    fn report_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end visit_seq");
+        trace!(
+            nesting_level = self.level,
+            error = error,
+            "end receive visit_newtype_struct"
+        );
     }
 
-    fn report_visit_start_map(&mut self) {
-        trace!(nesting_level = self.level, "visit_map");
+    fn report_recv_visit_start_seq(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_seq");
         self.level += 1;
     }
 
-    fn report_visit_end_map(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end visit_map");
+        trace!(
+            nesting_level = self.level,
+            error = error,
+            "end receive visit_seq"
+        );
     }
 
-    fn report_visit_start_enum(&mut self) {
-        trace!(nesting_level = self.level, "visit_enum");
+    fn report_recv_visit_start_map(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_map");
         self.level += 1;
     }
 
-    fn report_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_map(&mut self, error: Option<&(dyn StdError + 'static)>) {
         self.level -= 1;
-        trace!(nesting_level = self.level, error = error, "end visit_enum");
+        trace!(
+            nesting_level = self.level,
+            error = error,
+            "end receive visit_map"
+        );
+    }
+
+    fn report_recv_visit_start_enum(&mut self) {
+        trace!(nesting_level = self.level, "receive visit_enum");
+        self.level += 1;
+    }
+
+    fn report_recv_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'static)>) {
+        self.level -= 1;
+        trace!(
+            nesting_level = self.level,
+            error = error,
+            "end receive visit_enum"
+        );
+    }
+
+    fn report_start_fallback(&mut self) {}
+
+    fn report_no_fallback(&mut self) {
+        trace!(nesting_level = self.level, "no fallback was attempted");
+    }
+
+    fn report_fallback(&mut self, error: Option<&(dyn StdError + 'static)>) {
+        if let Some(error) = error {
+            trace!(
+                nesting_level = self.level,
+                error = error,
+                "fallback attempted but failed"
+            );
+        } else {
+            trace!(nesting_level = self.level, "fallback applied");
+        }
     }
 }
