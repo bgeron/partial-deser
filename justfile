@@ -19,7 +19,7 @@ fmt:
     cargo fmt
 
 doc:
-    cargo doc --all-features
+    RUSTDOCFLAGS="--cfg docsrs" CARGO_TARGET_DIR=target-nightly cargo +nightly doc --all-features
 
 doc-open:
-    cargo doc --all-features --document-private-items --open
+    RUSTDOCFLAGS="--cfg docsrs" CARGO_TARGET_DIR=target-nightly cargo +nightly doc --all-features --document-private-items --open

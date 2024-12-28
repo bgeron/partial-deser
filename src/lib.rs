@@ -1,3 +1,5 @@
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+
 //! Deserialize with Serde from partial JSON and more
 //!
 //! This crate reads incomplete JSON and parses it for your
@@ -36,6 +38,9 @@
 //!
 
 use std::sync::Arc;
+
+#[cfg(doc)]
+use serde::Deserialize;
 
 mod error;
 mod fallback;
