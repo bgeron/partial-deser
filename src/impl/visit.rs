@@ -1,14 +1,14 @@
 use crate::options::ExtraOptions;
 
-use super::State;
+use super::state::AttemptState;
 
 /// Something that creates a data value, if only you tell it what the format is like.
-pub(crate) struct Visitor<'a, Inner, Extra>
+pub(crate) struct Visitor<'a, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::de::Visitor<'a>,
-    Extra: ExtraOptions,
+    Extra: ExtraOptions<'deserializer_error>,
 {
-    pub(super) state: &'a mut State<Extra>,
+    pub(super) state: &'a mut AttemptState<'a, 'deserializer_error, Extra>,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
     /// and thus while the [`serde::de::Visitor`] methods of [`Visitor`] are called.
@@ -18,10 +18,11 @@ where
     pub(super) inner: &'a mut Option<Inner>,
 }
 
-impl<'a, Inner, Extra> serde::de::Visitor<'a> for &'a mut Visitor<'a, Inner, Extra>
+impl<'a, 'deserializer_error, Inner, Extra> serde::de::Visitor<'a>
+    for Visitor<'a, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::de::Visitor<'a>,
-    Extra: ExtraOptions,
+    Extra: ExtraOptions<'deserializer_error>,
 {
     type Value = Inner::Value;
 

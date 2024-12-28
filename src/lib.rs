@@ -37,7 +37,7 @@
 //! -
 //!
 
-use std::sync::Arc;
+use std::{marker::PhantomData, sync::Arc};
 
 #[cfg(doc)]
 use serde::Deserialize;
@@ -60,7 +60,10 @@ pub use {fallback::Fallbacks, reporter::Reporter};
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
 
 #[derive(Clone, Debug)]
-pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
+pub struct Options<
+    'deserializer_error,
+    Extra: ExtraOptions<'deserializer_error> = DefaultExtraOptions,
+> {
     /// This is a random string that forms part of a suffix we add to
     /// the input JSON.
     ///
@@ -69,6 +72,8 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     parse_partial_json_tag: Option<Arc<str>>,
 
     extra: Extra,
+
+    phantom: PhantomData<&'deserializer_error ()>,
 }
 
 /// Partially deserialize the input with [`serde_json`].
@@ -77,28 +82,29 @@ pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
     Options::new_json().from_json_str(json)
 }
 
-impl Options {
+impl Options<'static> {
     /// Default config for JSON.
     ///
     /// This currently will generate a short random string for improved deserialization of
     /// partial strings.
     #[cfg(feature = "serde_json")]
-    pub fn new_json() -> Options<DefaultExtraOptions> {
+    pub fn new_json() -> Options<'static, DefaultExtraOptions> {
         use rand::distributions::{Alphanumeric, DistString};
         use rand::thread_rng;
 
         let tag = Alphanumeric.sample_string(&mut thread_rng(), RANDOM_PARTIAL_JSON_TAG_LEN);
-        Self {
+        Options {
             parse_partial_json_tag: Some(tag.into()),
-            ..Self::new_generic()
+            ..Options::new_generic()
         }
     }
 
-    pub fn new_generic() -> Options<DefaultExtraOptions> {
-        Self {
+    pub fn new_generic() -> Options<'static, DefaultExtraOptions> {
+        Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
             extra: DefaultExtraOptions,
+            phantom: PhantomData,
         }
     }
 

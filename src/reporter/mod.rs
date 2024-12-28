@@ -1,6 +1,6 @@
-use std::error::Error as StdError;
 #[cfg(doc)]
 use crate::fallback;
+use std::error::Error as StdError;
 
 mod default_reporter;
 
@@ -8,7 +8,7 @@ pub use default_reporter::DefaultReporter;
 
 static_assertions::assert_obj_safe!(Reporter);
 
-pub trait Reporter {
+pub trait Reporter<'deserializer_error> {
     fn report_deserialize_start_any(&mut self);
     fn report_deserialize_start_bool(&mut self);
     fn report_deserialize_start_i8(&mut self);

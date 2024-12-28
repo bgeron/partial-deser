@@ -23,7 +23,7 @@ impl DefaultReporter {
     }
 }
 
-impl Reporter for DefaultReporter {
+impl Reporter<'static> for DefaultReporter {
     fn report_deserialize_start_any(&mut self) {
         trace!(nesting_level = self.level, "start deserialize_any");
     }

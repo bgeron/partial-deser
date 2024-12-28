@@ -2,20 +2,24 @@ pub(crate) mod empty_access;
 mod state;
 mod visit;
 
-pub(crate) use state::State;
+use std::marker::PhantomData;
+
+use state::AttemptState;
+pub(crate) use state::GlobalState;
 use tap::Tap as _;
 use visit::Visitor;
 
 use crate::{options::ExtraOptions, reporter::Reporter, DefaultExtraOptions, Error};
 
 /// This is the deserializer with all options, including unstable interfaces.
-struct Deserializer<'a, Inner, Extra>
+struct Deserializer<'a, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::Deserializer<'a>,
-    Extra: ExtraOptions,
+    Extra: ExtraOptions<'deserializer_error>,
 {
-    state: &'a mut State<Extra>,
+    state: &'a mut AttemptState<'a, 'deserializer_error, Extra>,
     inner: Inner,
+    phantom: PhantomData<&'deserializer_error ()>,
 }
 
 /// Represents a point in the deserialization process where we could choose to stop
@@ -39,10 +43,12 @@ impl From<usize> for AbortionPoint {
     }
 }
 
-impl<'a, Inner, Extra> serde::Deserializer<'a> for Deserializer<'a, Inner, Extra>
+impl<'a, 'deserializer_error, Inner, Extra> serde::Deserializer<'a>
+    for Deserializer<'a, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::Deserializer<'a>,
-    Extra: ExtraOptions,
+    Inner::Error: 'deserializer_error,
+    Extra: ExtraOptions<'deserializer_error>,
 {
     type Error = Error<Inner::Error>;
 
@@ -53,10 +59,14 @@ where
         self.state.reporter.report_deserialize_start_any();
         let mut visitor = Some(visitor);
         let mut wrapped = self.state.visitor(&mut visitor);
-        let result = self
-            .inner
-            .deserialize_any(wrapped)
-            .tap(|result| self.state.reporter.report_deserialize_end(result.err()));
+        let result = self.inner.deserialize_any(wrapped).tap(|result| {
+            self.state.reporter.report_deserialize_end(
+                result
+                    .as_ref()
+                    .err()
+                    .map(|x| -> &(dyn std::error::Error + 'deserializer_error) { x }),
+            )
+        });
 
         let err = match result {
             Ok(value) => return Ok(value),
@@ -64,8 +74,6 @@ where
         };
 
         self.state.n_attempt += 1;
-
-
 
         self.state.reporter.report_deserialize_error(&err);
         self.state.reporter.report_start_fallback();
