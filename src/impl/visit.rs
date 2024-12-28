@@ -12,7 +12,10 @@ where
 
     /// This should always be set to `Some` while the inner deserializer is being called,
     /// and thus while the [`serde::de::Visitor`] methods of [`Visitor`] are called.
-    pub(super) inner: Option<Inner>,
+    ///
+    /// The inner visitor actually lives on the stack, so that in case the deserializer fails,
+    /// we can attempt to apply a fallback instead.
+    pub(super) inner: &'a mut Option<Inner>,
 }
 
 impl<'a, Inner, Extra> serde::de::Visitor<'a> for &'a mut Visitor<'a, Inner, Extra>
