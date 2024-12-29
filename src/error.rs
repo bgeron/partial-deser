@@ -41,7 +41,7 @@ pub enum FallbackError {
 }
 
 impl<DeserializerErr> Error<DeserializerErr> {
-    fn from_de(err: DeserializerErr) -> Self {
+    pub(crate) fn from_de(err: DeserializerErr) -> Self {
         Self {
             err: Box::new(ErrorImpl::Deserializer(err)),
         }
@@ -79,10 +79,7 @@ impl<DeserializerErr> Error<DeserializerErr> {
 
     /// Did we try to construct a fallback error?
     pub fn is_fallback_error(&self) -> bool {
-        match &*self.err {
-            ErrorImpl::Fallback(err) => true,
-            _ => false,
-        }
+        matches!(&*self.err, ErrorImpl::Fallback(_))
     }
 }
 

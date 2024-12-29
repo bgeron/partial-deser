@@ -29,187 +29,187 @@ use crate::r#impl::empty_access::EmptyAccess;
 pub trait Fallbacks {
     fn fallback_any<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_bool<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_i8<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_i16<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_i32<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_i64<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_i128<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_u8<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_u16<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_u32<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_u64<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_u128<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_f32<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_f64<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_char<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_str<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_string<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_bytes<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_byte_buf<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_option<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_unit<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_unit_struct<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_newtype_struct<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_seq<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_tuple<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_tuple_struct<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_map<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_struct<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_enum<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_identifier<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }
     fn fallback_ignored_any<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
-        take_visitor: impl FnOnce() -> V,
+        _take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         Ok(None)
     }

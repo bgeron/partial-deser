@@ -10,6 +10,10 @@ clippy:
     cargo clippy --all-targets --all-features
     cargo clippy --all-targets
 
+clippy-allow-dead:
+    cargo clippy --all-targets --all-features -- --allow dead_code
+    cargo clippy --all-targets -- --allow dead_code
+
 test: clippy
     cargo test --all-targets --all-features
     cargo test --all-features --doc

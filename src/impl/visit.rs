@@ -20,7 +20,7 @@ where
     phantom: std::marker::PhantomData<&'de ()>,
 }
 
-impl<'a,'de, 'deserializer_error, Inner, Extra> Visitor<'a, 'de, 'deserializer_error, Inner, Extra>
+impl<'a, 'de, 'deserializer_error, Inner, Extra> Visitor<'a, 'de, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions<'deserializer_error>,
@@ -39,8 +39,8 @@ where
     }
 }
 
-impl<'a, 'de,'deserializer_error, Inner, Extra> serde::de::Visitor<'de>
-    for Visitor<'a, 'de,'deserializer_error, Inner, Extra>
+impl<'de, 'deserializer_error, Inner, Extra> serde::de::Visitor<'de>
+    for Visitor<'_, 'de, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions<'deserializer_error>,

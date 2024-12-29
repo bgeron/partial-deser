@@ -1,58 +1,81 @@
 #[cfg(doc)]
 use crate::fallback;
-use std::error::Error as StdError;
+use std::{error::Error as StdError, fmt::Formatter};
 
 mod default_reporter;
 
 pub use default_reporter::DefaultReporter;
+use serde::de::Visitor;
 
 static_assertions::assert_obj_safe!(Reporter);
 
 pub trait Reporter<'deserializer_error> {
-    fn report_deserialize_start_any(&mut self);
-    fn report_deserialize_start_bool(&mut self);
-    fn report_deserialize_start_i8(&mut self);
-    fn report_deserialize_start_i16(&mut self);
-    fn report_deserialize_start_i32(&mut self);
-    fn report_deserialize_start_i64(&mut self);
-    fn report_deserialize_start_i128(&mut self);
-    fn report_deserialize_start_u8(&mut self);
-    fn report_deserialize_start_u16(&mut self);
-    fn report_deserialize_start_u32(&mut self);
-    fn report_deserialize_start_u64(&mut self);
-    fn report_deserialize_start_u128(&mut self);
-    fn report_deserialize_start_f32(&mut self);
-    fn report_deserialize_start_f64(&mut self);
-    fn report_deserialize_start_char(&mut self);
-    fn report_deserialize_start_str(&mut self);
-    fn report_deserialize_start_string(&mut self);
-    fn report_deserialize_start_bytes(&mut self);
-    fn report_deserialize_start_byte_buf(&mut self);
-    fn report_deserialize_start_option(&mut self);
-    fn report_deserialize_start_unit(&mut self);
-    fn report_deserialize_start_unit_struct(&mut self, name: &'static str);
-    fn report_deserialize_start_newtype_struct(&mut self, name: &'static str);
-    fn report_deserialize_start_seq(&mut self);
-    fn report_deserialize_start_tuple(&mut self, len: usize);
-    fn report_deserialize_start_tuple_struct(&mut self, name: &'static str, len: usize);
-    fn report_deserialize_start_map(&mut self);
+    fn report_deserialize_start_any(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_bool(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_i8(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_i16(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_i32(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_i64(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_i128(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_u8(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_u16(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_u32(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_u64(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_u128(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_f32(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_f64(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_char(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_str(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_string(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_bytes(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_byte_buf(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_option(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_unit(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_unit_struct(
+        &mut self,
+        args: &(dyn DeserializeBeginArgs + '_),
+        name: &'static str,
+    );
+    fn report_deserialize_start_newtype_struct(
+        &mut self,
+        args: &(dyn DeserializeBeginArgs + '_),
+        name: &'static str,
+    );
+    fn report_deserialize_start_seq(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_tuple(
+        &mut self,
+        args: &(dyn DeserializeBeginArgs + '_),
+        len: usize,
+    );
+    fn report_deserialize_start_tuple_struct(
+        &mut self,
+        args: &(dyn DeserializeBeginArgs + '_),
+        name: &'static str,
+        len: usize,
+    );
+    fn report_deserialize_start_map(&mut self, args: &(dyn DeserializeBeginArgs + '_));
     fn report_deserialize_start_struct(
         &mut self,
+        args: &(dyn DeserializeBeginArgs + '_),
         name: &'static str,
         fields: &'static [&'static str],
     );
     fn report_deserialize_start_enum(
         &mut self,
+        args: &(dyn DeserializeBeginArgs + '_),
         name: &'static str,
         variants: &'static [&'static str],
     );
-    fn report_deserialize_start_identifier(&mut self);
-    fn report_deserialize_start_ignored_any(&mut self);
+    fn report_deserialize_start_identifier(&mut self, args: &(dyn DeserializeBeginArgs + '_));
+    fn report_deserialize_start_ignored_any(&mut self, args: &(dyn DeserializeBeginArgs + '_));
     fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 
     /// This is called after visiting anything that doesn't have its own
     /// `report_end_*` method.
-    fn report_recv_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
+    fn report_recv_visit_end_primitive(
+        &mut self,
+        error: Option<&(dyn StdError + 'deserializer_error)>,
+    );
     fn report_recv_visit_start_bool(&mut self, v: bool);
     fn report_recv_visit_start_i8(&mut self, v: i8);
     fn report_recv_visit_start_i16(&mut self, v: i16);
@@ -69,13 +92,16 @@ pub trait Reporter<'deserializer_error> {
     fn report_recv_visit_start_char(&mut self, v: char);
     fn report_recv_visit_start_str(&mut self, v: &str);
     fn report_recv_visit_start_borrowed_bytes(&mut self, v: &[u8]);
-    fn report_recv_visit_start_byte_buf(&mut self, v: &Vec<u8>);
+    fn report_recv_visit_start_byte_buf(&mut self, v: &[u8]);
     fn report_recv_visit_start_none(&mut self);
     fn report_recv_visit_start_some(&mut self);
     fn report_recv_visit_end_some(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_unit(&mut self);
     fn report_recv_visit_start_newtype_struct(&mut self);
-    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
+    fn report_recv_visit_end_newtype_struct(
+        &mut self,
+        error: Option<&(dyn StdError + 'deserializer_error)>,
+    );
     fn report_recv_visit_start_seq(&mut self);
     fn report_recv_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_map(&mut self);
@@ -93,4 +119,47 @@ pub trait Reporter<'deserializer_error> {
     /// The deserializer failed without consuming the visitor, and a [`fallback`] was applied,
     /// or at least attempted.
     fn report_fallback(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
+}
+
+pub trait DeserializeBeginArgs {
+    fn expecting_fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result;
+}
+
+impl DeserializeBeginArgs for &dyn DeserializeBeginArgs {
+    fn expecting_fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        (*self).expecting_fmt(formatter)
+    }
+}
+
+pub(crate) trait DeserializeBeginArgsExt: DeserializeBeginArgs {
+    // Convenience wrapper around `expecting_fmt`
+    fn expecting(&self) -> impl std::fmt::Display + '_ {
+        Expecting(self)
+    }
+}
+
+impl<T> DeserializeBeginArgsExt for T where T: DeserializeBeginArgs {}
+
+pub struct Expecting<'a, T: ?Sized>(&'a T);
+
+impl<T> std::fmt::Display for Expecting<'_, T>
+where
+    T: DeserializeBeginArgs + ?Sized,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.expecting_fmt(f)
+    }
+}
+
+pub(crate) struct DeserializeBeginArgsImpl<'a, V: 'a> {
+    pub(crate) visitor: &'a V,
+}
+
+impl<'de, V> DeserializeBeginArgs for DeserializeBeginArgsImpl<'_, V>
+where
+    V: Visitor<'de>,
+{
+    fn expecting_fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        self.visitor.expecting(formatter)
+    }
 }

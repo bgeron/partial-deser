@@ -2,23 +2,23 @@ pub(crate) mod empty_access;
 mod state;
 mod visit;
 
+use std::fmt::Display;
 use std::marker::PhantomData;
 
 use state::AttemptState;
 pub(crate) use state::GlobalState;
-use tap::Tap as _;
 use visit::Visitor;
 
-use crate::error::FallbackError;
+use crate::error::{Error, FallbackError};
 use crate::fallback::Fallbacks;
 use crate::options::ExtraOptions;
-use crate::reporter::Reporter;
+use crate::reporter::{self, Reporter};
 use crate::util::{erase_error_ref, make_fnonce};
-use crate::{DefaultExtraOptions, Error};
 
 /// Represents a point in the deserialization process where we could choose to stop
 /// deserializing and save this attempt. For instance, before a map key or before a
 /// sequence element.
+#[derive(Clone, Copy, Debug)]
 struct AbortionPoint(pub usize);
 
 impl AbortionPoint {
@@ -34,6 +34,12 @@ impl AbortionPoint {
 impl From<usize> for AbortionPoint {
     fn from(point: usize) -> Self {
         Self(point)
+    }
+}
+
+impl Display for AbortionPoint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "abortion point {}", self.0)
     }
 }
 
@@ -58,30 +64,30 @@ where
 {
     type Error = Error<Inner::Error>;
 
-    fn deserialize_any<V>(mut self, inner_visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_any<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        self.global.reporter.report_deserialize_start_any();
+        {
+            self.global.reporter.report_deserialize_start_any(
+                &(reporter::DeserializeBeginArgsImpl {
+                    visitor: &inner_visitor,
+                }),
+            );
+        }
         let mut visitor = Some(inner_visitor);
         let result;
         {
-            let wrapped = Visitor::<'_, 'de, '_, V, _>::new(
-                &mut self.global,
-                &mut self.attempt,
-                &mut visitor,
-            );
+            let wrapped =
+                Visitor::<'_, 'de, '_, V, _>::new(self.global, self.attempt, &mut visitor);
             result = self.inner.deserialize_any(wrapped);
         }
         self.global
             .reporter
             .report_deserialize_end(erase_error_ref(&result));
 
-        if let Ok(value) = result {
-            return Ok(value);
-        };
-
-        if visitor.is_some() {
+        #[cold]
+        if result.is_err() && visitor.is_some() {
             // We can try to apply a fallback.
             self.global.reporter.report_start_fallback();
             let take_visitor =
@@ -90,7 +96,7 @@ where
                 Ok(Some(value)) => Some(Ok(value)),
                 Err(err) => Some(Err(FallbackError::FallbackVisitor(err))),
                 Ok(None) if visitor.is_some() => None,
-                Ok(None) => Some(Err(FallbackError::FallbackDidntCompute.into())),
+                Ok(None) => Some(Err(FallbackError::FallbackDidntCompute)),
             };
 
             if let Some(result) = result_opt {
@@ -106,7 +112,8 @@ where
                 self.global.reporter.report_no_fallback();
             }
         }
-        todo!()
+
+        result.map_err(Error::from_de)
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
