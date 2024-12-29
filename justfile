@@ -1,8 +1,7 @@
 
-_default: clippy
+# _default: clippy
 
-# _list:
-#     just --list
+_default-dev: fmt clippy-allow-dead
 
 all: clippy test doc
 

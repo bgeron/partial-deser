@@ -1,6 +1,14 @@
-use crate::options::ExtraOptions;
+use std::error::Error as StdError;
 
-use super::state::{AttemptState, GlobalState};
+use tap::Tap;
+
+use crate::options::ExtraOptions;
+use crate::reporter::Reporter;
+
+use super::{
+    erase_error_ref,
+    state::{AttemptState, GlobalState},
+};
 
 /// Something that creates a data value, if only you tell it what the format is like.
 pub(crate) struct Visitor<'a, 'de, Inner, Extra>
@@ -39,6 +47,28 @@ where
     }
 }
 
+fn framework<'de, Inner, Extra, E>(
+    visitor: Visitor<'_, 'de, Inner, Extra>,
+    do_visit: impl FnOnce(Inner) -> Result<Inner::Value, E>,
+    report_start: impl FnOnce(&mut Extra::Reporter),
+    report_end: impl FnOnce(&mut Extra::Reporter, Option<&dyn StdError>),
+) -> Result<Inner::Value, E>
+where
+    Inner: serde::de::Visitor<'de>,
+    Extra: ExtraOptions,
+    E: serde::de::Error,
+{
+    (report_start)(&mut visitor.global.reporter);
+
+    let inner_visitor = visitor
+        .inner
+        .take()
+        .expect("inner visitor is present when running Visitor");
+
+    do_visit(inner_visitor)
+        .tap(|result| report_end(&mut visitor.global.reporter, erase_error_ref(result)))
+}
+
 impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, 'de, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
@@ -54,11 +84,14 @@ where
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Bool(v),
-            &self,
-        ))
+        framework(
+            self,
+            |visitor| visitor.visit_bool(v),
+            |reporter| reporter.report_recv_visit_start_bool(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
