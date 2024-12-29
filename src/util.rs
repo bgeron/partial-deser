@@ -15,3 +15,56 @@ pub(crate) fn erase_error_ref<'error, T, E: std::error::Error + 'error>(
         .err()
         .map(|x| -> &(dyn std::error::Error + 'error) { x })
 }
+
+/// Correspond to methods and arguments of [`serde::Deserializer`].
+///
+/// Not public interface in the foreseeable future.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum DeserializeKind {
+    Any,
+    Bool,
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+    F32,
+    F64,
+    Char,
+    Str,
+    String,
+    Bytes,
+    ByteBuf,
+    Option,
+    Unit,
+    UnitStruct {
+        name: &'static str,
+    },
+    NewtypeStruct {
+        name: &'static str,
+    },
+    Seq,
+    Tuple {
+        len: usize,
+    },
+    TupleStruct {
+        name: &'static str,
+        len: usize,
+    },
+    Map,
+    Struct {
+        name: &'static str,
+        fields: &'static [&'static str],
+    },
+    Enum {
+        name: &'static str,
+        variants: &'static [&'static str],
+    },
+    Identifier,
+    IgnoredAny,
+}

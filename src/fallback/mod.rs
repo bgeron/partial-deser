@@ -1,6 +1,7 @@
 use serde::de::Visitor;
 
 use crate::r#impl::empty_access::EmptyAccess;
+use crate::util::DeserializeKind;
 
 /// This describes what to do in case the data ends unexpectedly.
 ///
@@ -249,5 +250,50 @@ impl Fallbacks for DefaultFallbacks {
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         (take_visitor)().visit_map(EmptyAccess::default()).map(Some)
+    }
+}
+
+impl<T> FallbacksExt for T where T: Fallbacks {}
+
+/// Not public interface in the foreseeable future.
+pub(crate) trait FallbacksExt: Fallbacks {
+    fn fallback<'a, V: Visitor<'a>, E: serde::de::Error>(
+        &self,
+        take_visitor: impl FnOnce() -> V,
+        kind: DeserializeKind,
+    ) -> Result<Option<V::Value>, E> {
+        match kind {
+            DeserializeKind::Any => self.fallback_any(take_visitor),
+            DeserializeKind::Bool => self.fallback_bool(take_visitor),
+            DeserializeKind::I8 => self.fallback_i8(take_visitor),
+            DeserializeKind::I16 => self.fallback_i16(take_visitor),
+            DeserializeKind::I32 => self.fallback_i32(take_visitor),
+            DeserializeKind::I64 => self.fallback_i64(take_visitor),
+            DeserializeKind::I128 => self.fallback_i128(take_visitor),
+            DeserializeKind::U8 => self.fallback_u8(take_visitor),
+            DeserializeKind::U16 => self.fallback_u16(take_visitor),
+            DeserializeKind::U32 => self.fallback_u32(take_visitor),
+            DeserializeKind::U64 => self.fallback_u64(take_visitor),
+            DeserializeKind::U128 => self.fallback_u128(take_visitor),
+            DeserializeKind::F32 => self.fallback_f32(take_visitor),
+            DeserializeKind::F64 => self.fallback_f64(take_visitor),
+            DeserializeKind::Char => self.fallback_char(take_visitor),
+            DeserializeKind::Str => self.fallback_str(take_visitor),
+            DeserializeKind::String => self.fallback_string(take_visitor),
+            DeserializeKind::Bytes => self.fallback_bytes(take_visitor),
+            DeserializeKind::ByteBuf => self.fallback_byte_buf(take_visitor),
+            DeserializeKind::Option => self.fallback_option(take_visitor),
+            DeserializeKind::Unit => self.fallback_unit(take_visitor),
+            DeserializeKind::UnitStruct { .. } => self.fallback_unit_struct(take_visitor),
+            DeserializeKind::NewtypeStruct { .. } => self.fallback_newtype_struct(take_visitor),
+            DeserializeKind::Seq => self.fallback_seq(take_visitor),
+            DeserializeKind::Tuple { .. } => self.fallback_tuple(take_visitor),
+            DeserializeKind::TupleStruct { .. } => self.fallback_tuple_struct(take_visitor),
+            DeserializeKind::Map => self.fallback_map(take_visitor),
+            DeserializeKind::Struct { .. } => self.fallback_struct(take_visitor),
+            DeserializeKind::Enum { .. } => self.fallback_enum(take_visitor),
+            DeserializeKind::Identifier => self.fallback_identifier(take_visitor),
+            DeserializeKind::IgnoredAny => self.fallback_ignored_any(take_visitor),
+        }
     }
 }
