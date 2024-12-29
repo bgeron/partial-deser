@@ -2,15 +2,12 @@ use crate::{options::ExtraOptions, Options};
 
 use super::AbortionPoint;
 
-pub(crate) struct GlobalState<
-    'deserializer_error,
-    Extra: crate::options::ExtraOptions<'deserializer_error>,
-> {
+pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
     /// Starts at 0
     pub(super) n_attempt: usize,
 
     // technically we don't have to keep the Extra value field of Options
-    pub(super) config: Options<'deserializer_error, Extra>,
+    pub(super) config: Options<Extra>,
     pub(super) reporter: Extra::Reporter,
     pub(super) fallbacks: Extra::FallbackProvider,
 }
@@ -32,10 +29,8 @@ pub(crate) struct AttemptState {
     pub(super) abortion_point_stack: Vec<AbortionPoint>,
 }
 
-impl<'deserializer_error, Extra: ExtraOptions<'deserializer_error>>
-    Options<'deserializer_error, Extra>
-{
-    pub(crate) fn build(self) -> GlobalState<'deserializer_error, Extra> {
+impl<Extra: ExtraOptions> Options<Extra> {
+    pub(crate) fn build(self) -> GlobalState<Extra> {
         let reporter = self.extra.make_reporter();
         let fallbacks = self.extra.make_fallback_provider();
         GlobalState {

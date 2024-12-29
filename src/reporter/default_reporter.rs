@@ -23,7 +23,7 @@ impl DefaultReporter {
     }
 }
 
-impl Reporter<'static> for DefaultReporter {
+impl Reporter for DefaultReporter {
     fn report_deserialize_start_any(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_any");
     }
@@ -194,14 +194,21 @@ impl Reporter<'static> for DefaultReporter {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_ignored_any");
     }
 
-    fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'static)>) {
-        trace!(nesting_level = self.level, error = error, "end deserialize");
-    }
-
-    fn report_recv_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_deserialize_end(&mut self, error: Option<&dyn StdError>) {
+        // We would like to log errors as tracing::Value, but that requires the error
+        // type to be 'static. Which we can make it for our deserializer (in this
+        // method), but not for our visitor (in the `report_recv_visit_*` methods).
         trace!(
             nesting_level = self.level,
-            error = error,
+            error = error.map(tracing::field::display),
+            "end deserialize"
+        );
+    }
+
+    fn report_recv_visit_end_primitive(&mut self, error: Option<&dyn StdError>) {
+        trace!(
+            nesting_level = self.level,
+            error = error.map(tracing::field::display),
             "end receive visit_primitive"
         );
     }
@@ -287,11 +294,11 @@ impl Reporter<'static> for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_some(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_some(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
-            error = error,
+            error = error.map(tracing::field::display),
             "end receive visit_some"
         );
     }
@@ -305,11 +312,11 @@ impl Reporter<'static> for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
-            error = error,
+            error = error.map(tracing::field::display),
             "end receive visit_newtype_struct"
         );
     }
@@ -319,11 +326,11 @@ impl Reporter<'static> for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_seq(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
-            error = error,
+            error = error.map(tracing::field::display),
             "end receive visit_seq"
         );
     }
@@ -333,11 +340,11 @@ impl Reporter<'static> for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_map(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_map(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
-            error = error,
+            error = error.map(tracing::field::display),
             "end receive visit_map"
         );
     }
@@ -347,11 +354,11 @@ impl Reporter<'static> for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_recv_visit_end_enum(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
-            error = error,
+            error = error.map(tracing::field::display),
             "end receive visit_enum"
         );
     }
@@ -362,11 +369,11 @@ impl Reporter<'static> for DefaultReporter {
         trace!(nesting_level = self.level, "no fallback was attempted");
     }
 
-    fn report_fallback(&mut self, error: Option<&(dyn StdError + 'static)>) {
+    fn report_fallback(&mut self, error: Option<&dyn StdError>) {
         if let Some(error) = error {
             trace!(
                 nesting_level = self.level,
-                error = error,
+                error = %error,
                 "fallback attempted but failed"
             );
         } else {

@@ -3,7 +3,6 @@ mod state;
 mod visit;
 
 use std::fmt::Display;
-use std::marker::PhantomData;
 
 use state::AttemptState;
 pub(crate) use state::GlobalState;
@@ -44,26 +43,24 @@ impl Display for AbortionPoint {
 }
 
 /// This is the deserializer with all options, including unstable interfaces.
-struct Deserializer<'a, 'deserializer_error, Inner, Extra>
+struct Deserializer<'a, Inner, Extra>
 where
     Inner: serde::Deserializer<'a>,
-    Extra: ExtraOptions<'deserializer_error>,
+    Extra: ExtraOptions,
 {
-    global: &'a mut GlobalState<'deserializer_error, Extra>,
+    global: &'a mut GlobalState<Extra>,
     attempt: &'a mut AttemptState,
     inner: Inner,
-    phantom: PhantomData<&'deserializer_error ()>,
 }
 
-fn framework<'de, 'deserializer_error, InnerDeserializer, Extra, InnerVisitor>(
+fn framework<'de, InnerDeserializer, Extra, InnerVisitor>(
     inner_visitor: InnerVisitor,
     kind: DeserializeKind,
-    deserializer: Deserializer<'de, 'deserializer_error, InnerDeserializer, Extra>,
+    deserializer: Deserializer<'de, InnerDeserializer, Extra>,
 ) -> Result<InnerVisitor::Value, Error<InnerDeserializer::Error>>
 where
-    Extra: ExtraOptions<'deserializer_error>,
+    Extra: ExtraOptions,
     InnerDeserializer: serde::Deserializer<'de>,
-    InnerDeserializer::Error: 'deserializer_error,
     InnerVisitor: serde::de::Visitor<'de>,
 {
     let report_args = reporter::DeserializeStartArgsImpl {
@@ -117,12 +114,10 @@ where
     result.map_err(Error::from_de)
 }
 
-impl<'de, 'deserializer_error, Inner, Extra> serde::Deserializer<'de>
-    for Deserializer<'de, 'deserializer_error, Inner, Extra>
+impl<'de, Inner, Extra> serde::Deserializer<'de> for Deserializer<'de, Inner, Extra>
 where
     Inner: serde::Deserializer<'de>,
-    Inner::Error: 'deserializer_error,
-    Extra: ExtraOptions<'deserializer_error>,
+    Extra: ExtraOptions,
 {
     type Error = Error<Inner::Error>;
 

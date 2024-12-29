@@ -3,12 +3,12 @@ use crate::options::ExtraOptions;
 use super::state::{AttemptState, GlobalState};
 
 /// Something that creates a data value, if only you tell it what the format is like.
-pub(crate) struct Visitor<'a, 'de, 'deserializer_error, Inner, Extra>
+pub(crate) struct Visitor<'a, 'de, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
-    Extra: ExtraOptions<'deserializer_error>,
+    Extra: ExtraOptions,
 {
-    pub(super) global: &'a mut GlobalState<'deserializer_error, Extra>,
+    pub(super) global: &'a mut GlobalState<Extra>,
     pub(super) attempt: &'a mut AttemptState,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
@@ -20,13 +20,13 @@ where
     phantom: std::marker::PhantomData<&'de ()>,
 }
 
-impl<'a, 'de, 'deserializer_error, Inner, Extra> Visitor<'a, 'de, 'deserializer_error, Inner, Extra>
+impl<'a, 'de, Inner, Extra> Visitor<'a, 'de, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
-    Extra: ExtraOptions<'deserializer_error>,
+    Extra: ExtraOptions,
 {
     pub(super) fn new(
-        global: &'a mut GlobalState<'deserializer_error, Extra>,
+        global: &'a mut GlobalState<Extra>,
         attempt: &'a mut AttemptState,
         inner_on_stack: &'a mut Option<Inner>,
     ) -> Self {
@@ -39,11 +39,10 @@ where
     }
 }
 
-impl<'de, 'deserializer_error, Inner, Extra> serde::de::Visitor<'de>
-    for Visitor<'_, 'de, 'deserializer_error, Inner, Extra>
+impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, 'de, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
-    Extra: ExtraOptions<'deserializer_error>,
+    Extra: ExtraOptions,
 {
     type Value = Inner::Value;
 

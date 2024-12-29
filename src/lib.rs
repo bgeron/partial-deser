@@ -37,7 +37,7 @@
 //! -
 //!
 
-use std::{marker::PhantomData, sync::Arc};
+use std::sync::Arc;
 
 #[cfg(doc)]
 use serde::Deserialize;
@@ -61,10 +61,7 @@ pub use {fallback::Fallbacks, reporter::Reporter};
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
 
 #[derive(Clone, Debug)]
-pub struct Options<
-    'deserializer_error,
-    Extra: ExtraOptions<'deserializer_error> = DefaultExtraOptions,
-> {
+pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     /// This is a random string that forms part of a suffix we add to
     /// the input JSON.
     ///
@@ -73,8 +70,6 @@ pub struct Options<
     parse_partial_json_tag: Option<Arc<str>>,
 
     extra: Extra,
-
-    phantom: PhantomData<&'deserializer_error ()>,
 }
 
 /// Partially deserialize the input with [`serde_json`].
@@ -83,13 +78,13 @@ pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
     Options::new_json().from_json_str(json)
 }
 
-impl Options<'static> {
+impl Options {
     /// Default config for JSON.
     ///
     /// This currently will generate a short random string for improved deserialization of
     /// partial strings.
     #[cfg(feature = "serde_json")]
-    pub fn new_json() -> Options<'static, DefaultExtraOptions> {
+    pub fn new_json() -> Options<DefaultExtraOptions> {
         use rand::distributions::{Alphanumeric, DistString};
         use rand::thread_rng;
 
@@ -100,12 +95,11 @@ impl Options<'static> {
         }
     }
 
-    pub fn new_generic() -> Options<'static, DefaultExtraOptions> {
+    pub fn new_generic() -> Options<DefaultExtraOptions> {
         Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
             extra: DefaultExtraOptions,
-            phantom: PhantomData,
         }
     }
 
