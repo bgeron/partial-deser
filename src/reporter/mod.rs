@@ -48,11 +48,11 @@ pub trait Reporter<'deserializer_error> {
     );
     fn report_deserialize_start_identifier(&mut self);
     fn report_deserialize_start_ignored_any(&mut self);
-    fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 
     /// This is called after visiting anything that doesn't have its own
     /// `report_end_*` method.
-    fn report_recv_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_recv_visit_end_primitive(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_bool(&mut self, v: bool);
     fn report_recv_visit_start_i8(&mut self, v: i8);
     fn report_recv_visit_start_i16(&mut self, v: i16);
@@ -72,16 +72,16 @@ pub trait Reporter<'deserializer_error> {
     fn report_recv_visit_start_byte_buf(&mut self, v: &Vec<u8>);
     fn report_recv_visit_start_none(&mut self);
     fn report_recv_visit_start_some(&mut self);
-    fn report_recv_visit_end_some(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_recv_visit_end_some(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_unit(&mut self);
     fn report_recv_visit_start_newtype_struct(&mut self);
-    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_seq(&mut self);
-    fn report_recv_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_recv_visit_end_seq(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_map(&mut self);
-    fn report_recv_visit_end_map(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_recv_visit_end_map(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
     fn report_recv_visit_start_enum(&mut self);
-    fn report_recv_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_recv_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 
     /// The deserializer failed without consuming the visitor. We start computing a [`fallback`].
     fn report_start_fallback(&mut self);
@@ -92,5 +92,5 @@ pub trait Reporter<'deserializer_error> {
 
     /// The deserializer failed without consuming the visitor, and a [`fallback`] was applied,
     /// or at least attempted.
-    fn report_fallback(&mut self, error: Option<&(dyn StdError + 'static)>);
+    fn report_fallback(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 }

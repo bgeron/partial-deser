@@ -1,14 +1,15 @@
 use crate::options::ExtraOptions;
 
-use super::state::AttemptState;
+use super::state::{AttemptState, GlobalState};
 
 /// Something that creates a data value, if only you tell it what the format is like.
-pub(crate) struct Visitor<'a, 'deserializer_error, Inner, Extra>
+pub(crate) struct Visitor<'a, 'de, 'deserializer_error, Inner, Extra>
 where
-    Inner: serde::de::Visitor<'a>,
+    Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions<'deserializer_error>,
 {
-    pub(super) state: &'a mut AttemptState<'a, 'deserializer_error, Extra>,
+    pub(super) global: &'a mut GlobalState<'deserializer_error, Extra>,
+    pub(super) attempt: &'a mut AttemptState,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
     /// and thus while the [`serde::de::Visitor`] methods of [`Visitor`] are called.
@@ -16,12 +17,32 @@ where
     /// The inner visitor actually lives on the stack, so that in case the deserializer fails,
     /// we can attempt to apply a fallback instead.
     pub(super) inner: &'a mut Option<Inner>,
+    phantom: std::marker::PhantomData<&'de ()>,
 }
 
-impl<'a, 'deserializer_error, Inner, Extra> serde::de::Visitor<'a>
-    for Visitor<'a, 'deserializer_error, Inner, Extra>
+impl<'a,'de, 'deserializer_error, Inner, Extra> Visitor<'a, 'de, 'deserializer_error, Inner, Extra>
 where
-    Inner: serde::de::Visitor<'a>,
+    Inner: serde::de::Visitor<'de>,
+    Extra: ExtraOptions<'deserializer_error>,
+{
+    pub(super) fn new(
+        global: &'a mut GlobalState<'deserializer_error, Extra>,
+        attempt: &'a mut AttemptState,
+        inner_on_stack: &'a mut Option<Inner>,
+    ) -> Self {
+        Self {
+            global,
+            attempt,
+            inner: inner_on_stack,
+            phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, 'de,'deserializer_error, Inner, Extra> serde::de::Visitor<'de>
+    for Visitor<'a, 'de,'deserializer_error, Inner, Extra>
+where
+    Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions<'deserializer_error>,
 {
     type Value = Inner::Value;
@@ -168,7 +189,7 @@ where
         ))
     }
 
-    fn visit_borrowed_str<E>(self, v: &'a str) -> Result<Self::Value, E>
+    fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
@@ -195,7 +216,7 @@ where
         ))
     }
 
-    fn visit_borrowed_bytes<E>(self, v: &'a [u8]) -> Result<Self::Value, E>
+    fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
@@ -224,7 +245,7 @@ where
 
     fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
-        D: serde::Deserializer<'a>,
+        D: serde::Deserializer<'de>,
     {
         // todo
         let _ = deserializer;
@@ -247,7 +268,7 @@ where
 
     fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
-        D: serde::Deserializer<'a>,
+        D: serde::Deserializer<'de>,
     {
         // todo
         let _ = deserializer;
@@ -259,7 +280,7 @@ where
 
     fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
     where
-        A: serde::de::SeqAccess<'a>,
+        A: serde::de::SeqAccess<'de>,
     {
         // todo
         let _ = seq;
@@ -271,7 +292,7 @@ where
 
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
     where
-        A: serde::de::MapAccess<'a>,
+        A: serde::de::MapAccess<'de>,
     {
         // todo
         let _ = map;
@@ -283,7 +304,7 @@ where
 
     fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
     where
-        A: serde::de::EnumAccess<'a>,
+        A: serde::de::EnumAccess<'de>,
     {
         // todo
         let _ = data;

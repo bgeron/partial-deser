@@ -9,24 +9,12 @@ pub(crate) use state::GlobalState;
 use tap::Tap as _;
 use visit::Visitor;
 
-use crate::{
-    error::FallbackError,
-    options::ExtraOptions,
-    reporter::Reporter,
-    util::{erase_error_ref, make_fnonce},
-    DefaultExtraOptions, Error, Fallbacks,
-};
-
-/// This is the deserializer with all options, including unstable interfaces.
-struct Deserializer<'a, 'deserializer_error, Inner, Extra>
-where
-    Inner: serde::Deserializer<'a>,
-    Extra: ExtraOptions<'deserializer_error>,
-{
-    state: &'a mut AttemptState<'a, 'deserializer_error, Extra>,
-    inner: Inner,
-    phantom: PhantomData<&'deserializer_error ()>,
-}
+use crate::error::FallbackError;
+use crate::fallback::Fallbacks;
+use crate::options::ExtraOptions;
+use crate::reporter::Reporter;
+use crate::util::{erase_error_ref, make_fnonce};
+use crate::{DefaultExtraOptions, Error};
 
 /// Represents a point in the deserialization process where we could choose to stop
 /// deserializing and save this attempt. For instance, before a map key or before a
@@ -49,43 +37,56 @@ impl From<usize> for AbortionPoint {
     }
 }
 
-impl<'a, 'deserializer_error, Inner, Extra> serde::Deserializer<'a>
-    for Deserializer<'a, 'deserializer_error, Inner, Extra>
+/// This is the deserializer with all options, including unstable interfaces.
+struct Deserializer<'a, 'deserializer_error, Inner, Extra>
 where
     Inner: serde::Deserializer<'a>,
+    Extra: ExtraOptions<'deserializer_error>,
+{
+    global: &'a mut GlobalState<'deserializer_error, Extra>,
+    attempt: &'a mut AttemptState,
+    inner: Inner,
+    phantom: PhantomData<&'deserializer_error ()>,
+}
+
+impl<'de, 'deserializer_error, Inner, Extra> serde::Deserializer<'de>
+    for Deserializer<'de, 'deserializer_error, Inner, Extra>
+where
+    Inner: serde::Deserializer<'de>,
     Inner::Error: 'deserializer_error,
     Extra: ExtraOptions<'deserializer_error>,
 {
     type Error = Error<Inner::Error>;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_any<V>(mut self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
-        self.state.reporter.report_deserialize_start_any();
-        let mut visitor = Some(visitor);
+        self.global.reporter.report_deserialize_start_any();
+        let mut visitor = Some(inner_visitor);
         let result;
         {
-            let wrapped = (&mut self.state).visitor(&mut visitor);
+            let wrapped = Visitor::<'_, 'de, '_, V, _>::new(
+                &mut self.global,
+                &mut self.attempt,
+                &mut visitor,
+            );
             result = self.inner.deserialize_any(wrapped);
         }
-        self.state
+        self.global
             .reporter
             .report_deserialize_end(erase_error_ref(&result));
 
-        let err = match result {
-            Ok(value) => return Ok(value),
-            Err(err) => err,
+        if let Ok(value) = result {
+            return Ok(value);
         };
-
-        self.state.n_attempt += 1;
 
         if visitor.is_some() {
             // We can try to apply a fallback.
-            self.state.reporter.report_start_fallback();
+            self.global.reporter.report_start_fallback();
             let take_visitor =
                 make_fnonce(|| visitor.take().expect("a Some can be .take()n in an FnOnce"));
-            let result_opt = match self.state.fallbacks.fallback_any(take_visitor) {
+            let result_opt = match self.global.fallbacks.fallback_any(take_visitor) {
                 Ok(Some(value)) => Some(Ok(value)),
                 Err(err) => Some(Err(FallbackError::FallbackVisitor(err))),
                 Ok(None) if visitor.is_some() => None,
@@ -93,7 +94,7 @@ where
             };
 
             if let Some(result) = result_opt {
-                self.state
+                self.global
                     .reporter
                     .report_fallback(erase_error_ref(&result));
 
@@ -102,7 +103,7 @@ where
                 }
             } else {
                 // The fallback didn't try to compute a value
-                self.state.reporter.report_no_fallback();
+                self.global.reporter.report_no_fallback();
             }
         }
         todo!()
@@ -110,126 +111,126 @@ where
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
@@ -240,7 +241,7 @@ where
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
@@ -251,21 +252,21 @@ where
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
@@ -277,14 +278,14 @@ where
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
@@ -296,7 +297,7 @@ where
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
@@ -308,21 +309,21 @@ where
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'de>,
     {
         todo!()
     }
