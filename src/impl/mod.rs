@@ -9,7 +9,13 @@ pub(crate) use state::GlobalState;
 use tap::Tap as _;
 use visit::Visitor;
 
-use crate::{options::ExtraOptions, reporter::Reporter, DefaultExtraOptions, Error};
+use crate::{
+    error::FallbackError,
+    options::ExtraOptions,
+    reporter::Reporter,
+    util::{erase_error_ref, make_fnonce},
+    DefaultExtraOptions, Error, Fallbacks,
+};
 
 /// This is the deserializer with all options, including unstable interfaces.
 struct Deserializer<'a, 'deserializer_error, Inner, Extra>
@@ -58,15 +64,14 @@ where
     {
         self.state.reporter.report_deserialize_start_any();
         let mut visitor = Some(visitor);
-        let mut wrapped = self.state.visitor(&mut visitor);
-        let result = self.inner.deserialize_any(wrapped).tap(|result| {
-            self.state.reporter.report_deserialize_end(
-                result
-                    .as_ref()
-                    .err()
-                    .map(|x| -> &(dyn std::error::Error + 'deserializer_error) { x }),
-            )
-        });
+        let result;
+        {
+            let wrapped = (&mut self.state).visitor(&mut visitor);
+            result = self.inner.deserialize_any(wrapped);
+        }
+        self.state
+            .reporter
+            .report_deserialize_end(erase_error_ref(&result));
 
         let err = match result {
             Ok(value) => return Ok(value),
@@ -75,12 +80,32 @@ where
 
         self.state.n_attempt += 1;
 
-        self.state.reporter.report_deserialize_error(&err);
-        self.state.reporter.report_start_fallback();
-        let fallback = self.state.config.extra.make_fallback_provider();
-        let result = fallback.fallback(&mut wrapped, &err);
-        self.state.reporter.report_fallback_end(result.err());
-        result
+        if visitor.is_some() {
+            // We can try to apply a fallback.
+            self.state.reporter.report_start_fallback();
+            let take_visitor =
+                make_fnonce(|| visitor.take().expect("a Some can be .take()n in an FnOnce"));
+            let result_opt = match self.state.fallbacks.fallback_any(take_visitor) {
+                Ok(Some(value)) => Some(Ok(value)),
+                Err(err) => Some(Err(FallbackError::FallbackVisitor(err))),
+                Ok(None) if visitor.is_some() => None,
+                Ok(None) => Some(Err(FallbackError::FallbackDidntCompute.into())),
+            };
+
+            if let Some(result) = result_opt {
+                self.state
+                    .reporter
+                    .report_fallback(erase_error_ref(&result));
+
+                if let Ok(value) = result {
+                    return Ok(value);
+                }
+            } else {
+                // The fallback didn't try to compute a value
+                self.state.reporter.report_no_fallback();
+            }
+        }
+        todo!()
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>

@@ -12,6 +12,7 @@ pub(crate) struct GlobalState<
     // technically we don't have to keep the Extra value field of Options
     pub(super) config: Options<'deserializer_error, Extra>,
     pub(super) reporter: Extra::Reporter,
+    pub(super) fallbacks: Extra::FallbackProvider,
 }
 
 pub(crate) struct AttemptState<
@@ -19,7 +20,6 @@ pub(crate) struct AttemptState<
     'deserializer_error,
     Extra: ExtraOptions<'deserializer_error>,
 > {
-    pub(super) global: &'global mut GlobalState<'deserializer_error, Extra>,
     /// If the previous attempt failed, then there may be a point where we can tell
     /// the visitor there's no more data (e.g. in the sequence or map) and safely
     /// finish deserialization.
@@ -27,23 +27,23 @@ pub(crate) struct AttemptState<
     pub(super) next_abortion_point: AbortionPoint,
 }
 
-// impl<'a, 'deserializer_error, Extra: ExtraOptions<'deserializer_error>> std::ops::Deref
-//     for AttemptState<'a, 'deserializer_error, Extra>
-// {
-//     type Target = GlobalState<'deserializer_error, Extra>;
+impl<'a, 'deserializer_error, Extra: ExtraOptions<'deserializer_error>> std::ops::Deref
+    for AttemptState<'a, 'deserializer_error, Extra>
+{
+    type Target = GlobalState<'deserializer_error, Extra>;
 
-//     fn deref(&self) -> &Self::Target {
-//         &self.global
-//     }
-// }
+    fn deref(&self) -> &Self::Target {
+        &self.global
+    }
+}
 
-// impl<'a, 'deserializer_error, Extra: ExtraOptions<'deserializer_error>> std::ops::DerefMut
-//     for AttemptState<'a, 'deserializer_error, Extra>
-// {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.global
-//     }
-// }
+impl<'a, 'deserializer_error, Extra: ExtraOptions<'deserializer_error>> std::ops::DerefMut
+    for AttemptState<'a, 'deserializer_error, Extra>
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.global
+    }
+}
 
 impl<'deserializer_error, Extra: ExtraOptions<'deserializer_error>>
     Options<'deserializer_error, Extra>
@@ -58,15 +58,16 @@ impl<'deserializer_error, Extra: ExtraOptions<'deserializer_error>>
     }
 }
 
-impl<'a, 'deserializer_error, Extra: ExtraOptions<'deserializer_error>>
+impl<'a, 'visitor, 'deserializer_error, Extra: ExtraOptions<'deserializer_error>>
     AttemptState<'a, 'deserializer_error, Extra>
 {
     pub(super) fn visitor<V>(
         &'a mut self,
         inner_on_stack: &'a mut Option<V>,
-    ) -> Visitor<'a, 'deserializer_error, V, Extra>
+    ) -> Visitor<'visitor, 'deserializer_error, V, Extra>
     where
-        V: serde::de::Visitor<'a>,
+        V: serde::de::Visitor<'visitor>,
+        'visitor: 'a,
     {
         Visitor {
             state: self,

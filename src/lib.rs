@@ -48,6 +48,7 @@ mod r#impl;
 mod options;
 mod reporter;
 mod source;
+mod util;
 
 pub use error::Error;
 pub use options::DefaultExtraOptions;
