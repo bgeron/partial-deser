@@ -24,93 +24,93 @@ impl DefaultReporter {
 }
 
 impl Reporter<'static> for DefaultReporter {
-    fn report_deserialize_start_any(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_any(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_any");
     }
 
-    fn report_deserialize_start_bool(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_bool(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_bool");
     }
 
-    fn report_deserialize_start_i8(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_i8(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_i8");
     }
 
-    fn report_deserialize_start_i16(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_i16(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_i16");
     }
 
-    fn report_deserialize_start_i32(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_i32(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_i32");
     }
 
-    fn report_deserialize_start_i64(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_i64(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_i64");
     }
 
-    fn report_deserialize_start_i128(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_i128(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_i128");
     }
 
-    fn report_deserialize_start_u8(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_u8(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_u8");
     }
 
-    fn report_deserialize_start_u16(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_u16(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_u16");
     }
 
-    fn report_deserialize_start_u32(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_u32(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_u32");
     }
 
-    fn report_deserialize_start_u64(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_u64(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_u64");
     }
 
-    fn report_deserialize_start_u128(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_u128(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_u128");
     }
 
-    fn report_deserialize_start_f32(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_f32(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_f32");
     }
 
-    fn report_deserialize_start_f64(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_f64(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_f64");
     }
 
-    fn report_deserialize_start_char(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_char(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_char");
     }
 
-    fn report_deserialize_start_str(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_str(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_str");
     }
 
-    fn report_deserialize_start_string(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_string(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_string");
     }
 
-    fn report_deserialize_start_bytes(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_bytes(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_bytes");
     }
 
-    fn report_deserialize_start_byte_buf(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_byte_buf(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_byte_buf");
     }
 
-    fn report_deserialize_start_option(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_option(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_option");
     }
 
-    fn report_deserialize_start_unit(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_unit(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_unit");
     }
 
     fn report_deserialize_start_unit_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
     ) {
         trace!(
@@ -122,7 +122,7 @@ impl Reporter<'static> for DefaultReporter {
 
     fn report_deserialize_start_newtype_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
     ) {
         trace!(
@@ -132,17 +132,17 @@ impl Reporter<'static> for DefaultReporter {
         );
     }
 
-    fn report_deserialize_start_seq(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_seq(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_seq");
     }
 
-    fn report_deserialize_start_tuple(&mut self, args: &dyn DeserializeStartArgs, len: usize) {
+    fn report_deserialize_start_tuple(&mut self, args: impl DeserializeStartArgs, len: usize) {
         trace!(nesting_level = self.level, len, expecting = %args.expecting(), "start deserialize_tuple");
     }
 
     fn report_deserialize_start_tuple_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
         len: usize,
     ) {
@@ -154,13 +154,13 @@ impl Reporter<'static> for DefaultReporter {
         );
     }
 
-    fn report_deserialize_start_map(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_map(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_map");
     }
 
     fn report_deserialize_start_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
         fields: &'static [&'static str],
     ) {
@@ -174,7 +174,7 @@ impl Reporter<'static> for DefaultReporter {
 
     fn report_deserialize_start_enum(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
         variants: &'static [&'static str],
     ) {
@@ -186,11 +186,11 @@ impl Reporter<'static> for DefaultReporter {
         );
     }
 
-    fn report_deserialize_start_identifier(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_identifier(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_identifier");
     }
 
-    fn report_deserialize_start_ignored_any(&mut self, args: &dyn DeserializeStartArgs) {
+    fn report_deserialize_start_ignored_any(&mut self, args: impl DeserializeStartArgs) {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_ignored_any");
     }
 

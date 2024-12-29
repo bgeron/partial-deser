@@ -8,63 +8,61 @@ mod default_reporter;
 pub use default_reporter::DefaultReporter;
 use serde::de::Visitor;
 
-static_assertions::assert_obj_safe!(Reporter);
-
 pub trait Reporter<'deserializer_error> {
-    fn report_deserialize_start_any(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_bool(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_i8(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_i16(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_i32(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_i64(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_i128(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_u8(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_u16(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_u32(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_u64(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_u128(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_f32(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_f64(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_char(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_str(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_string(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_bytes(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_byte_buf(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_option(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_unit(&mut self, args: &dyn DeserializeStartArgs);
+    fn report_deserialize_start_any(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_bool(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_i8(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_i16(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_i32(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_i64(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_i128(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_u8(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_u16(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_u32(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_u64(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_u128(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_f32(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_f64(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_char(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_str(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_string(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_bytes(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_byte_buf(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_option(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_unit(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_unit_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
     );
     fn report_deserialize_start_newtype_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
     );
-    fn report_deserialize_start_seq(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_tuple(&mut self, args: &dyn DeserializeStartArgs, len: usize);
+    fn report_deserialize_start_seq(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_tuple(&mut self, args: impl DeserializeStartArgs, len: usize);
     fn report_deserialize_start_tuple_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
         len: usize,
     );
-    fn report_deserialize_start_map(&mut self, args: &dyn DeserializeStartArgs);
+    fn report_deserialize_start_map(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_struct(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
         fields: &'static [&'static str],
     );
     fn report_deserialize_start_enum(
         &mut self,
-        args: &dyn DeserializeStartArgs,
+        args: impl DeserializeStartArgs,
         name: &'static str,
         variants: &'static [&'static str],
     );
-    fn report_deserialize_start_identifier(&mut self, args: &dyn DeserializeStartArgs);
-    fn report_deserialize_start_ignored_any(&mut self, args: &dyn DeserializeStartArgs);
+    fn report_deserialize_start_identifier(&mut self, args: impl DeserializeStartArgs);
+    fn report_deserialize_start_ignored_any(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_end(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 
     /// This is called after visiting anything that doesn't have its own
@@ -122,12 +120,6 @@ pub trait DeserializeStartArgs {
     fn expecting_fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result;
 }
 
-impl DeserializeStartArgs for &dyn DeserializeStartArgs {
-    fn expecting_fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
-        (*self).expecting_fmt(formatter)
-    }
-}
-
 /// Not public interface in the foreseeable future.
 pub(crate) trait DeserializeStartArgsExt: DeserializeStartArgs {
     // Convenience wrapper around `expecting_fmt`
@@ -169,7 +161,7 @@ impl<'deserializer_error, T> ReporterExt<'deserializer_error> for T where
 
 pub(crate) trait ReporterExt<'deserializer_error>: Reporter<'deserializer_error> {
     /// Not public interface in the foreseeable future.
-    fn report_deserialize_start(&mut self, args: &dyn DeserializeStartArgs, kind: DeserializeKind) {
+    fn report_deserialize_start(&mut self, args: impl DeserializeStartArgs, kind: DeserializeKind) {
         match kind {
             DeserializeKind::Any => self.report_deserialize_start_any(args),
             DeserializeKind::Bool => self.report_deserialize_start_bool(args),
