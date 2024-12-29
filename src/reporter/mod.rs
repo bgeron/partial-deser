@@ -1,5 +1,5 @@
 #[cfg(doc)]
-use crate::fallback;
+use crate::Fallbacks;
 use crate::util::DeserializeKind;
 use std::{error::Error as StdError, fmt::Formatter};
 
@@ -104,14 +104,14 @@ pub trait Reporter<'deserializer_error> {
     fn report_recv_visit_start_enum(&mut self);
     fn report_recv_visit_end_enum(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 
-    /// The deserializer failed without consuming the visitor. We start computing a [`fallback`].
+    /// The deserializer failed without consuming the visitor. We start computing one of the [`Fallbacks`].
     fn report_start_fallback(&mut self);
 
     /// The deserializer failed without consuming the visitor, but we chose not to apply
-    /// a [`fallback`]. (This is reported when the fallback does not take the visitor.)
+    /// one of the [`Fallbacks`]. (This is reported when the fallback does not take the visitor.)
     fn report_no_fallback(&mut self);
 
-    /// The deserializer failed without consuming the visitor, and a [`fallback`] was applied,
+    /// The deserializer failed without consuming the visitor, and one of the [`Fallbacks`] was applied,
     /// or at least attempted.
     fn report_fallback(&mut self, error: Option<&(dyn StdError + 'deserializer_error)>);
 }

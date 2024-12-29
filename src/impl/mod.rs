@@ -10,7 +10,7 @@ pub(crate) use state::GlobalState;
 use visit::Visitor;
 
 use crate::error::{Error, FallbackError};
-use crate::fallback::{Fallbacks, FallbacksExt as _};
+use crate::fallback::FallbacksExt as _;
 use crate::options::ExtraOptions;
 use crate::reporter::{self, Reporter, ReporterExt as _};
 use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};
@@ -72,7 +72,7 @@ where
     deserializer
         .global
         .reporter
-        .report_deserialize_start(&report_args, kind);
+        .report_deserialize_start(report_args, kind);
 
     // If the deserializer actually tries to visit, then this will be consumed.
     // Otherwise we will keep it, and try to visit with a callback.
