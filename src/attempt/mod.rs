@@ -1,11 +1,9 @@
 pub(crate) mod empty_access;
-mod state;
 mod visit;
 
 use std::fmt::Display;
 
-use state::AttemptState;
-pub(crate) use state::GlobalState;
+use crate::state::{AttemptState, GlobalState};
 use visit::Visitor;
 
 use crate::error::{Error, FallbackError};
@@ -18,7 +16,7 @@ use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};
 /// deserializing and save this attempt. For instance, before a map key or before a
 /// sequence element.
 #[derive(Clone, Copy, Debug)]
-struct AbortionPoint(pub usize);
+pub(crate) struct AbortionPoint(pub usize);
 
 impl AbortionPoint {
     fn new(point: usize) -> Self {

@@ -43,11 +43,13 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 mod attempt;
+mod deserialize;
 mod error;
 mod fallback;
 mod options;
 mod reporter;
-mod source;
+pub mod source;
+mod state;
 mod util;
 
 pub use error::Error;
@@ -60,6 +62,17 @@ pub use {fallback::Fallbacks, reporter::Reporter};
 #[cfg(feature = "serde_json")]
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
 
+/// Number of times that we may backtrack.
+///
+/// For good results, you should allow at least one backtracking for when the input
+/// stops in the middle of a map/struct value or enum.
+///
+/// A higher limit on backtracks is useful when not all struct fields
+/// are declared `#[serde(default)]`. In this case, the algorithm will attempt to
+/// incrementally prune on higher levels, e.g. omitting the list item that contains
+/// the end-of-file, or omitting a field of an enclosing struct.
+const DEFAULT_MAX_BACKTRACKS: Option<usize> = Some(10);
+
 #[derive(Clone, Debug)]
 pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     /// This is a random string that forms part of a suffix we add to
@@ -68,6 +81,8 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     /// As of Dec 2024, we don't stabilize the specific string format.
     #[cfg(feature = "serde_json")]
     parse_partial_json_tag: Option<Arc<str>>,
+
+    max_n_attempts: Option<usize>,
 
     extra: Extra,
 }

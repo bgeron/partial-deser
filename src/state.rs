@@ -1,10 +1,12 @@
-use crate::{options::ExtraOptions, Options};
-
-use super::AbortionPoint;
+use crate::attempt::AbortionPoint;
+use crate::options::ExtraOptions;
+use crate::Options;
 
 pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
     /// Starts at 0
     pub(super) n_attempt: usize,
+
+    pub(super) max_n_attempts: Option<usize>,
 
     // technically we don't have to keep the Extra value field of Options
     pub(super) config: Options<Extra>,
