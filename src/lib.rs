@@ -42,6 +42,13 @@ use std::sync::Arc;
 #[cfg(doc)]
 use serde::Deserialize;
 
+macro_rules! trace {
+    ($($arg:tt)*) => {
+        #[cfg(feature = "tracing")]
+        ::tracing::trace!($($arg)*)
+    };
+}
+
 mod attempt;
 mod deserialize;
 mod error;
@@ -114,8 +121,14 @@ impl Options {
         Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
+            max_n_attempts: DEFAULT_MAX_BACKTRACKS,
             extra: DefaultExtraOptions,
         }
+    }
+
+    pub fn with_max_n_attempts(mut self, max_n_attempts: Option<usize>) -> Self {
+        self.max_n_attempts = max_n_attempts;
+        self
     }
 
     #[cfg(feature = "serde_json")]

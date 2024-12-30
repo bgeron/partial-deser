@@ -1,12 +1,11 @@
 use crate::attempt::AbortionPoint;
+use crate::error::{BugEnum, InternalError};
 use crate::options::ExtraOptions;
 use crate::Options;
 
 pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
     /// Starts at 0
     pub(super) n_attempt: usize,
-
-    pub(super) max_n_attempts: Option<usize>,
 
     // technically we don't have to keep the Extra value field of Options
     pub(super) config: Options<Extra>,
@@ -45,6 +44,55 @@ impl<Extra: ExtraOptions> Options<Extra> {
 }
 
 impl AttemptState {
+    pub(crate) fn initial() -> Self {
+        Self {
+            intend_to_stop_deserializing_at: None,
+            next_abortion_point: AbortionPoint::default(),
+            abortion_point_stack: Vec::new(),
+        }
+    }
+
+    /// If a potential abortion point was saved for next time, then create a state for
+    /// that next attempt.
+    ///
+    /// Logs to tracing accordingly.
+    pub(crate) fn fresh_state_for_next_round(mut self) -> Result<Option<Self>, InternalError> {
+        match self.abortion_point_stack.last().copied() {
+            Some(most_recent_abortion_point) => {
+                if self.intend_to_stop_deserializing_at.is_some_and(
+                    |intend_to_stop_deserializing_at| {
+                        self.abortion_point_stack
+                            .iter()
+                            .any(|point| **point >= *intend_to_stop_deserializing_at)
+                    },
+                ) {
+                    return Err(BugEnum::PassedAbortionPoint {
+                        intended_to_stop_at: most_recent_abortion_point,
+                        abortion_point_stack: self.abortion_point_stack,
+                    }
+                    .into());
+                }
+
+                trace!(
+                    ?most_recent_abortion_point,
+                    ?self.abortion_point_stack,
+                    "creating state for next attempt"
+                );
+
+                self.abortion_point_stack.clear();
+                Ok(Some(Self {
+                    intend_to_stop_deserializing_at: Some(most_recent_abortion_point),
+                    next_abortion_point: AbortionPoint::default(),
+                    abortion_point_stack: self.abortion_point_stack,
+                }))
+            }
+            None => {
+                trace!("no abortion point active after attempt, giving up");
+                Ok(None)
+            }
+        }
+    }
+
     pub(crate) fn get_next_abortion_point(&mut self) -> AbortionPoint {
         let next = self.next_abortion_point;
         self.next_abortion_point.increment();

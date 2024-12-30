@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
+use itertools::Itertools as _;
 use serde::de::{Expected, Unexpected};
+
+use crate::attempt::AbortionPoint;
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
@@ -13,12 +16,14 @@ pub struct Error<DeserializerErr> {
 }
 
 #[derive(Debug, thiserror::Error)]
-enum ErrorImpl<DeserializerErr> {
+pub(crate) enum ErrorImpl<DeserializerErr> {
     /// The wrapped deserializer returned an error.
     ///
     /// (todo: keep? I guess most deserializer errors in practice are sort of equivalent to EOF?)
     #[error(transparent)]
     Deserializer(DeserializerErr),
+    #[error(transparent)]
+    Internal(InternalError),
     /// The deserializer behaved in an inconsistent / nondeterministic way.
     #[error(transparent)]
     InconsistentDeserializer(InconsistentDeserializerErr),
@@ -27,6 +32,31 @@ enum ErrorImpl<DeserializerErr> {
     /// The concrete error type within is not stable.
     #[error(transparent)]
     Fallback(FallbackError),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum InternalError {
+    #[error("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)")]
+    TooManyBacktracks,
+    #[error("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after {after_attempts} attempts)")]
+    NoPotentialBacktrackPoint { after_attempts: usize },
+    #[error("bug in partial-deser (please report): {0}")]
+    Bug(Bug),
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
+pub struct Bug(BugEnum);
+
+// todo: remove?
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum BugEnum {
+    #[error("intended to stop at {intended_to_stop_at}, but then the abortion stack turned out as [{}]", abortion_point_stack.iter().format(", "))]
+    PassedAbortionPoint {
+        intended_to_stop_at: AbortionPoint,
+        abortion_point_stack: Vec<AbortionPoint>,
+    },
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -62,6 +92,20 @@ impl<DeserializerErr> Error<DeserializerErr> {
         }
     }
 
+    pub fn as_internal_error(&self) -> Option<&InternalError> {
+        match &*self.err {
+            ErrorImpl::Internal(err) => Some(err),
+            _ => None,
+        }
+    }
+
+    pub fn into_internal_error(self) -> Option<InternalError> {
+        match *self.err {
+            ErrorImpl::Internal(err) => Some(err),
+            _ => None,
+        }
+    }
+
     /// Was the deserializer being inconsistent?
     pub fn as_inconsistent_deserializer_error(&self) -> Option<&InconsistentDeserializerErr> {
         match &*self.err {
@@ -80,6 +124,20 @@ impl<DeserializerErr> Error<DeserializerErr> {
     /// Did we try to construct a fallback error?
     pub fn is_fallback_error(&self) -> bool {
         matches!(&*self.err, ErrorImpl::Fallback(_))
+    }
+}
+
+impl<DeserializerErr> From<InternalError> for Error<DeserializerErr> {
+    fn from(err: InternalError) -> Self {
+        Self {
+            err: Box::new(ErrorImpl::Internal(err)),
+        }
+    }
+}
+
+impl From<BugEnum> for InternalError {
+    fn from(err: BugEnum) -> Self {
+        InternalError::Bug(Bug(err))
     }
 }
 

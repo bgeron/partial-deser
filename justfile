@@ -7,16 +7,16 @@ all: clippy test doc
 
 clippy:
     cargo clippy --all-targets --all-features
-    cargo clippy --all-targets
+    cargo clippy --all-targets --no-default-features
 
 clippy-allow-dead:
     cargo clippy --all-targets --all-features -- --allow dead_code
-    cargo clippy --all-targets -- --allow dead_code
+    cargo clippy --all-targets --no-default-features -- --allow dead_code
 
 test: clippy
     cargo test --all-targets --all-features
+    cargo test --all-targets --no-default-features
     cargo test --all-features --doc
-    cargo test --all-targets
 
 fmt:
     cargo fmt

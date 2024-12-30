@@ -2,6 +2,7 @@ pub(crate) mod empty_access;
 mod visit;
 
 use std::fmt::Display;
+use std::ops::Deref;
 
 use crate::state::{AttemptState, GlobalState};
 use visit::Visitor;
@@ -15,7 +16,7 @@ use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};
 /// Represents a point in the deserialization process where we could choose to stop
 /// deserializing and save this attempt. For instance, before a map key or before a
 /// sequence element.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct AbortionPoint(pub usize);
 
 impl AbortionPoint {
@@ -23,7 +24,7 @@ impl AbortionPoint {
         Self(point)
     }
 
-    fn increment(&mut self) {
+    pub(crate) fn increment(&mut self) {
         self.0 += 1;
     }
 }
@@ -37,6 +38,14 @@ impl From<usize> for AbortionPoint {
 impl Display for AbortionPoint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "abortion point {}", self.0)
+    }
+}
+
+impl Deref for AbortionPoint {
+    type Target = usize;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

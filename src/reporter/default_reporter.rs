@@ -1,13 +1,6 @@
 use std::error::Error as StdError;
-#[cfg(feature = "tracing")]
-use tracing::trace;
 
 use super::{DeserializeStartArgs, DeserializeStartArgsExt, Reporter};
-
-#[cfg(not(feature = "tracing"))]
-macro_rules! trace {
-    ($($arg:tt)*) => {};
-}
 
 /// A reporter that logs on tracing (if that crate is enabled), or does
 /// nothing otherwise.

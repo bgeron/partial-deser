@@ -2,13 +2,10 @@ use std::error::Error as StdError;
 
 use tap::Tap;
 
+use super::erase_error_ref;
 use crate::options::ExtraOptions;
 use crate::reporter::Reporter;
-
-use super::{
-    erase_error_ref,
-    state::{AttemptState, GlobalState},
-};
+use crate::state::{AttemptState, GlobalState};
 
 /// Something that creates a data value, if only you tell it what the format is like.
 pub(crate) struct Visitor<'a, 'de, Inner, Extra>
