@@ -1,6 +1,6 @@
 use serde::de::Visitor;
 
-use crate::r#impl::empty_access::EmptyAccess;
+use crate::attempt::empty_access::EmptyAccess;
 use crate::util::DeserializeKind;
 
 /// This describes what to do in case the data ends unexpectedly.

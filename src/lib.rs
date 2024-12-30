@@ -42,9 +42,9 @@ use std::sync::Arc;
 #[cfg(doc)]
 use serde::Deserialize;
 
+mod attempt;
 mod error;
 mod fallback;
-mod r#impl;
 mod options;
 mod reporter;
 mod source;
