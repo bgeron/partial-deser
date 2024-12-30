@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use serde::Deserializer;
 
 /// Represents the source of a data value that can be repeatedly deserialized.
@@ -29,21 +27,21 @@ pub trait Source<'de> {
     /// is guaranteed to be `Some`.
     ///
     /// Typically returns either `storage.take()` or `&mut storage`.
-    fn use_deserializer_from_storage<'storage>(
-        storage: &'storage mut Option<Self::DeserializerStorage>,
-    ) -> Self::Deserializer<'storage>;
+    fn use_deserializer_from_storage(
+        storage: &mut Option<Self::DeserializerStorage>,
+    ) -> Self::Deserializer<'_>;
 }
 
 /// Use [`serde_json::from_str`].
 #[cfg(feature = "serde_json")]
-pub struct JsonStr<T: Borrow<str>>(T);
+pub struct JsonStr<'de, T: std::borrow::Borrow<str> + ?Sized>(pub &'de T);
 
 /// Use [`serde_json::from_slice`].
 #[cfg(feature = "serde_json")]
-pub struct JsonBytes<T: Borrow<[u8]>>(T);
+pub struct JsonBytes<'de, T: std::borrow::Borrow<[u8]> + ?Sized>(pub &'de T);
 
 #[cfg(feature = "serde_json")]
-impl<'de, T: Borrow<str>> Source<'de> for &'de JsonStr<T> {
+impl<'de, T: std::borrow::Borrow<str> + ?Sized> Source<'de> for JsonStr<'de, T> {
     type DeserializerStorage = serde_json::Deserializer<serde_json::de::StrRead<'de>>;
     type Deserializer<'storage>
         = &'storage mut serde_json::Deserializer<serde_json::de::StrRead<'de>>
@@ -54,7 +52,7 @@ impl<'de, T: Borrow<str>> Source<'de> for &'de JsonStr<T> {
     // type Deserializer<'storage> =
     //     &'storage mut serde_json::Deserializer<serde_json::de::StrRead<'de>>;
 
-    fn recreate_deserializer_storage<'a>(&'a mut self) -> Self::DeserializerStorage {
+    fn recreate_deserializer_storage(&mut self) -> Self::DeserializerStorage {
         serde_json::Deserializer::from_str(self.0.borrow())
     }
 
@@ -68,7 +66,7 @@ impl<'de, T: Borrow<str>> Source<'de> for &'de JsonStr<T> {
 }
 
 #[cfg(feature = "serde_json")]
-impl<'de, T: Borrow<[u8]>> Source<'de> for &'de JsonBytes<T> {
+impl<'de, T: std::borrow::Borrow<[u8]> + ?Sized> Source<'de> for JsonBytes<'de, T> {
     type DeserializerStorage = serde_json::Deserializer<serde_json::de::SliceRead<'de>>;
     type Deserializer<'storage>
         = &'storage mut serde_json::Deserializer<serde_json::de::SliceRead<'de>>
@@ -76,7 +74,7 @@ impl<'de, T: Borrow<[u8]>> Source<'de> for &'de JsonBytes<T> {
         'de: 'storage;
     type Error = serde_json::Error;
 
-    fn recreate_deserializer_storage<'a>(&'a mut self) -> Self::DeserializerStorage {
+    fn recreate_deserializer_storage(&mut self) -> Self::DeserializerStorage {
         serde_json::Deserializer::from_slice(self.0.borrow())
     }
 

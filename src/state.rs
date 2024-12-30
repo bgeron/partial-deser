@@ -4,8 +4,8 @@ use crate::options::ExtraOptions;
 use crate::Options;
 
 pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
-    /// Starts at 0
-    pub(super) n_attempt: usize,
+    /// Set to 1 during first attempt
+    pub(super) n_attempts: usize,
 
     // technically we don't have to keep the Extra value field of Options
     pub(super) config: Options<Extra>,
@@ -35,7 +35,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         let reporter = self.extra.make_reporter();
         let fallbacks = self.extra.make_fallback_provider();
         GlobalState {
-            n_attempt: 0,
+            n_attempts: 0,
             config: self,
             reporter,
             fallbacks,

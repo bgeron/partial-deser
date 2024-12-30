@@ -2,6 +2,7 @@ pub(crate) mod empty_access;
 mod visit;
 
 use std::fmt::Display;
+use std::marker::PhantomData;
 use std::ops::Deref;
 
 use crate::state::{AttemptState, GlobalState};
@@ -50,20 +51,21 @@ impl Deref for AbortionPoint {
 }
 
 /// This is the deserializer with all options, including unstable interfaces.
-struct Deserializer<'a, Inner, Extra>
+pub(crate) struct Deserializer<'a, 'de, Inner, Extra>
 where
-    Inner: serde::Deserializer<'a>,
+    Inner: serde::Deserializer<'de>,
     Extra: ExtraOptions,
 {
-    global: &'a mut GlobalState<Extra>,
-    attempt: &'a mut AttemptState,
-    inner: Inner,
+    pub(crate) global: &'a mut GlobalState<Extra>,
+    pub(crate) attempt: &'a mut AttemptState,
+    pub(crate) inner: Inner,
+    pub(crate) phantom: PhantomData<fn(&'de ())>,
 }
 
-fn framework<'de, InnerDeserializer, Extra, InnerVisitor>(
+fn framework<'a, 'de, InnerDeserializer, Extra, InnerVisitor>(
     inner_visitor: InnerVisitor,
     kind: DeserializeKind,
-    deserializer: Deserializer<'de, InnerDeserializer, Extra>,
+    deserializer: Deserializer<'a, 'de, InnerDeserializer, Extra>,
 ) -> Result<InnerVisitor::Value, Error<InnerDeserializer::Error>>
 where
     Extra: ExtraOptions,
@@ -121,7 +123,7 @@ where
     result.map_err(Error::from_de)
 }
 
-impl<'de, Inner, Extra> serde::Deserializer<'de> for Deserializer<'de, Inner, Extra>
+impl<'de, Inner, Extra> serde::Deserializer<'de> for Deserializer<'_, 'de, Inner, Extra>
 where
     Inner: serde::Deserializer<'de>,
     Extra: ExtraOptions,

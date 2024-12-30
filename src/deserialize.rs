@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use serde::de::DeserializeSeed;
 use serde::Deserialize;
 
-use crate::attempt::AbortionPoint;
-use crate::error::{ErrorImpl, InternalError};
+use crate::attempt::Deserializer;
+use crate::error::InternalError;
 use crate::options::ExtraOptions;
 use crate::state::AttemptState;
 use crate::{Error, Options, Source};
@@ -33,19 +33,33 @@ impl<Extra: ExtraOptions> Options<Extra> {
         S: Source<'de>,
     {
         let mut state = self.build();
+        let mut attempt = AttemptState::initial();
 
-        // let mut attempt:AttemptState =
-        while state
-            .config
-            .max_n_attempts
-            .is_none_or(|max| state.n_attempt <= max)
-        {
+        while {
+            let max_n_attempts = state.config.max_n_attempts;
+            max_n_attempts.is_none_or(|max| state.n_attempts < max)
+        } {
+            state.n_attempts += 1;
             let mut inner_deserializer_storage = Some(source.recreate_deserializer_storage());
-            let mut inner_deserializer =
+            let inner_deserializer =
                 S::use_deserializer_from_storage(&mut inner_deserializer_storage);
 
-            // let deserializer =
-            todo!()
+            let deserializer = Deserializer {
+                global: &mut state,
+                attempt: &mut attempt,
+                inner: inner_deserializer,
+                phantom: PhantomData,
+            };
+
+            attempt = match attempt.fresh_state_for_next_round()? {
+                Some(new_attempt) => new_attempt,
+                None => {
+                    return Err(InternalError::NoPotentialBacktrackPoint {
+                        after_attempts: state.n_attempts,
+                    }
+                    .into())
+                }
+            }
         }
 
         Err(InternalError::TooManyBacktracks.into())

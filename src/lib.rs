@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(not(feature = "tracing"), allow(unused_variables, unused_imports))]
 
 //! Deserialize with Serde from partial JSON and more
 //!
@@ -37,6 +38,7 @@
 //! -
 //!
 
+#[cfg(feature = "serde_json")]
 use std::sync::Arc;
 
 #[cfg(doc)]
@@ -96,7 +98,10 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
 
 /// Partially deserialize the input with [`serde_json`].
 #[cfg(feature = "serde_json")]
-pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>> {
+pub fn from_json_str<'de, T>(json: &'de str) -> Result<T, Error<serde_json::Error>>
+where
+    T: serde::Deserialize<'de>,
+{
     Options::new_json().from_json_str(json)
 }
 
@@ -132,7 +137,11 @@ impl Options {
     }
 
     #[cfg(feature = "serde_json")]
-    pub fn from_json_str<T>(&self, json: &str) -> Result<T, Error<serde_json::Error>> {
-        todo!()
+    pub fn from_json_str<'de, T>(self, json: &'de str) -> Result<T, Error<serde_json::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        let source = source::JsonStr(json);
+        self.deserialize_source(source)
     }
 }
