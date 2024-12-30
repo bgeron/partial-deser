@@ -5,11 +5,13 @@ use serde::Deserializer;
 /// Represents the source of a data value that can be repeatedly deserialized.
 /// For instance, serde_json on a borrowed string.
 pub trait Source {
-    type Deserializer<'de>: Deserializer<'de>
-    where
-        Self: 'de;
-    // /// For some sources, the owned type does not actually implement [`Deserializer`] yet.
-    // type Deserializer<'de>: Deserializer<'de>;
+    /// Stack storage for the deserializer.
+    type DeserializerStorage;
+
+    /// A type that indicates how long the deserializer can be useful.
+    ///
+    /// Should be `&'something ()`.
+    type Lifetime<'storage>;
 
     /// Recreate a deserializer for this source.
     ///
@@ -19,13 +21,17 @@ pub trait Source {
     /// If end of file happens in a map in between the key and the value, then
     /// the first go at partially deserializing will fail, and we have to recreate
     /// a new deserializer for the same source.
-    fn recreate_deserializer<'de>(&'de mut self) -> Self::Deserializer<'de>;
+    fn recreate_deserializer_storage(&mut self) -> Self::DeserializerStorage;
 
-    // fn borrow_deserializer<'de>(deser: &'de Self::DeserializerOwner) -> &'de Self::Deserializer<'de>
-
-    // {
-    //     deser
-    // }
+    /// Will be called exactly once per [`Self::DeserializerStorage`]. The argument
+    /// is guaranteed to be `Some`.
+    ///
+    /// Typically returns either `storage.take()` or `&mut storage`.
+    fn use_deserializer_from_storage<'de, 'storage>(
+        storage: &'storage mut Option<Self::DeserializerStorage>,
+    ) -> impl Deserializer<'de> + 'storage
+    where
+        Self::Lifetime<'storage>: 'de;
 }
 
 /// Use [`serde_json::from_str`].
@@ -38,11 +44,26 @@ pub struct JsonBytes<T: Borrow<[u8]>>(T);
 
 #[cfg(feature = "serde_json")]
 impl<'de, T: Borrow<str>> Source for &'de Json<T> {
-    type Deserializer<'_> =
-        RefMutDeserializer<serde_json::Deserializer<serde_json::de::StrRead<'de>>>;
+    type DeserializerStorage = serde_json::Deserializer<serde_json::de::StrRead<'de>>;
 
-    fn recreate_deserializer<'a>(&'a mut self) -> Self::Deserializer<'de> {
+    type Lifetime<'storage> = &'de ();
+
+    // type Deserializer<'storage> =
+    //     &'storage mut serde_json::Deserializer<serde_json::de::StrRead<'de>>;
+
+    fn recreate_deserializer_storage<'a>(&'a mut self) -> Self::DeserializerStorage {
         serde_json::Deserializer::from_str(self.0.borrow())
+    }
+
+    fn use_deserializer_from_storage<'de2, 'storage>(
+        storage: &'storage mut Option<serde_json::Deserializer<serde_json::de::StrRead<'de>>>,
+    ) -> &'storage mut serde_json::Deserializer<serde_json::de::StrRead<'de2>>
+    where
+        Self::Lifetime<'storage>: 'de2,
+    {
+        storage
+            .as_mut()
+            .expect("use_deserializer_from_storage only called on Some")
     }
 }
 
