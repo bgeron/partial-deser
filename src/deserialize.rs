@@ -1,3 +1,4 @@
+use std::error::Error as StdError;
 use std::marker::PhantomData;
 
 use serde::de::DeserializeSeed;
@@ -29,7 +30,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         mut source: S,
     ) -> Result<T::Value, Error<S::Error>>
     where
-        T: DeserializeSeed<'de>,
+        T: DeserializeSeed<'de> + Clone,
         S: Source<'de>,
     {
         let mut state = self.build();
@@ -50,6 +51,13 @@ impl<Extra: ExtraOptions> Options<Extra> {
                 inner: inner_deserializer,
                 phantom: PhantomData,
             };
+
+            match seed.clone().deserialize(deserializer) {
+                Ok(value) => return Ok(value),
+                Err(error) => {
+                    debug!(attempt = state.n_attempts, %error, "attempt failed");
+                }
+            }
 
             attempt = match attempt.fresh_state_for_next_round()? {
                 Some(new_attempt) => new_attempt,

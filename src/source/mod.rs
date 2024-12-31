@@ -11,7 +11,7 @@ pub trait Source<'de> {
         'de: 'storage;
 
     /// The error type cannot depend on `'storage`.
-    type Error;
+    type Error: serde::de::Error;
 
     /// Recreate a deserializer for this source.
     ///

@@ -7,13 +7,13 @@ pub(crate) fn make_fnonce<T>(f: impl FnOnce() -> T) -> impl FnOnce() -> T {
 }
 
 /// Erase `&Result` to a dyn error.
-pub(crate) fn erase_error_ref<'error, T, E: std::error::Error + 'error>(
+pub(crate) fn erase_error_ref<T, E: std::error::Error>(
     result: &Result<T, E>,
-) -> Option<&(dyn std::error::Error + 'error)> {
+) -> Option<&(dyn std::error::Error)> {
     result
         .as_ref()
         .err()
-        .map(|x| -> &(dyn std::error::Error + 'error) { x })
+        .map(|x| -> &(dyn std::error::Error) { x })
 }
 
 /// Correspond to methods and arguments of [`serde::Deserializer`].
