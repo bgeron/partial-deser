@@ -1,4 +1,3 @@
-use std::error::Error as StdError;
 use std::marker::PhantomData;
 
 use serde::de::DeserializeSeed;

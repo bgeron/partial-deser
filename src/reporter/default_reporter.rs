@@ -266,6 +266,18 @@ impl Reporter for DefaultReporter {
         trace!(nesting_level = self.level, v, "receive visit_str");
     }
 
+    fn report_recv_visit_start_borrowed_str(&mut self, v: &str) {
+        trace!(nesting_level = self.level, v, "receive visit_borrowed_str");
+    }
+
+    fn report_recv_visit_start_string(&mut self, v: &str) {
+        trace!(nesting_level = self.level, ?v, "receive visit_string");
+    }
+
+    fn report_recv_visit_start_bytes(&mut self, v: &[u8]) {
+        trace!(nesting_level = self.level, v, "receive visit_bytes");
+    }
+
     fn report_recv_visit_start_borrowed_bytes(&mut self, v: &[u8]) {
         trace!(
             nesting_level = self.level,

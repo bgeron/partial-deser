@@ -47,7 +47,6 @@ where
 fn framework<'de, Inner, Extra, E>(
     visitor: Visitor<'_, 'de, Inner, Extra>,
     do_visit: impl FnOnce(Inner) -> Result<Inner::Value, E>,
-    report_start: impl FnOnce(&mut Extra::Reporter),
     report_end: impl FnOnce(&mut Extra::Reporter, Option<&dyn StdError>),
 ) -> Result<Inner::Value, E>
 where
@@ -55,8 +54,6 @@ where
     Extra: ExtraOptions,
     E: serde::de::Error,
 {
-    (report_start)(&mut visitor.global.reporter);
-
     let inner_visitor = visitor
         .inner
         .take()
@@ -81,10 +78,11 @@ where
     where
         E: serde::de::Error,
     {
+        self.global.reporter.report_recv_visit_start_bool(v);
+
         framework(
             self,
             |visitor| visitor.visit_bool(v),
-            |reporter| reporter.report_recv_visit_start_bool(v),
             |reporter, error| {
                 reporter.report_recv_visit_end_primitive(error);
             },
@@ -95,216 +93,331 @@ where
     where
         E: serde::de::Error,
     {
-        // todo
-        // todo
-        self.visit_i64(v as i64)
+        self.global.reporter.report_recv_visit_start_i8(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_i8(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        // todo
-        self.visit_i64(v as i64)
+        self.global.reporter.report_recv_visit_start_i16(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_i16(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        // todo
-        self.visit_i64(v as i64)
+        self.global.reporter.report_recv_visit_start_i32(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_i32(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Signed(v),
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_i64(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_i64(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        todo!()
+        self.global.reporter.report_recv_visit_start_i128(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_i128(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_u64(v as u64)
+        self.global.reporter.report_recv_visit_start_u8(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_u8(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_u64(v as u64)
+        self.global.reporter.report_recv_visit_start_u16(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_u16(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_u64(v as u64)
+        self.global.reporter.report_recv_visit_start_u32(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_u32(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Unsigned(v),
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_u64(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_u64(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        todo!()
+        self.global.reporter.report_recv_visit_start_u128(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_u128(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_f64(v as f64)
+        self.global.reporter.report_recv_visit_start_f32(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_f32(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Float(v),
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_f64(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_f64(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_char<E>(self, v: char) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_str(v.encode_utf8(&mut [0u8; 4]))
+        self.global.reporter.report_recv_visit_start_char(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_char(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Str(v),
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_str(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_str(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_str(v)
+        self.global.reporter.report_recv_visit_start_borrowed_str(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_borrowed_str(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_str(&v)
+        self.global.reporter.report_recv_visit_start_string(&v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_string(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Bytes(v),
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_bytes(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_bytes(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_bytes(v)
+        self.global
+            .reporter
+            .report_recv_visit_start_borrowed_bytes(v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_borrowed_bytes(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        self.visit_bytes(&v)
+        self.global.reporter.report_recv_visit_start_byte_buf(&v);
+
+        framework(
+            self,
+            |visitor| visitor.visit_byte_buf(v),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_none<E>(self) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Option,
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_none();
+
+        framework(
+            self,
+            |visitor| visitor.visit_none(),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        // todo
-        let _ = deserializer;
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Option,
-            &self,
-        ))
+        todo!()
     }
 
     fn visit_unit<E>(self) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // todo
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Unit,
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_unit();
+
+        framework(
+            self,
+            |visitor| visitor.visit_unit(),
+            |reporter, error| {
+                reporter.report_recv_visit_end_primitive(error);
+            },
+        )
     }
 
     fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        // todo
-        let _ = deserializer;
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::NewtypeStruct,
-            &self,
-        ))
+        todo!()
     }
 
     fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>

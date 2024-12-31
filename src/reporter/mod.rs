@@ -83,6 +83,9 @@ pub trait Reporter {
     fn report_recv_visit_start_f64(&mut self, v: f64);
     fn report_recv_visit_start_char(&mut self, v: char);
     fn report_recv_visit_start_str(&mut self, v: &str);
+    fn report_recv_visit_start_borrowed_str(&mut self, v: &str);
+    fn report_recv_visit_start_string(&mut self, v: &str);
+    fn report_recv_visit_start_bytes(&mut self, v: &[u8]);
     fn report_recv_visit_start_borrowed_bytes(&mut self, v: &[u8]);
     fn report_recv_visit_start_byte_buf(&mut self, v: &[u8]);
     fn report_recv_visit_start_none(&mut self);
