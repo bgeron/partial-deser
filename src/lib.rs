@@ -68,11 +68,9 @@ mod state;
 mod util;
 
 pub use error::Error;
-pub use options::DefaultExtraOptions;
-use options::ExtraOptions;
+pub use options::{DefaultExtraOptions, MakeDefaultFallbacks, MakeDefaultReporter};
+use options::{ExtraOptions, UnstableCustomBehavior};
 pub use source::Source;
-#[cfg(feature = "unstable")]
-pub use {fallback::Fallbacks, options::UnstableCustomBehavior, reporter::Reporter};
 
 #[cfg(feature = "serde_json")]
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
@@ -136,7 +134,7 @@ impl Options {
             parse_partial_json_tag: None,
             max_n_attempts: DEFAULT_MAX_BACKTRACKS,
             behavior: UnstableCustomBehavior::default(),
-            extra: DefaultExtraOptions,
+            extra: DefaultExtraOptions::default(),
         }
     }
 

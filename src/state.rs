@@ -1,3 +1,6 @@
+#[cfg(doc)]
+use serde::de::SeqAccess;
+
 use crate::attempt::AbortionPoint;
 use crate::error::{BugEnum, InternalError};
 use crate::options::ExtraOptions;
@@ -18,6 +21,10 @@ pub(crate) struct AttemptState {
     /// the visitor there's no more data (e.g. in the sequence or map) and safely
     /// finish deserialization.
     pub(super) intend_to_stop_deserializing_at: Option<AbortionPoint>,
+
+    /// Whether we have intervened in deserialization, and what the cause originally was.
+    pub(super) are_intervening: Option<ReasonToIntervene>,
+
     pub(super) next_abortion_point: AbortionPoint,
     /// Stack of points where we may abort deserialization on the next attempt.
     ///
@@ -30,8 +37,21 @@ pub(crate) struct AttemptState {
     pub(super) abortion_point_stack: Vec<AbortionPoint>,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum ReasonToIntervene {
+    /// The deserializer has returned an error (we do not distinguish between its errors)
+    EndOfInput,
+    /// We planned to abort deserialization at a certain point, and we have reached that point.
+    PlannedAbortion { at: AbortionPoint },
+    /// A visitor (data type) returned an error.
+    ///
+    /// This may well be recoverable, e.g. if the error happens inside [`SeqAccess`] or
+    /// a map key.
+    VisitError,
+}
+
 impl<Extra: ExtraOptions> Options<Extra> {
-    pub(crate) fn build(self) -> GlobalState<Extra> {
+    pub(crate) fn build(mut self) -> GlobalState<Extra> {
         let reporter = self.extra.make_reporter();
         let fallbacks = self.extra.make_fallback_provider(&self.behavior);
         GlobalState {
@@ -47,6 +67,7 @@ impl AttemptState {
     pub(crate) fn initial() -> Self {
         Self {
             intend_to_stop_deserializing_at: None,
+            are_intervening: None,
             next_abortion_point: AbortionPoint::default(),
             abortion_point_stack: Vec::new(),
         }
@@ -82,6 +103,7 @@ impl AttemptState {
                 self.abortion_point_stack.clear();
                 Ok(Some(Self {
                     intend_to_stop_deserializing_at: Some(most_recent_abortion_point),
+                    are_intervening: None,
                     next_abortion_point: AbortionPoint::default(),
                     abortion_point_stack: self.abortion_point_stack,
                 }))

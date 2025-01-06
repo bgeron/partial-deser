@@ -1,10 +1,10 @@
 use crate::{fallback::DefaultFallbacks, reporter::DefaultReporter};
 
-pub struct DefaultExtraOptions;
-
 /// Monomorphized options.
 ///
 /// This is a type parameter pack.
+///
+/// All of this is unstable.
 ///
 /// ## Parameters
 ///
@@ -16,26 +16,86 @@ pub struct DefaultExtraOptions;
 /// An alternative reporter could instead always log e.g. the display representation
 /// of the error. Then the corresponding parameter pack could implement [`ExtraOptions<'_>`].
 pub trait ExtraOptions {
+    /// Will only be called once per invocation of a public function in this crate
+    fn make_reporter(&mut self) -> Self::Reporter;
     type Reporter: crate::reporter::Reporter;
 
-    /// Will only be called once
-    fn make_reporter(&self) -> Self::Reporter;
-
+    /// Will only be called once per invocation of a public function in this crate
+    fn make_fallback_provider(
+        &mut self,
+        behavior: &UnstableCustomBehavior,
+    ) -> Self::FallbackProvider;
     type FallbackProvider: crate::fallback::Fallbacks;
-    fn make_fallback_provider(&self, behavior: &UnstableCustomBehavior) -> Self::FallbackProvider;
 }
 
-impl ExtraOptions for DefaultExtraOptions {
+/// Reexports to satisfy Rust's visibility rules TODO
+#[allow(unused_imports)]
+pub mod unstable {
+    pub use super::{ExtraOptionsStruct, MakeFallbackProvider, MakeReporter};
+    pub use crate::fallback::Fallbacks;
+    pub use crate::options::UnstableCustomBehavior;
+    pub use crate::reporter::Reporter;
+}
+
+pub type DefaultExtraOptions = ExtraOptionsStruct<MakeDefaultReporter, MakeDefaultFallbacks>;
+
+#[derive(Debug, Clone, Default)]
+pub struct ExtraOptionsStruct<MakeReporter, MakeFallbackProvider> {
+    make_reporter: MakeReporter,
+    make_fallback_provider: MakeFallbackProvider,
+}
+
+pub trait MakeReporter {
+    type Reporter: crate::reporter::Reporter;
+    fn make_reporter(&mut self) -> Self::Reporter;
+}
+pub trait MakeFallbackProvider {
+    type FallbackProvider: crate::fallback::Fallbacks;
+    fn make_fallback_provider(
+        &mut self,
+        behavior: &UnstableCustomBehavior,
+    ) -> Self::FallbackProvider;
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct MakeDefaultReporter;
+impl MakeReporter for MakeDefaultReporter {
     type Reporter = DefaultReporter;
-    type FallbackProvider = DefaultFallbacks;
-    
-    fn make_reporter(&self) -> Self::Reporter {
+    fn make_reporter(&mut self) -> Self::Reporter {
         DefaultReporter::new()
     }
-
-    fn make_fallback_provider(&self, behavior: &UnstableCustomBehavior) -> Self::FallbackProvider {
-        DefaultFallbacks { behavior:behavior.clone() }
+}
+#[derive(Debug, Clone, Default)]
+pub struct MakeDefaultFallbacks;
+impl MakeFallbackProvider for MakeDefaultFallbacks {
+    type FallbackProvider = DefaultFallbacks;
+    fn make_fallback_provider(
+        &mut self,
+        behavior: &UnstableCustomBehavior,
+    ) -> Self::FallbackProvider {
+        DefaultFallbacks {
+            behavior: behavior.clone(),
+        }
     }
+}
+
+impl<R, F> ExtraOptions for ExtraOptionsStruct<R, F>
+where
+    R: MakeReporter,
+    F: MakeFallbackProvider,
+{
+    fn make_reporter(&mut self) -> Self::Reporter {
+        self.make_reporter.make_reporter()
+    }
+    type Reporter = R::Reporter;
+
+    fn make_fallback_provider(
+        &mut self,
+        behavior: &UnstableCustomBehavior,
+    ) -> Self::FallbackProvider {
+        self.make_fallback_provider.make_fallback_provider(behavior)
+    }
+    type FallbackProvider = F::FallbackProvider;
 }
 
 /// Customize behavior.
@@ -46,7 +106,7 @@ impl ExtraOptions for DefaultExtraOptions {
 ///     a chance to fill in the value and succeed deserialization, then
 ///     we can make an educated guess based on what the data type expected
 ///     (which method of [`Deserializer`] was called).
-/// 
+///
 ///     For instance, when deserializing an option, JSON `fa` will choose the
 ///     `Some` case, the deserializer will error, but can save deserialization
 ///     and fill in `n`n    (todo check this)
@@ -79,7 +139,7 @@ impl ExtraOptions for DefaultExtraOptions {
 ///
 /// This interface is not subject to semver (as it is unstable), and may change
 /// or be removed at any time.
-#[derive(Debug,  Clone)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct UnstableCustomBehavior {
     unstable_fallback_any_as_none: bool,

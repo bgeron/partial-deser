@@ -18,10 +18,10 @@ use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};
 /// deserializing and save this attempt. For instance, before a map key or before a
 /// sequence element.
 #[derive(Clone, Copy, Debug, Default)]
-pub(crate) struct AbortionPoint(pub usize);
+pub(crate) struct AbortionPoint(pub u64);
 
 impl AbortionPoint {
-    fn new(point: usize) -> Self {
+    fn new(point: u64) -> Self {
         Self(point)
     }
 
@@ -30,8 +30,8 @@ impl AbortionPoint {
     }
 }
 
-impl From<usize> for AbortionPoint {
-    fn from(point: usize) -> Self {
+impl From<u64> for AbortionPoint {
+    fn from(point: u64) -> Self {
         Self(point)
     }
 }
@@ -43,7 +43,7 @@ impl Display for AbortionPoint {
 }
 
 impl Deref for AbortionPoint {
-    type Target = usize;
+    type Target = u64;
 
     fn deref(&self) -> &Self::Target {
         &self.0

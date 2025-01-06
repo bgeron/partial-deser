@@ -59,8 +59,13 @@ where
         .take()
         .expect("inner visitor is present when running Visitor");
 
-    do_visit(inner_visitor)
-        .tap(|result| report_end(&mut visitor.global.reporter, erase_error_ref(result)))
+    do_visit(inner_visitor).tap(|result| {
+        visitor
+            .attempt
+            .are_intervening
+            .get_or_insert(crate::state::ReasonToIntervene::VisitError);
+        report_end(&mut visitor.global.reporter, erase_error_ref(result))
+    })
 }
 
 impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, 'de, Inner, Extra>
