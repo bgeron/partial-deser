@@ -72,7 +72,7 @@ pub use options::DefaultExtraOptions;
 use options::ExtraOptions;
 pub use source::Source;
 #[cfg(feature = "unstable")]
-pub use {fallback::Fallbacks, reporter::Reporter};
+pub use {fallback::Fallbacks, options::UnstableCustomBehavior, reporter::Reporter};
 
 #[cfg(feature = "serde_json")]
 const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
@@ -98,6 +98,8 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     parse_partial_json_tag: Option<Arc<str>>,
 
     max_n_attempts: Option<usize>,
+
+    behavior: UnstableCustomBehavior,
 
     extra: Extra,
 }
@@ -133,6 +135,7 @@ impl Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
             max_n_attempts: DEFAULT_MAX_BACKTRACKS,
+            behavior: UnstableCustomBehavior::default(),
             extra: DefaultExtraOptions,
         }
     }

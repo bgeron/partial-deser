@@ -33,7 +33,7 @@ pub(crate) struct AttemptState {
 impl<Extra: ExtraOptions> Options<Extra> {
     pub(crate) fn build(self) -> GlobalState<Extra> {
         let reporter = self.extra.make_reporter();
-        let fallbacks = self.extra.make_fallback_provider();
+        let fallbacks = self.extra.make_fallback_provider(&self.behavior);
         GlobalState {
             n_attempts: 0,
             config: self,

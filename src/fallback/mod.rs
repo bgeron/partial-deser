@@ -2,6 +2,7 @@ use serde::de::Visitor;
 
 use crate::attempt::empty_access::EmptyAccess;
 use crate::util::DeserializeKind;
+use crate::UnstableCustomBehavior;
 
 /// This describes what to do in case the data ends unexpectedly.
 ///
@@ -216,7 +217,9 @@ pub trait Fallbacks {
     }
 }
 
-pub struct DefaultFallbacks;
+pub struct DefaultFallbacks {
+    pub(crate) behavior: UnstableCustomBehavior,
+}
 
 impl Fallbacks for DefaultFallbacks {
     fn fallback_option<'a, V: Visitor<'a>, E: serde::de::Error>(
