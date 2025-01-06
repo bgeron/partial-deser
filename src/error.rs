@@ -3,7 +3,7 @@ use std::fmt::Display;
 use itertools::Itertools as _;
 use serde::de::{Expected, Unexpected};
 
-use crate::attempt::AbortionPoint;
+use crate::attempt::HaltingPoint;
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
@@ -52,10 +52,10 @@ pub struct Bug(BugEnum);
 // todo: remove?
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum BugEnum {
-    #[error("intended to stop at {intended_to_stop_at}, but then the abortion stack turned out as [{}]", abortion_point_stack.iter().format(", "))]
-    PassedAbortionPoint {
-        intended_to_stop_at: AbortionPoint,
-        abortion_point_stack: Vec<AbortionPoint>,
+    #[error("intended to stop at {intended_to_stop_at}, but then the halting stack turned out as [{}]", halting_point_stack.iter().format(", "))]
+    PassedHaltingPoint {
+        intended_to_stop_at: HaltingPoint,
+        halting_point_stack: Vec<HaltingPoint>,
     },
 }
 
