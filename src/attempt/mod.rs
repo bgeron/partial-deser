@@ -1,3 +1,5 @@
+mod access;
+mod deserialize_seed;
 pub(crate) mod empty_access;
 mod visit;
 
@@ -53,7 +55,6 @@ impl Deref for HaltingPoint {
 /// This is the deserializer with all options, including unstable interfaces.
 pub(crate) struct Deserializer<'a, 'de, Inner, Extra>
 where
-    Inner: serde::Deserializer<'de>,
     Extra: ExtraOptions,
 {
     pub(crate) global: &'a mut GlobalState<Extra>,
