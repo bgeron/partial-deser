@@ -60,10 +60,12 @@ where
         .expect("inner visitor is present when running Visitor");
 
     do_visit(inner_visitor).tap(|result| {
-        visitor
-            .attempt
-            .are_intervening
-            .get_or_insert(crate::state::ReasonToIntervene::VisitError);
+        if result.is_err() {
+            visitor
+                .attempt
+                .are_intervening
+                .get_or_insert(crate::state::ReasonToIntervene::VisitError);
+        }
         report_end(&mut visitor.global.reporter, erase_error_ref(result))
     })
 }

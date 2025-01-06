@@ -63,9 +63,13 @@ where
 }
 
 fn framework<'a, 'de, InnerDeserializer, Extra, InnerVisitor>(
+    deserializer: Deserializer<'a, 'de, InnerDeserializer, Extra>,
     inner_visitor: InnerVisitor,
     kind: DeserializeKind,
-    deserializer: Deserializer<'a, 'de, InnerDeserializer, Extra>,
+    deserialize_method: impl FnOnce(
+        InnerDeserializer,
+        Visitor<'_, 'de, InnerVisitor, Extra>,
+    ) -> Result<InnerVisitor::Value, InnerDeserializer::Error>,
 ) -> Result<InnerVisitor::Value, Error<InnerDeserializer::Error>>
 where
     Extra: ExtraOptions,
@@ -83,11 +87,10 @@ where
     // If the deserializer actually tries to visit, then this will be consumed.
     // Otherwise we will keep it, and try to visit with a callback.
     let mut visitor = Some(inner_visitor);
-    let result = deserializer.inner.deserialize_any(Visitor::new(
-        deserializer.global,
-        deserializer.attempt,
-        &mut visitor,
-    ));
+    let result = deserialize_method(
+        deserializer.inner,
+        Visitor::new(deserializer.global, deserializer.attempt, &mut visitor),
+    );
     deserializer
         .global
         .reporter
@@ -134,147 +137,252 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Any, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Any,
+            |inner, visitor| inner.deserialize_any(visitor),
+        )
     }
 
     fn deserialize_bool<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Bool, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Bool,
+            |inner, visitor| inner.deserialize_bool(visitor),
+        )
     }
 
     fn deserialize_i8<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::I8, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::I8,
+            |inner, visitor| inner.deserialize_i8(visitor),
+        )
     }
 
     fn deserialize_i16<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::I16, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::I16,
+            |inner, visitor| inner.deserialize_i16(visitor),
+        )
     }
 
     fn deserialize_i32<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::I32, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::I32,
+            |inner, visitor| inner.deserialize_i32(visitor),
+        )
     }
 
     fn deserialize_i64<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::I64, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::I64,
+            |inner, visitor| inner.deserialize_i64(visitor),
+        )
     }
 
     fn deserialize_i128<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::I128, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::I128,
+            |inner, visitor| inner.deserialize_i128(visitor),
+        )
     }
 
     fn deserialize_u8<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::U8, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::U8,
+            |inner, visitor| inner.deserialize_u8(visitor),
+        )
     }
 
     fn deserialize_u16<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::U16, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::U16,
+            |inner, visitor| inner.deserialize_u16(visitor),
+        )
     }
 
     fn deserialize_u32<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::U32, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::U32,
+            |inner, visitor| inner.deserialize_u32(visitor),
+        )
     }
 
     fn deserialize_u64<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::U64, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::U64,
+            |inner, visitor| inner.deserialize_u64(visitor),
+        )
     }
 
     fn deserialize_u128<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::U128, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::U128,
+            |inner, visitor| inner.deserialize_u128(visitor),
+        )
     }
 
     fn deserialize_f32<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::F32, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::F32,
+            |inner, visitor| inner.deserialize_f32(visitor),
+        )
     }
 
     fn deserialize_f64<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::F64, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::F64,
+            |inner, visitor| inner.deserialize_f64(visitor),
+        )
     }
 
     fn deserialize_char<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Char, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Char,
+            |inner, visitor| inner.deserialize_char(visitor),
+        )
     }
 
     fn deserialize_str<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Str, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Str,
+            |inner, visitor| inner.deserialize_str(visitor),
+        )
     }
 
     fn deserialize_string<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::String, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::String,
+            |inner, visitor| inner.deserialize_string(visitor),
+        )
     }
 
     fn deserialize_bytes<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Bytes, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Bytes,
+            |inner, visitor| inner.deserialize_bytes(visitor),
+        )
     }
 
     fn deserialize_byte_buf<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::ByteBuf, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::ByteBuf,
+            |inner, visitor| inner.deserialize_byte_buf(visitor),
+        )
     }
 
     fn deserialize_option<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Option, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Option,
+            |inner, visitor| inner.deserialize_option(visitor),
+        )
     }
 
     fn deserialize_unit<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Unit, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Unit,
+            |inner, visitor| inner.deserialize_unit(visitor),
+        )
     }
 
     fn deserialize_unit_struct<V>(
@@ -285,7 +393,12 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::UnitStruct { name }, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::UnitStruct { name },
+            |inner, visitor| inner.deserialize_unit_struct(name, visitor),
+        )
     }
 
     fn deserialize_newtype_struct<V>(
@@ -296,21 +409,36 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::NewtypeStruct { name }, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::NewtypeStruct { name },
+            |inner, visitor| inner.deserialize_newtype_struct(name, visitor),
+        )
     }
 
     fn deserialize_seq<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Seq, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Seq,
+            |inner, visitor| inner.deserialize_seq(visitor),
+        )
     }
 
     fn deserialize_tuple<V>(self, len: usize, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Tuple { len }, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Tuple { len },
+            |inner, visitor| inner.deserialize_tuple(len, visitor),
+        )
     }
 
     fn deserialize_tuple_struct<V>(
@@ -323,9 +451,10 @@ where
         V: serde::de::Visitor<'de>,
     {
         framework(
+            self,
             inner_visitor,
             DeserializeKind::TupleStruct { name, len },
-            self,
+            |inner, visitor| inner.deserialize_tuple_struct(name, len, visitor),
         )
     }
 
@@ -333,7 +462,12 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Map, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Map,
+            |inner, visitor| inner.deserialize_map(visitor),
+        )
     }
 
     fn deserialize_struct<V>(
@@ -346,9 +480,10 @@ where
         V: serde::de::Visitor<'de>,
     {
         framework(
+            self,
             inner_visitor,
             DeserializeKind::Struct { name, fields },
-            self,
+            |inner, visitor| inner.deserialize_struct(name, fields, visitor),
         )
     }
 
@@ -362,9 +497,10 @@ where
         V: serde::de::Visitor<'de>,
     {
         framework(
+            self,
             inner_visitor,
             DeserializeKind::Enum { name, variants },
-            self,
+            |inner, visitor| inner.deserialize_enum(name, variants, visitor),
         )
     }
 
@@ -372,14 +508,24 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::Identifier, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::Identifier,
+            |inner, visitor| inner.deserialize_identifier(visitor),
+        )
     }
 
     fn deserialize_ignored_any<V>(self, inner_visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        framework(inner_visitor, DeserializeKind::IgnoredAny, self)
+        framework(
+            self,
+            inner_visitor,
+            DeserializeKind::IgnoredAny,
+            |inner, visitor| inner.deserialize_ignored_any(visitor),
+        )
     }
 
     fn is_human_readable(&self) -> bool {
