@@ -8,9 +8,8 @@ use crate::reporter::Reporter;
 use crate::state::{AttemptState, GlobalState};
 
 /// Something that creates a data value, if only you tell it what the format is like.
-pub(crate) struct Visitor<'a, 'de, Inner, Extra>
+pub(crate) struct Visitor<'a, Inner, Extra>
 where
-    Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions,
 {
     pub(super) global: &'a mut GlobalState<Extra>,
@@ -22,12 +21,10 @@ where
     /// The inner visitor actually lives on the stack, so that in case the deserializer fails,
     /// we can attempt to apply a fallback instead.
     pub(super) inner: &'a mut Option<Inner>,
-    phantom: std::marker::PhantomData<&'de ()>,
 }
 
-impl<'a, 'de, Inner, Extra> Visitor<'a, 'de, Inner, Extra>
+impl<'a, Inner, Extra> Visitor<'a, Inner, Extra>
 where
-    Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions,
 {
     pub(super) fn new(
@@ -39,13 +36,12 @@ where
             global,
             attempt,
             inner: inner_on_stack,
-            phantom: std::marker::PhantomData,
         }
     }
 }
 
 fn framework<'de, Inner, Extra, E>(
-    visitor: Visitor<'_, 'de, Inner, Extra>,
+    visitor: Visitor<'_, Inner, Extra>,
     do_visit: impl FnOnce(Inner) -> Result<Inner::Value, E>,
     report_end: impl FnOnce(&mut Extra::Reporter, Option<&dyn StdError>),
 ) -> Result<Inner::Value, E>
@@ -70,7 +66,7 @@ where
     })
 }
 
-impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, 'de, Inner, Extra>
+impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions,

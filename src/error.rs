@@ -3,6 +3,9 @@ use std::fmt::Display;
 use itertools::Itertools as _;
 use serde::de::{Expected, Unexpected};
 
+#[cfg(doc)]
+use serde::de::{DeserializeSeed, Deserializer};
+
 use crate::attempt::HaltingPoint;
 
 #[derive(Debug, thiserror::Error)]
@@ -124,6 +127,23 @@ impl<DeserializerErr> Error<DeserializerErr> {
     /// Did we try to construct a fallback error?
     pub fn is_fallback_error(&self) -> bool {
         matches!(&*self.err, ErrorImpl::Fallback(_))
+    }
+}
+
+impl<DeserializerErr> Error<DeserializerErr>
+where
+    DeserializerErr: serde::de::Error,
+{
+    /// In some situations, we need to carry an error across the external
+    /// [`Deserializer`]'s error type. So, in case this error was not originally
+    /// a deserializer error, then make this a custom error.
+    ///
+    /// This is necessary for wrapping [`DeserializeSeed`].
+    pub fn unpack_or_make_custom(self) -> DeserializerErr {
+        match *self.err {
+            ErrorImpl::Deserializer(err) => err,
+            _ => DeserializerErr::custom(format!("{}: {self}", std::env!("CARGO_PKG_NAME"))),
+        }
     }
 }
 

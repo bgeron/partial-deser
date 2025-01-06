@@ -48,7 +48,6 @@ impl<Extra: ExtraOptions> Options<Extra> {
                 global: &mut state,
                 attempt: &mut attempt,
                 inner: inner_deserializer,
-                phantom: PhantomData,
             };
 
             match seed.clone().deserialize(deserializer) {
