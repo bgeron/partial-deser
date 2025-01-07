@@ -1,6 +1,6 @@
-use crate::util::DeserializeKind;
 #[cfg(doc)]
-use crate::Fallbacks;
+use crate::fallback::Fallbacks;
+use crate::util::DeserializeKind;
 use std::{error::Error as StdError, fmt::Formatter};
 
 #[cfg(doc)]

@@ -1,9 +1,9 @@
 
-# _default: clippy
+_default: all
 
-_default-dev: fmt clippy-allow-dead
+dev: fmt clippy-allow-dead
 
-all: clippy test doc
+all: fmt clippy test doc
 
 clippy:
     cargo clippy --all-targets --all-features
@@ -13,10 +13,10 @@ clippy-allow-dead:
     cargo clippy --all-targets --all-features -- --allow dead_code
     cargo clippy --all-targets --no-default-features -- --allow dead_code
 
-test: clippy
-    cargo test --all-targets --all-features
-    cargo test --all-targets --no-default-features
-    cargo test --all-features --doc
+test:
+    cargo test --no-fail-fast --all-targets --all-features
+    cargo test --no-fail-fast --all-targets --no-default-features
+    cargo test --no-fail-fast --all-features --doc
 
 fmt:
     cargo fmt

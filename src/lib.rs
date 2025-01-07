@@ -15,7 +15,7 @@
 //! }
 //!
 //! let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-//! let modes: Vec<TravelMode> = serde_partial::from_json_str(json).unwrap();
+//! let modes: Vec<TravelMode> = partial_deser::from_json_str(json).unwrap();
 //! assert_eq!(format!("{modes:?}"), r#"[
 //!    TravelMode { mode: "foot", benefit: Some("healthy") },
 //!    TravelMode { mode: "aeropl", benefit: None }
