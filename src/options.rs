@@ -28,15 +28,6 @@ pub trait ExtraOptions {
     type FallbackProvider: crate::fallback::Fallbacks;
 }
 
-/// Reexports to satisfy Rust's visibility rules TODO
-#[allow(unused_imports)]
-pub mod unstable {
-    pub use super::{ExtraOptionsStruct, MakeFallbackProvider, MakeReporter};
-    pub use crate::fallback::Fallbacks;
-    pub use crate::options::UnstableCustomBehavior;
-    pub use crate::reporter::Reporter;
-}
-
 pub type DefaultExtraOptions = ExtraOptionsStruct<MakeDefaultReporter, MakeDefaultFallbacks>;
 
 #[derive(Debug, Clone, Default)]

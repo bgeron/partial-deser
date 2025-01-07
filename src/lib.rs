@@ -73,6 +73,16 @@ pub mod source;
 mod state;
 mod util;
 
+/// Reexports to satisfy Rust's visibility rules TODO
+#[allow(unused_imports)]
+pub mod unstable {
+    pub use crate::fallback::Fallbacks;
+    pub use crate::options::{
+        ExtraOptionsStruct, MakeFallbackProvider, MakeReporter, UnstableCustomBehavior,
+    };
+    pub use crate::reporter::Reporter;
+}
+
 pub use error::Error;
 pub use options::{DefaultExtraOptions, MakeDefaultFallbacks, MakeDefaultReporter};
 use options::{ExtraOptions, UnstableCustomBehavior};
@@ -101,7 +111,7 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     #[cfg(feature = "serde_json")]
     parse_partial_json_tag: Option<Arc<str>>,
 
-    max_n_attempts: Option<usize>,
+    max_n_backtracks: Option<usize>,
 
     behavior: UnstableCustomBehavior,
 
@@ -147,14 +157,14 @@ impl Options {
         Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
-            max_n_attempts: DEFAULT_MAX_BACKTRACKS,
+            max_n_backtracks: DEFAULT_MAX_BACKTRACKS,
             behavior: UnstableCustomBehavior::default(),
             extra: DefaultExtraOptions::default(),
         }
     }
 
-    pub fn with_max_n_attempts(mut self, max_n_attempts: Option<usize>) -> Self {
-        self.max_n_attempts = max_n_attempts;
+    pub fn with_max_n_backtracks(mut self, max_n_backtracks: Option<usize>) -> Self {
+        self.max_n_backtracks = max_n_backtracks;
         self
     }
 
@@ -172,5 +182,10 @@ impl Options {
         T: serde::de::Deserialize<'de>,
     {
         self.deserialize_source(source::JsonBytes(json))
+    }
+
+    #[cfg(feature = "unstable")]
+    pub fn custom_behavior(self, behavior: UnstableCustomBehavior) -> Self {
+        Options { behavior, ..self }
     }
 }

@@ -1,32 +1,9 @@
-use std::fmt::Display;
-
-use serde::{Deserialize, Serialize};
-
-use crate::print_as_constructor::PrintAsConstructor;
-
-/// Partially deserialize all prefixes of the input as JSON. Reserialize the successful
-/// results to JSON for comparison with `assert_eq!`, and stringify any errors.
-///
-/// The output is deduplicated -- only inputs are shown where the output changes.
-#[cfg(feature = "serde_json")]
-#[allow(clippy::type_complexity)]
-pub(crate) fn run_json_on_prefixes_and_format_outputs<T: for<'de> Deserialize<'de> + Serialize>(
-    full_input: &[u8],
-) -> PrintAsConstructor<Vec<(&[u8], Result<serde_json::Value, String>)>> {
-    run_on_prefixes_and_format_outputs(full_input, |inp| {
-        partial_deser::from_json_slice::<T>(inp)
-            .map(|value| serde_json::to_value(&value).expect("could not reserialize to JSON"))
-            .map_err(|err| err.to_string())
-    })
-}
+use crate::print_as_constructor::{FmtConstructor, PrintAsConstructorByRef};
 
 /// Run function on all prefixes of the input.
 ///
 /// The output is deduplicated -- only inputs are shown where the output changes.
-pub(crate) fn run_on_prefixes_and_format_outputs<Output: PartialEq>(
-    full_input: &[u8],
-    f: impl Fn(&[u8]) -> Output,
-) -> PrintAsConstructor<Vec<(&[u8], Output)>> {
+pub(crate) fn run_on_prefixes_and_format_outputs<Output: PartialEq>(full_input: &[u8], f: impl Fn(&[u8]) -> Output) -> Vec<ComparisonLine<Output>> {
     let mut outputs: Vec<(&[u8], Output)> = Vec::new();
 
     for end in 0..=full_input.len() {
@@ -38,21 +15,35 @@ pub(crate) fn run_on_prefixes_and_format_outputs<Output: PartialEq>(
         }
     }
 
-    PrintAsConstructor(outputs)
+    outputs
+        .into_iter()
+        .flat_map(|(input, output)| [ComparisonLine::Input(input), ComparisonLine::Output(output)])
+        .collect()
 }
 
-pub(crate) fn stringify_output_errors<In, T, E: Display>(
-    results: impl IntoIterator<Item = (In, Result<T, E>)>,
-) -> Vec<(In, Result<T, String>)> {
-    results
-        .into_iter()
-        .map(|(input, result)| {
-            let output = match result {
-                Ok(value) => Ok(value),
-                Err(err) => Err(err.to_string()),
-            };
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub(crate) enum ComparisonLine<'a, Output, Input = &'a [u8]> {
+    Heading(&'a str),
+    Input(Input),
+    Output(Output),
+}
 
-            (input, output)
-        })
-        .collect()
+impl<Output, Input> FmtConstructor for ComparisonLine<'_, Output, Input>
+where
+    Input: FmtConstructor,
+    Output: FmtConstructor,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ComparisonLine::Heading(heading) => {
+                write!(f, "Heading({:?})", heading)
+            }
+            ComparisonLine::Input(input) => {
+                write!(f, "Input({})", PrintAsConstructorByRef(input))
+            }
+            ComparisonLine::Output(output) => {
+                write!(f, "Output({})", PrintAsConstructorByRef(output))
+            }
+        }
+    }
 }

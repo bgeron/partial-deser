@@ -1,5 +1,13 @@
 use std::fmt::{Debug, Display};
 
+pub(crate) mod prelude {
+    //! Functions necessary to use the resulting Rust code
+    pub(crate) use bstr::B;
+    pub(crate) use serde_json::json;
+
+    pub(crate) use crate::common::ComparisonLine::*;
+}
+
 /// Wrapper around a type to make it print in the way to construct
 /// it for Rust, both as Debug and Display.
 ///
@@ -9,9 +17,9 @@ use std::fmt::{Debug, Display};
 #[derive(Clone, Copy)]
 pub(crate) struct PrintAsConstructor<T: ?Sized>(pub T);
 
-impl<T> PrintAsConstructor<T> {
-    pub fn map<U>(self, f: impl FnOnce(T) -> U) -> PrintAsConstructor<U> {
-        PrintAsConstructor(f(self.0))
+impl<T> From<T> for PrintAsConstructor<T> {
+    fn from(inner: T) -> Self {
+        PrintAsConstructor(inner)
     }
 }
 
@@ -24,78 +32,87 @@ where
     }
 }
 
-impl<T> Debug for PrintAsConstructor<T>
-where
-    PrintAsConstructor<T>: Display,
-{
+impl<T: FmtConstructor + ?Sized> Debug for PrintAsConstructor<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Display::fmt(self, f)
+        FmtConstructor::fmt(&self.0, f)
     }
 }
 
-impl<T> Display for PrintAsConstructor<&T>
-where
-    PrintAsConstructor<T>: Display,
-{
+impl<T: FmtConstructor + ?Sized> Display for PrintAsConstructor<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "&{}", PrintAsConstructor(self.0))
+        FmtConstructor::fmt(&self.0, f)
     }
 }
 
-impl Display for PrintAsConstructor<str> {
+pub(crate) struct PrintAsConstructorByRef<'a, T: ?Sized>(pub(crate) &'a T);
+
+impl<T: FmtConstructor + ?Sized> Display for PrintAsConstructorByRef<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", &self.0)
+        FmtConstructor::fmt(self.0, f)
     }
 }
 
-impl Display for PrintAsConstructor<String> {
+pub trait FmtConstructor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
+}
+
+impl<T: FmtConstructor + NotSpecialCasedRef + ?Sized> FmtConstructor for &T {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}.to_string()", self.0)
+        write!(f, "&{}", PrintAsConstructorByRef(self))
     }
 }
 
-impl Display for PrintAsConstructor<&'_ [u8]> {
+trait NotSpecialCasedRef {}
+
+impl FmtConstructor for &str {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, r#"b"{:?}""#, self.0.escape_ascii())
+        write!(f, "{:?}", &self)
     }
 }
 
-impl<T> Display for PrintAsConstructor<Option<T>>
-where
-    PrintAsConstructor<T>: Display,
-{
+impl FmtConstructor for str {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            Some(inner) => write!(f, "Some({})", PrintAsConstructor(inner)),
+        write!(f, "{:?}", &self)
+    }
+}
+
+impl FmtConstructor for String {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}.to_string()", self)
+    }
+}
+
+impl FmtConstructor for &'_ [u8] {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, r#"B(b"{}")"#, self.escape_ascii())
+    }
+}
+
+impl<T: FmtConstructor> FmtConstructor for Option<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Some(inner) => write!(f, "Some({})", PrintAsConstructorByRef(inner)),
             None => write!(f, "None"),
         }
     }
 }
 
-impl<T, E> Display for PrintAsConstructor<Result<T, E>>
-where
-    PrintAsConstructor<T>: Display,
-    PrintAsConstructor<E>: Display,
-{
+impl<T: FmtConstructor, E: FmtConstructor> FmtConstructor for Result<T, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            Ok(value) => write!(f, "Ok({})", PrintAsConstructor(value)),
-            Err(err) => write!(f, "Err({})", PrintAsConstructor(err)),
+        match &self {
+            Ok(value) => write!(f, "Ok({})", PrintAsConstructorByRef(value)),
+            Err(err) => write!(f, "Err({})", PrintAsConstructorByRef(err)),
         }
     }
 }
 
-impl<T> Display for PrintAsConstructor<Vec<T>>
-where
-    PrintAsConstructor<T>: Display,
-{
+impl<T: FmtConstructor> FmtConstructor for Vec<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[{}]",
-            self.0
-                .iter()
-                .map(PrintAsConstructor)
+            "vec![{}]",
+            self.iter()
+                .map(PrintAsConstructorByRef)
                 .map(|inner| inner.to_string())
                 .collect::<Vec<_>>()
                 .join(", ")
@@ -103,121 +120,116 @@ where
     }
 }
 
-impl Display for PrintAsConstructor<()> {
+impl FmtConstructor for () {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "()")
     }
 }
 
-impl<T1> Display for PrintAsConstructor<(T1,)>
+impl<T1> FmtConstructor for (T1,)
 where
-    PrintAsConstructor<T1>: Display,
+    T1: FmtConstructor + ?Sized,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({},)", PrintAsConstructor(&self.0 .0))
+        write!(f, "({},)", PrintAsConstructorByRef(&self.0))
     }
 }
 
-impl<T1, T2> Display for PrintAsConstructor<(T1, T2)>
+impl<T1, T2> FmtConstructor for (T1, T2)
 where
-    PrintAsConstructor<T1>: Display,
-    PrintAsConstructor<T2>: Display,
+    T1: FmtConstructor,
+    T2: FmtConstructor,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "({}, {})",
-            PrintAsConstructor(&self.0 .0),
-            PrintAsConstructor(&self.0 .1)
-        )
+        write!(f, "({}, {})", PrintAsConstructorByRef(&self.0), PrintAsConstructorByRef(&self.1))
     }
 }
 
-impl<T1, T2, T3> Display for PrintAsConstructor<(T1, T2, T3)>
+impl<T1, T2, T3> FmtConstructor for (T1, T2, T3)
 where
-    PrintAsConstructor<T1>: Display,
-    PrintAsConstructor<T2>: Display,
-    PrintAsConstructor<T3>: Display,
+    T1: FmtConstructor,
+    T2: FmtConstructor,
+    T3: FmtConstructor,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "({}, {}, {})",
-            PrintAsConstructor(&self.0 .0),
-            PrintAsConstructor(&self.0 .1),
-            PrintAsConstructor(&self.0 .2)
+            PrintAsConstructorByRef(&self.0),
+            PrintAsConstructorByRef(&self.1),
+            PrintAsConstructorByRef(&self.2)
         )
     }
 }
 
-impl Display for PrintAsConstructor<serde_json::Value> {
+impl FmtConstructor for serde_json::Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "::serde_json::json!({})", self.0)
+        write!(f, "json!({})", self)
     }
 }
 
-impl Display for PrintAsConstructor<bool> {
+impl FmtConstructor for bool {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<u8> {
+impl FmtConstructor for u8 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<u16> {
+impl FmtConstructor for u16 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<u32> {
+impl FmtConstructor for u32 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<u64> {
+impl FmtConstructor for u64 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<i8> {
+impl FmtConstructor for i8 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<i16> {
+impl FmtConstructor for i16 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<i32> {
+impl FmtConstructor for i32 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<i64> {
+impl FmtConstructor for i64 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<f32> {
+impl FmtConstructor for f32 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }
 
-impl Display for PrintAsConstructor<f64> {
+impl FmtConstructor for f64 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self)
     }
 }

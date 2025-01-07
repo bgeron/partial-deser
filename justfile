@@ -22,7 +22,7 @@ test:
     cargo test --no-fail-fast --all-features --doc
 
 fmt:
-    cargo fmt
+    cargo +nightly fmt
 
 doc:
     RUSTDOCFLAGS="--cfg docsrs" CARGO_TARGET_DIR=target-nightly cargo +nightly doc --lib --bins --examples --all-features

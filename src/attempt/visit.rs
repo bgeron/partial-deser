@@ -78,7 +78,10 @@ where
     type Value = ();
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        self.inner.as_ref().expect("the inner visitor has not been consumed while the external deserializer is running").expecting(formatter)
+        self.inner
+            .as_ref()
+            .expect("the inner visitor has not been consumed while the external deserializer is running")
+            .expecting(formatter)
     }
 
     fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>

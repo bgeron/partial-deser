@@ -36,10 +36,9 @@ impl<Extra: ExtraOptions> Options<Extra> {
         let mut attempt = AttemptState::initial();
 
         while {
-            let max_n_attempts = state.config.max_n_attempts;
-            max_n_attempts.is_none_or(|max| state.n_attempts < max)
+            let max_n_backtracks = state.config.max_n_backtracks;
+            max_n_backtracks.is_none_or(|max| state.n_backtracks <= max)
         } {
-            state.n_attempts += 1;
             let mut inner_deserializer_storage = Some(source.recreate_deserializer_storage());
             let inner_deserializer =
                 S::use_deserializer_from_storage(&mut inner_deserializer_storage);
@@ -53,7 +52,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
             match seed.clone().deserialize(deserializer) {
                 Ok(value) => return Ok(value),
                 Err(error) => {
-                    debug!(attempt = state.n_attempts, %error, "attempt failed");
+                    debug!(attempt = state.n_backtracks, %error, "attempt failed");
                 }
             }
 
@@ -61,11 +60,12 @@ impl<Extra: ExtraOptions> Options<Extra> {
                 Some(new_attempt) => new_attempt,
                 None => {
                     return Err(InternalError::NoPotentialBacktrackPoint {
-                        after_attempts: state.n_attempts,
+                        after_backtracks: state.n_backtracks,
                     }
                     .into())
                 }
-            }
+            };
+            state.n_backtracks += 1;
         }
 
         Err(InternalError::TooManyBacktracks.into())

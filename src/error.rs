@@ -42,8 +42,8 @@ pub(crate) enum ErrorImpl<DeserializerErr> {
 pub enum InternalError {
     #[error("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)")]
     TooManyBacktracks,
-    #[error("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after {after_attempts} attempts)")]
-    NoPotentialBacktrackPoint { after_attempts: usize },
+    #[error("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after {after_backtracks} backtracks)")]
+    NoPotentialBacktrackPoint { after_backtracks: usize },
     #[error("bug in partial-deser (please report): {0}")]
     Bug(Bug),
 }
