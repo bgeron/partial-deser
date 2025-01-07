@@ -108,15 +108,7 @@ impl<T: FmtConstructor, E: FmtConstructor> FmtConstructor for Result<T, E> {
 
 impl<T: FmtConstructor> FmtConstructor for Vec<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "vec![{}]",
-            self.iter()
-                .map(PrintAsConstructorByRef)
-                .map(|inner| inner.to_string())
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
+        write!(f, "vec![{}]", self.iter().map(PrintAsConstructorByRef).map(|inner| inner.to_string()).collect::<Vec<_>>().join(", "))
     }
 }
 
@@ -152,13 +144,7 @@ where
     T3: FmtConstructor,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "({}, {}, {})",
-            PrintAsConstructorByRef(&self.0),
-            PrintAsConstructorByRef(&self.1),
-            PrintAsConstructorByRef(&self.2)
-        )
+        write!(f, "({}, {}, {})", PrintAsConstructorByRef(&self.0), PrintAsConstructorByRef(&self.1), PrintAsConstructorByRef(&self.2))
     }
 }
 

@@ -43,11 +43,8 @@ fn test_bools() {
             vec![
                 Heading("strict behavior"),
                 Input(B(b"")),
-                Output(Ok(json!([]))),
-                Input(B(b"[")),
                 Output(Err(
-                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"
-                        .to_string()
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
                 )),
                 Input(B(b"[true, false, true]")),
                 Output(Ok(json!([true, false, true])))

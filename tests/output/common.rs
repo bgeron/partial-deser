@@ -15,10 +15,7 @@ pub(crate) fn run_on_prefixes_and_format_outputs<Output: PartialEq>(full_input: 
         }
     }
 
-    outputs
-        .into_iter()
-        .flat_map(|(input, output)| [ComparisonLine::Input(input), ComparisonLine::Output(output)])
-        .collect()
+    outputs.into_iter().flat_map(|(input, output)| [ComparisonLine::Input(input), ComparisonLine::Output(output)]).collect()
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

@@ -6,6 +6,7 @@ use crate::print_as_constructor::PrintAsConstructor;
 
 mod any;
 mod bool;
+mod number;
 
 /// Partially deserialize all prefixes of the input as JSON. Reserialize the successful
 /// results to JSON for comparison with `assert_eq!`, and stringify any errors.
@@ -40,9 +41,6 @@ fn default_modes() -> Vec<(&'static str, Options)> {
         ("default behavior", Options::new_json()),
         ("default behavior, 0 backtracks", Options::new_json().with_max_n_backtracks(Some(0))),
         ("default behavior, 1 backtracks", Options::new_json().with_max_n_backtracks(Some(1))),
-        (
-            "strict behavior",
-            Options::new_json().custom_behavior(partial_deser::unstable::UnstableCustomBehavior::strict()),
-        ),
+        ("strict behavior", Options::new_json().custom_behavior(partial_deser::unstable::UnstableCustomBehavior::strict())),
     ]
 }

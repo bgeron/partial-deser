@@ -226,33 +226,54 @@ impl Fallbacks for DefaultFallbacks {
         &self,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        (take_visitor)().visit_none().map(Some)
+        conditional_fallback(self.behavior.unstable_fallback_none, move || {
+            (take_visitor)().visit_none()
+        })
     }
 
     fn fallback_unit<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        (take_visitor)().visit_unit().map(Some)
+        conditional_fallback(self.behavior.unstable_fallback_unit, move || {
+            (take_visitor)().visit_unit()
+        })
     }
 
     fn fallback_unit_struct<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        (take_visitor)().visit_unit().map(Some)
+        conditional_fallback(self.behavior.unstable_fallback_unit_struct, move || {
+            (take_visitor)().visit_unit()
+        })
     }
     fn fallback_seq<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        (take_visitor)().visit_seq(EmptyAccess::default()).map(Some)
+        conditional_fallback(self.behavior.unstable_fallback_seq_empty, move || {
+            (take_visitor)().visit_seq(EmptyAccess::default())
+        })
     }
     fn fallback_map<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        (take_visitor)().visit_map(EmptyAccess::default()).map(Some)
+        conditional_fallback(self.behavior.unstable_fallback_map_empty, move || {
+            (take_visitor)().visit_map(EmptyAccess::default())
+        })
+    }
+}
+
+fn conditional_fallback<Value, E>(
+    test: bool,
+    f: impl FnOnce() -> Result<Value, E>,
+) -> Result<Option<Value>, E> {
+    if test {
+        f().map(Some)
+    } else {
+        Ok(None)
     }
 }
 
