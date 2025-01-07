@@ -117,6 +117,15 @@ where
     Options::new_json().from_json_str(json)
 }
 
+/// Partially deserialize the input with [`serde_json`].
+#[cfg(feature = "serde_json")]
+pub fn from_json_slice<'de, T>(json: &'de [u8]) -> Result<T, Error<serde_json::Error>>
+where
+    T: serde::Deserialize<'de>,
+{
+    Options::new_json().from_json_slice(json)
+}
+
 impl Options {
     /// Default config for JSON.
     ///
@@ -154,7 +163,14 @@ impl Options {
     where
         T: serde::de::Deserialize<'de>,
     {
-        let source = source::JsonStr(json);
-        self.deserialize_source(source)
+        self.deserialize_source(source::JsonStr(json))
+    }
+
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_slice<'de, T>(self, json: &'de [u8]) -> Result<T, Error<serde_json::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(source::JsonBytes(json))
     }
 }

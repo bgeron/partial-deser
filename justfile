@@ -13,6 +13,9 @@ clippy-allow-dead:
     cargo clippy --all-targets --all-features -- --allow dead_code
     cargo clippy --all-targets --no-default-features -- --allow dead_code
 
+main-test:
+    cargo test --no-fail-fast --all-targets --all-features
+
 test:
     cargo test --no-fail-fast --all-targets --all-features
     cargo test --no-fail-fast --all-targets --no-default-features
