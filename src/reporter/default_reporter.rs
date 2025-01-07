@@ -187,22 +187,22 @@ impl Reporter for DefaultReporter {
         trace!(nesting_level = self.level, expecting = %args.expecting(), "start deserialize_ignored_any");
     }
 
-    fn report_deserialize_end(&mut self, error: Option<&dyn StdError>) {
+    fn report_deserialize_finish(&mut self, error: Option<&dyn StdError>) {
         // We would like to log errors as tracing::Value, but that requires the error
         // type to be 'static. Which we can make it for our deserializer (in this
         // method), but not for our visitor (in the `report_recv_visit_*` methods).
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end deserialize"
+            "finish deserialize"
         );
     }
 
-    fn report_recv_visit_end_primitive(&mut self, error: Option<&dyn StdError>) {
+    fn report_recv_visit_finish_primitive(&mut self, error: Option<&dyn StdError>) {
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end receive visit_primitive"
+            "finish receive visit_primitive"
         );
     }
 
@@ -299,12 +299,12 @@ impl Reporter for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_some(&mut self, error: Option<&dyn StdError>) {
+    fn report_recv_visit_finish_some(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end receive visit_some"
+            "finish receive visit_some"
         );
     }
 
@@ -317,12 +317,12 @@ impl Reporter for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&dyn StdError>) {
+    fn report_recv_visit_finish_newtype_struct(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end receive visit_newtype_struct"
+            "finish receive visit_newtype_struct"
         );
     }
 
@@ -331,12 +331,12 @@ impl Reporter for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_seq(&mut self, error: Option<&dyn StdError>) {
+    fn report_recv_visit_finish_seq(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end receive visit_seq"
+            "finish receive visit_seq"
         );
     }
 
@@ -345,12 +345,12 @@ impl Reporter for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_map(&mut self, error: Option<&dyn StdError>) {
+    fn report_recv_visit_finish_map(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end receive visit_map"
+            "finish receive visit_map"
         );
     }
 
@@ -359,12 +359,12 @@ impl Reporter for DefaultReporter {
         self.level += 1;
     }
 
-    fn report_recv_visit_end_enum(&mut self, error: Option<&dyn StdError>) {
+    fn report_recv_visit_finish_enum(&mut self, error: Option<&dyn StdError>) {
         self.level -= 1;
         trace!(
             nesting_level = self.level,
             error = error.map(tracing::field::display),
-            "end receive visit_enum"
+            "finish receive visit_enum"
         );
     }
 
@@ -384,5 +384,44 @@ impl Reporter for DefaultReporter {
         } else {
             trace!(nesting_level = self.level, "fallback applied");
         }
+    }
+
+    fn report_fallback_no_element(&mut self) {
+        trace!(nesting_level = self.level, "fallback applied, no element");
+    }
+
+    fn report_encounter_halting_point(&mut self) {
+        trace!(nesting_level = self.level, "encountered halting point");
+    }
+
+    fn report_seq_next_element_seq_start(&mut self) {
+        trace!(
+            nesting_level = self.level,
+            "start deserializing next element"
+        );
+    }
+
+    fn report_seq_next_element_seq_skip(&mut self) {
+        trace!(nesting_level = self.level, "not deserializing next element");
+    }
+
+    fn report_seq_next_element_finish(&mut self, present: bool, error: Option<&dyn StdError>) {
+        if let Some(error) = error {
+            trace!(
+                nesting_level = self.level,
+                error = %error,
+                "finish deserializing next element"
+            );
+        } else {
+            trace!(
+                nesting_level = self.level,
+                present,
+                "finish deserializing next element"
+            );
+        }
+    }
+
+    fn report_access_past_end(&mut self) {
+        trace!(nesting_level = self.level, "access past end of collection");
     }
 }

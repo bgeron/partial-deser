@@ -120,4 +120,28 @@ impl AttemptState {
         self.next_halting_point.increment();
         next
     }
+
+    /// A new halting point will now happen. Return the value of the current halting point
+    /// if we're supposed to continue past this.
+    ///
+    /// Sets intervene state if not yet set.
+    pub(crate) fn new_halting_point_and_check_continue(&mut self) -> Option<HaltingPoint> {
+        let this_halting_point = self.get_next_halting_point();
+
+        match self.intend_to_stop_deserializing_at {
+            Some(stop) if *stop <= *this_halting_point => {
+                if *stop < *this_halting_point {
+                    error!(
+                        intend_to_stop_deserializing_at=?stop,
+                        ?this_halting_point,
+                        "we wanted to stop at a halting point, but continued past it"
+                    );
+                }
+                self.are_intervening
+                    .get_or_insert(ReasonToIntervene::PlannedHalting { at: stop });
+                None
+            }
+            _ => Some(this_halting_point),
+        }
+    }
 }

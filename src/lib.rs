@@ -44,6 +44,12 @@ use std::sync::Arc;
 #[cfg(doc)]
 use serde::Deserialize;
 
+macro_rules! error {
+    ($($arg:tt)*) => {
+        #[cfg(feature = "tracing")]
+        ::tracing::error!($($arg)*)
+    };
+}
 macro_rules! debug {
     ($($arg:tt)*) => {
         #[cfg(feature = "tracing")]

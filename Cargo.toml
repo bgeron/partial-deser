@@ -6,6 +6,7 @@ description = "Deserialize with Serde from partial JSON and more"
 
 [features]
 default = ["serde_json", "tracing"]
+serde_json = ["dep:serde_json", "dep:rand"]
 unstable = []
 
 [dependencies]

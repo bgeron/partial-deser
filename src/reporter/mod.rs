@@ -3,10 +3,13 @@ use crate::util::DeserializeKind;
 use crate::Fallbacks;
 use std::{error::Error as StdError, fmt::Formatter};
 
+#[cfg(doc)]
+use serde::de::SeqAccess;
+use serde::de::Visitor;
+
 mod default_reporter;
 
 pub use default_reporter::DefaultReporter;
-use serde::de::Visitor;
 
 pub trait Reporter {
     fn report_deserialize_start_any(&mut self, args: impl DeserializeStartArgs);
@@ -63,11 +66,11 @@ pub trait Reporter {
     );
     fn report_deserialize_start_identifier(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_ignored_any(&mut self, args: impl DeserializeStartArgs);
-    fn report_deserialize_end(&mut self, error: Option<&dyn StdError>);
+    fn report_deserialize_finish(&mut self, error: Option<&dyn StdError>);
 
     /// This is called after visiting anything that doesn't have its own
     /// `report_end_*` method.
-    fn report_recv_visit_end_primitive(&mut self, error: Option<&dyn StdError>);
+    fn report_recv_visit_finish_primitive(&mut self, error: Option<&dyn StdError>);
     fn report_recv_visit_start_bool(&mut self, v: bool);
     fn report_recv_visit_start_i8(&mut self, v: i8);
     fn report_recv_visit_start_i16(&mut self, v: i16);
@@ -90,16 +93,16 @@ pub trait Reporter {
     fn report_recv_visit_start_byte_buf(&mut self, v: &[u8]);
     fn report_recv_visit_start_none(&mut self);
     fn report_recv_visit_start_some(&mut self);
-    fn report_recv_visit_end_some(&mut self, error: Option<&dyn StdError>);
+    fn report_recv_visit_finish_some(&mut self, error: Option<&dyn StdError>);
     fn report_recv_visit_start_unit(&mut self);
     fn report_recv_visit_start_newtype_struct(&mut self);
-    fn report_recv_visit_end_newtype_struct(&mut self, error: Option<&dyn StdError>);
+    fn report_recv_visit_finish_newtype_struct(&mut self, error: Option<&dyn StdError>);
     fn report_recv_visit_start_seq(&mut self);
-    fn report_recv_visit_end_seq(&mut self, error: Option<&dyn StdError>);
+    fn report_recv_visit_finish_seq(&mut self, error: Option<&dyn StdError>);
     fn report_recv_visit_start_map(&mut self);
-    fn report_recv_visit_end_map(&mut self, error: Option<&dyn StdError>);
+    fn report_recv_visit_finish_map(&mut self, error: Option<&dyn StdError>);
     fn report_recv_visit_start_enum(&mut self);
-    fn report_recv_visit_end_enum(&mut self, error: Option<&dyn StdError>);
+    fn report_recv_visit_finish_enum(&mut self, error: Option<&dyn StdError>);
 
     /// The deserializer failed without consuming the visitor. We start computing one of the [`Fallbacks`].
     fn report_start_fallback(&mut self);
@@ -111,6 +114,25 @@ pub trait Reporter {
     /// The deserializer failed without consuming the visitor, and one of the [`Fallbacks`] was applied,
     /// or at least attempted.
     fn report_fallback(&mut self, error: Option<&dyn StdError>);
+
+    /// From an Access type, we return as a fallback that there is no element left.
+    fn report_fallback_no_element(&mut self);
+
+    /// We encountered the point where we intend to stop this deserialization attempt.
+    fn report_encounter_halting_point(&mut self);
+
+    fn report_seq_next_element_seq_start(&mut self);
+    /// The next element was requested from [`SeqAccess`], but we're not checking
+    /// if there is a next element, we just decide it it's not going to be there.
+    ///
+    /// This could be for instance because we encountered our halting point, or
+    /// because
+    fn report_seq_next_element_seq_skip(&mut self);
+    fn report_seq_next_element_finish(&mut self, present: bool, error: Option<&dyn StdError>);
+
+    /// The data type attempted to read a value from a collection after we already
+    /// reported that there are no more.
+    fn report_access_past_end(&mut self);
 }
 
 pub trait DeserializeStartArgs {

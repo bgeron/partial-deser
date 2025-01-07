@@ -33,12 +33,17 @@ where
     let mut visitor = Some(inner_visitor);
     let result = deserialize_method(
         deserializer.inner,
-        Visitor::new(deserializer.global, deserializer.attempt, &mut visitor),
+        Visitor {
+            global: deserializer.global,
+            attempt: deserializer.attempt,
+            kind: kind,
+            inner: &mut visitor,
+        },
     );
     deserializer
         .global
         .reporter
-        .report_deserialize_end(erase_error_ref(&result));
+        .report_deserialize_finish(erase_error_ref(&result));
 
     if result.is_err() && visitor.is_some() {
         // We can try to apply a fallback.

@@ -2,10 +2,12 @@ use std::error::Error as StdError;
 
 use tap::Tap;
 
+use super::access::Access;
 use super::erase_error_ref;
 use crate::options::ExtraOptions;
 use crate::reporter::Reporter;
 use crate::state::{AttemptState, GlobalState};
+use crate::util::DeserializeKind;
 
 /// Something that creates a data value, if only you tell it what the format is like.
 pub(crate) struct Visitor<'a, Inner, Extra>
@@ -14,6 +16,7 @@ where
 {
     pub(super) global: &'a mut GlobalState<Extra>,
     pub(super) attempt: &'a mut AttemptState,
+    pub(super) kind: DeserializeKind,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
     /// and thus while the [`serde::de::Visitor`] methods of [`Visitor`] are called.
@@ -23,26 +26,12 @@ where
     pub(super) inner: &'a mut Option<Inner>,
 }
 
-impl<'a, Inner, Extra> Visitor<'a, Inner, Extra>
-where
-    Extra: ExtraOptions,
-{
-    pub(super) fn new(
-        global: &'a mut GlobalState<Extra>,
-        attempt: &'a mut AttemptState,
-        inner_on_stack: &'a mut Option<Inner>,
-    ) -> Self {
-        Self {
-            global,
-            attempt,
-            inner: inner_on_stack,
-        }
-    }
-}
-
 fn framework<'de, Inner, Extra, E>(
     visitor: Visitor<'_, Inner, Extra>,
-    do_visit: impl FnOnce(Inner) -> Result<Inner::Value, E>,
+    do_visit: impl FnOnce(
+        Inner,
+        (&mut GlobalState<Extra>, &mut AttemptState, DeserializeKind),
+    ) -> Result<Inner::Value, E>,
     report_end: impl FnOnce(&mut Extra::Reporter, Option<&dyn StdError>),
 ) -> Result<Inner::Value, E>
 where
@@ -55,7 +44,11 @@ where
         .take()
         .expect("inner visitor is present when running Visitor");
 
-    do_visit(inner_visitor).tap(|result| {
+    do_visit(
+        inner_visitor,
+        (visitor.global, visitor.attempt, visitor.kind),
+    )
+    .tap(|result| {
         if result.is_err() {
             visitor
                 .attempt
@@ -85,9 +78,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_bool(v),
+            |visitor, _extra| visitor.visit_bool(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -100,9 +93,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_i8(v),
+            |visitor, _extra| visitor.visit_i8(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -115,9 +108,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_i16(v),
+            |visitor, _extra| visitor.visit_i16(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -130,9 +123,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_i32(v),
+            |visitor, _extra| visitor.visit_i32(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -145,9 +138,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_i64(v),
+            |visitor, _extra| visitor.visit_i64(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -160,9 +153,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_i128(v),
+            |visitor, _extra| visitor.visit_i128(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -175,9 +168,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_u8(v),
+            |visitor, _extra| visitor.visit_u8(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -190,9 +183,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_u16(v),
+            |visitor, _extra| visitor.visit_u16(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -205,9 +198,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_u32(v),
+            |visitor, _extra| visitor.visit_u32(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -220,9 +213,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_u64(v),
+            |visitor, _extra| visitor.visit_u64(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -235,9 +228,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_u128(v),
+            |visitor, _extra| visitor.visit_u128(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -250,9 +243,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_f32(v),
+            |visitor, _extra| visitor.visit_f32(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -265,9 +258,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_f64(v),
+            |visitor, _extra| visitor.visit_f64(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -280,9 +273,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_char(v),
+            |visitor, _extra| visitor.visit_char(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -295,9 +288,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_str(v),
+            |visitor, _extra| visitor.visit_str(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -310,9 +303,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_borrowed_str(v),
+            |visitor, _extra| visitor.visit_borrowed_str(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -325,9 +318,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_string(v),
+            |visitor, _extra| visitor.visit_string(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -340,9 +333,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_bytes(v),
+            |visitor, _extra| visitor.visit_bytes(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -357,9 +350,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_borrowed_bytes(v),
+            |visitor, _extra| visitor.visit_borrowed_bytes(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -372,9 +365,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_byte_buf(v),
+            |visitor, _extra| visitor.visit_byte_buf(v),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -387,9 +380,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_none(),
+            |visitor, _extra| visitor.visit_none(),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -409,9 +402,9 @@ where
 
         framework(
             self,
-            |visitor| visitor.visit_unit(),
+            |visitor, _extra| visitor.visit_unit(),
             |reporter, error| {
-                reporter.report_recv_visit_end_primitive(error);
+                reporter.report_recv_visit_finish_primitive(error);
             },
         )
     }
@@ -427,12 +420,23 @@ where
     where
         A: serde::de::SeqAccess<'de>,
     {
-        // todo
-        let _ = seq;
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Seq,
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_seq();
+
+        framework(
+            self,
+            |visitor, (global, attempt, kind)| {
+                visitor.visit_seq(Access {
+                    global: global,
+                    attempt: attempt,
+                    kind: kind,
+                    inner: seq,
+                    collection_has_ended: false,
+                })
+            },
+            |reporter, error| {
+                reporter.report_recv_visit_finish_seq(error);
+            },
+        )
     }
 
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
