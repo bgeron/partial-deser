@@ -198,6 +198,13 @@ impl Reporter for DefaultReporter {
         );
     }
 
+    fn report_deserialize_fallback_use_saved_value(&mut self) {
+        trace!(
+            nesting_level = self.level,
+            "deserializer failed, but we return Ok with value from the visitor"
+        );
+    }
+
     fn report_recv_visit_finish_primitive(&mut self, error: Option<&dyn StdError>) {
         trace!(
             nesting_level = self.level,

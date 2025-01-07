@@ -1,9 +1,10 @@
 use super::visit::Visitor;
 use super::Deserializer;
-use crate::error::{Error, FallbackError};
+use crate::error::{BugEnum, Error, FallbackError};
 use crate::fallback::FallbacksExt as _;
 use crate::options::ExtraOptions;
 use crate::reporter::{self, Reporter, ReporterExt as _};
+use crate::state::ReasonToIntervene;
 use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};
 
 fn framework<'a, 'de, InnerDeserializer, Extra, InnerVisitor>(
@@ -12,8 +13,8 @@ fn framework<'a, 'de, InnerDeserializer, Extra, InnerVisitor>(
     kind: DeserializeKind,
     deserialize_method: impl FnOnce(
         InnerDeserializer,
-        Visitor<'_, InnerVisitor, Extra>,
-    ) -> Result<InnerVisitor::Value, InnerDeserializer::Error>,
+        Visitor<'_, 'de, InnerVisitor, Extra>,
+    ) -> Result<(), InnerDeserializer::Error>,
 ) -> Result<InnerVisitor::Value, Error<InnerDeserializer::Error>>
 where
     Extra: ExtraOptions,
@@ -28,16 +29,20 @@ where
         .reporter
         .report_deserialize_start(report_args, kind);
 
+    // The wrapped visitor will place a successful value here.
+    let mut value: Option<InnerVisitor::Value> = None;
     // If the deserializer actually tries to visit, then this will be consumed.
     // Otherwise we will keep it, and try to visit with a callback.
     let mut visitor = Some(inner_visitor);
+
     let result = deserialize_method(
         deserializer.inner,
         Visitor {
             global: deserializer.global,
             attempt: deserializer.attempt,
-            kind: kind,
+            kind,
             inner: &mut visitor,
+            value: &mut value,
         },
     );
     deserializer
@@ -72,7 +77,31 @@ where
         }
     }
 
-    result.map_err(Error::from_de)
+    match (result, value) {
+        (Ok(()), Some(value)) => Ok(value),
+        (Ok(()), None) => {
+            error!("internal error: our visitor seems to have succeeded, but not saved its value");
+            Err(BugEnum::OkButValueMissingFromStack.into())
+        }
+        (Err(_), Some(value))
+            if deserializer
+                .global
+                .config
+                .behavior
+                .unstable_fallback_deserializer_finish =>
+        {
+            deserializer
+                .attempt
+                .are_intervening
+                .get_or_insert(ReasonToIntervene::DeserializerFinishSaved);
+            deserializer
+                .global
+                .reporter
+                .report_deserialize_fallback_use_saved_value();
+            Ok(value)
+        }
+        (Err(e), _) => Err(Error::from_de(e)),
+    }
 }
 
 impl<'de, Inner, Extra> serde::Deserializer<'de> for Deserializer<'_, Inner, Extra>

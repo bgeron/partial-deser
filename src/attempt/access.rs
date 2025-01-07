@@ -2,7 +2,7 @@
 use serde::de::Deserializer;
 use serde::de::SeqAccess;
 
-use crate::{options::ExtraOptions, reporter::Reporter, util::DeserializeKind, Error};
+use crate::{options::ExtraOptions, reporter::Reporter, util::DeserializeKind};
 
 use super::{erase_error_ref, AttemptState, DeserializeSeed, GlobalState};
 

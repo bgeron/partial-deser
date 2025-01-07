@@ -39,8 +39,12 @@ pub(crate) struct AttemptState {
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum ReasonToIntervene {
-    /// The deserializer has returned an error (we do not distinguish between its errors)
-    EndOfInput,
+    /// The deserializer has returned an error before calling the visitor.
+    /// (We do not distinguish between its errors.)
+    DeserializerStart,
+    /// The deserializer returned an error after calling the visitor. In this
+    /// case, we can salvage the
+    DeserializerFinishSaved,
     /// We planned to halt deserialization at a certain point, and we have reached that point.
     PlannedHalting { at: HaltingPoint },
     /// A visitor (data type) returned an error.

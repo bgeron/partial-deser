@@ -142,6 +142,9 @@ where
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct UnstableCustomBehavior {
+    /// If the visitor returns Ok but the deserializer returns an error, then return
+    /// the visitor's value.
+    pub unstable_fallback_deserializer_finish: bool,
     pub unstable_fallback_any_as_none: bool,
     // pub unstable_backtrack_any_as_none: bool,
     pub unstable_fallback_ignored_any_as_none: bool,
@@ -189,6 +192,7 @@ pub struct UnstableCustomBehavior {
 impl Default for UnstableCustomBehavior {
     fn default() -> Self {
         Self {
+            unstable_fallback_deserializer_finish: true,
             unstable_fallback_any_as_none: false,
             // unstable_backtrack_any_as_none: false,
             unstable_fallback_ignored_any_as_none: false,
@@ -239,6 +243,7 @@ impl UnstableCustomBehavior {
     /// deserialization with this behavior.
     pub fn strict() -> Self {
         Self {
+            unstable_fallback_deserializer_finish: false,
             unstable_fallback_any_as_none: false,
             // unstable_backtrack_any_as_none: false,
             unstable_fallback_ignored_any_as_none: false,
@@ -286,6 +291,7 @@ impl UnstableCustomBehavior {
 
     pub fn lenient() -> Self {
         Self {
+            unstable_fallback_deserializer_finish: true,
             unstable_fallback_any_as_none: true,
             // unstable_backtrack_any_as_none: true,
             unstable_fallback_ignored_any_as_none: true,

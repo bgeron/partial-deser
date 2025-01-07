@@ -60,6 +60,8 @@ pub(crate) enum BugEnum {
         intended_to_stop_at: HaltingPoint,
         halting_point_stack: Vec<HaltingPoint>,
     },
+    #[error("our visitor should store the obtained value on the stack, but it's missing")]
+    OkButValueMissingFromStack,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -158,6 +160,14 @@ impl<DeserializerErr> From<InternalError> for Error<DeserializerErr> {
 impl From<BugEnum> for InternalError {
     fn from(err: BugEnum) -> Self {
         InternalError::Bug(Bug(err))
+    }
+}
+
+impl<DeserializerErr> From<BugEnum> for Error<DeserializerErr> {
+    fn from(err: BugEnum) -> Self {
+        Self {
+            err: Box::new(ErrorImpl::Internal(err.into())),
+        }
     }
 }
 

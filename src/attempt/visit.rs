@@ -1,7 +1,5 @@
 use std::error::Error as StdError;
 
-use tap::Tap;
-
 use super::access::Access;
 use super::erase_error_ref;
 use crate::options::ExtraOptions;
@@ -10,8 +8,9 @@ use crate::state::{AttemptState, GlobalState};
 use crate::util::DeserializeKind;
 
 /// Something that creates a data value, if only you tell it what the format is like.
-pub(crate) struct Visitor<'a, Inner, Extra>
+pub(crate) struct Visitor<'a, 'de, Inner, Extra>
 where
+    Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions,
 {
     pub(super) global: &'a mut GlobalState<Extra>,
@@ -24,16 +23,20 @@ where
     /// The inner visitor actually lives on the stack, so that in case the deserializer fails,
     /// we can attempt to apply a fallback instead.
     pub(super) inner: &'a mut Option<Inner>,
+
+    /// If the inner visitor returns a value, we store it here for safekeeping
+    /// so we can recover if the deserializer decides to error anyway.
+    pub(super) value: &'a mut Option<Inner::Value>,
 }
 
 fn framework<'de, Inner, Extra, E>(
-    visitor: Visitor<'_, Inner, Extra>,
+    visitor: Visitor<'_, 'de, Inner, Extra>,
     do_visit: impl FnOnce(
         Inner,
         (&mut GlobalState<Extra>, &mut AttemptState, DeserializeKind),
     ) -> Result<Inner::Value, E>,
     report_end: impl FnOnce(&mut Extra::Reporter, Option<&dyn StdError>),
-) -> Result<Inner::Value, E>
+) -> Result<(), E>
 where
     Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions,
@@ -44,27 +47,35 @@ where
         .take()
         .expect("inner visitor is present when running Visitor");
 
-    do_visit(
+    let result = do_visit(
         inner_visitor,
         (visitor.global, visitor.attempt, visitor.kind),
-    )
-    .tap(|result| {
-        if result.is_err() {
-            visitor
-                .attempt
-                .are_intervening
-                .get_or_insert(crate::state::ReasonToIntervene::VisitError);
+    );
+
+    if result.is_err() {
+        visitor
+            .attempt
+            .are_intervening
+            .get_or_insert(crate::state::ReasonToIntervene::VisitError);
+    }
+    report_end(&mut visitor.global.reporter, erase_error_ref(&result));
+
+    match result {
+        Ok(value) => {
+            *visitor.value = Some(value);
+            Ok(())
         }
-        report_end(&mut visitor.global.reporter, erase_error_ref(result))
-    })
+        Err(e) => Err(e),
+    }
 }
 
-impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, Inner, Extra>
+impl<'de, Inner, Extra> serde::de::Visitor<'de> for Visitor<'_, 'de, Inner, Extra>
 where
     Inner: serde::de::Visitor<'de>,
     Extra: ExtraOptions,
 {
-    type Value = Inner::Value;
+    /// The visitor actually does not return the value, but stores it in a higher stack frame.
+    type Value = ();
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         self.inner.as_ref().expect("the inner visitor has not been consumed while the external deserializer is running").expecting(formatter)
@@ -426,9 +437,9 @@ where
             self,
             |visitor, (global, attempt, kind)| {
                 visitor.visit_seq(Access {
-                    global: global,
-                    attempt: attempt,
-                    kind: kind,
+                    global,
+                    attempt,
+                    kind,
                     inner: seq,
                     collection_has_ended: false,
                 })

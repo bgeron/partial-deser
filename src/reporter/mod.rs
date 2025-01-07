@@ -67,6 +67,7 @@ pub trait Reporter {
     fn report_deserialize_start_identifier(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_ignored_any(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_finish(&mut self, error: Option<&dyn StdError>);
+    fn report_deserialize_fallback_use_saved_value(&mut self);
 
     /// This is called after visiting anything that doesn't have its own
     /// `report_end_*` method.
