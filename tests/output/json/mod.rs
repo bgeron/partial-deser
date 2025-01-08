@@ -16,7 +16,10 @@ mod number;
 ///
 /// The output is deduplicated -- only inputs are shown where the output changes.
 #[allow(clippy::type_complexity)]
-pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<'input, T: for<'de> Deserialize<'de> + Serialize>(
+pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
+    'input,
+    T: for<'de> Deserialize<'de> + Serialize,
+>(
     modes: &[(&'static str, Options)],
     full_input: &'input [u8],
 ) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<serde_json::Value, String>>> {
@@ -29,7 +32,9 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<'input, T: for<'de> 
                 options
                     .clone()
                     .from_json_slice::<T>(inp)
-                    .map(|value| serde_json::to_value(&value).expect("could not reserialize to JSON"))
+                    .map(|value| {
+                        serde_json::to_value(&value).expect("could not reserialize to JSON")
+                    })
                     .map_err(|err| err.to_string())
             });
 
@@ -41,16 +46,29 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<'input, T: for<'de> 
 fn default_modes() -> Vec<(&'static str, Options)> {
     vec![
         ("default behavior", Options::new_json()),
-        ("default behavior, 0 backtracks", Options::new_json().with_max_n_backtracks(Some(0))),
+        (
+            "default behavior, 0 backtracks",
+            Options::new_json().with_max_n_backtracks(Some(0)),
+        ),
         (
             "no fallbacks, 0 backtracks",
-            Options::new_json().custom_behavior(UnstableCustomBehavior::default().no_fallbacks()).with_max_n_backtracks(Some(0)),
+            Options::new_json()
+                .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
+                .with_max_n_backtracks(Some(0)),
         ),
-        ("default behavior, 1 backtracks", Options::new_json().with_max_n_backtracks(Some(1))),
         (
             "no fallbacks, 1 backtracks",
-            Options::new_json().custom_behavior(UnstableCustomBehavior::default().no_fallbacks()).with_max_n_backtracks(Some(1)),
+            Options::new_json()
+                .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
+                .with_max_n_backtracks(Some(1)),
         ),
-        ("strict behavior", Options::new_json().custom_behavior(UnstableCustomBehavior::strict())),
+        (
+            "default behavior, 1 backtracks",
+            Options::new_json().with_max_n_backtracks(Some(1)),
+        ),
+        (
+            "strict behavior",
+            Options::new_json().custom_behavior(UnstableCustomBehavior::strict()),
+        ),
     ]
 }

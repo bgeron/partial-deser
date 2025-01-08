@@ -45,8 +45,9 @@ fn test_bools() {
           true,
         ]),
       },
-      "default behavior, 1 backtracks": {
-        "": Ok([]),
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[true": Ok([
           true,
         ]),
@@ -60,9 +61,8 @@ fn test_bools() {
           true,
         ]),
       },
-      "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
-        "[": Ok([]),
+      "default behavior, 1 backtracks": {
+        "": Ok([]),
         "[true": Ok([
           true,
         ]),
