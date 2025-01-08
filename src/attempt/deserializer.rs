@@ -93,7 +93,7 @@ where
                 .global
                 .config
                 .behavior
-                .unstable_fallback_deserializer_finish =>
+                .unstable_tolerate_deserializer_fail_after_visit_success =>
         {
             deserializer
                 .attempt

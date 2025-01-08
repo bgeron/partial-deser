@@ -135,7 +135,7 @@ where
 pub struct UnstableCustomBehavior {
     /// If the visitor returns Ok but the deserializer returns an error, then return
     /// the visitor's value.
-    pub unstable_fallback_deserializer_finish: bool,
+    pub unstable_tolerate_deserializer_fail_after_visit_success: bool,
     pub unstable_fallback_any_as_none: bool,
     // pub unstable_backtrack_any_as_none: bool,
     pub unstable_fallback_ignored_any_as_none: bool,
@@ -183,7 +183,7 @@ pub struct UnstableCustomBehavior {
 impl Default for UnstableCustomBehavior {
     fn default() -> Self {
         Self {
-            unstable_fallback_deserializer_finish: true,
+            unstable_tolerate_deserializer_fail_after_visit_success: true,
             unstable_fallback_any_as_none: false,
             // unstable_backtrack_any_as_none: false,
             unstable_fallback_ignored_any_as_none: false,
@@ -232,7 +232,7 @@ impl Default for UnstableCustomBehavior {
 impl UnstableCustomBehavior {
     pub fn no_fallbacks(mut self) -> Self {
         let Self {
-            unstable_fallback_deserializer_finish,
+            unstable_tolerate_deserializer_fail_after_visit_success: _,
             unstable_fallback_any_as_none,
             unstable_fallback_ignored_any_as_none,
             unstable_fallback_default_bool,
@@ -261,7 +261,6 @@ impl UnstableCustomBehavior {
             unstable_backtrack_struct_skip_field: _,
         } = &mut self;
 
-        *unstable_fallback_deserializer_finish = false;
         *unstable_fallback_any_as_none = false;
         *unstable_fallback_ignored_any_as_none = false;
         *unstable_fallback_default_bool = None;
@@ -291,7 +290,7 @@ impl UnstableCustomBehavior {
     /// deserialization with this behavior.
     pub fn strict() -> Self {
         Self {
-            unstable_fallback_deserializer_finish: false,
+            unstable_tolerate_deserializer_fail_after_visit_success: false,
             unstable_fallback_any_as_none: false,
             // unstable_backtrack_any_as_none: false,
             unstable_fallback_ignored_any_as_none: false,
@@ -339,7 +338,7 @@ impl UnstableCustomBehavior {
 
     pub fn lenient() -> Self {
         Self {
-            unstable_fallback_deserializer_finish: true,
+            unstable_tolerate_deserializer_fail_after_visit_success: true,
             unstable_fallback_any_as_none: true,
             // unstable_backtrack_any_as_none: true,
             unstable_fallback_ignored_any_as_none: true,
