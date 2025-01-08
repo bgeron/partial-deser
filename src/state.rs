@@ -4,6 +4,7 @@ use serde::de::SeqAccess;
 use crate::attempt::HaltingPoint;
 use crate::error::InternalError;
 use crate::options::ExtraOptions;
+use crate::reporter::Reporter;
 use crate::Options;
 
 pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
@@ -16,7 +17,9 @@ pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
     pub(super) fallbacks: Extra::FallbackProvider,
 }
 
-pub(crate) struct AttemptState {
+pub(crate) struct AttemptState<Extra: crate::options::ExtraOptions> {
+    pub(super) reporter: Extra::Reporter,
+
     /// If the previous attempt failed, then there may be a point where we can tell
     /// the visitor there's no more data (e.g. in the sequence or map) and safely
     /// finish deserialization.
@@ -73,9 +76,10 @@ impl<Extra: ExtraOptions> Options<Extra> {
     }
 }
 
-impl AttemptState {
-    pub(crate) fn initial() -> Self {
+impl<Extra: ExtraOptions> AttemptState<Extra> {
+    pub(crate) fn initial(global: &GlobalState<Extra>) -> Self {
         Self {
+            reporter: global.reporter.clone(),
             intend_to_stop_deserializing_at: None,
             intervention_active: None,
             next_halting_point: HaltingPoint::default(),
@@ -102,6 +106,7 @@ impl AttemptState {
                 }
                 self.halting_point_stack.clear();
                 Ok(Some(Self {
+                    reporter: self.reporter,
                     intend_to_stop_deserializing_at: Some(next_halting_point),
                     intervention_active: None,
                     next_halting_point: HaltingPoint::default(),
@@ -155,9 +160,17 @@ impl AttemptState {
     /// and remember a potential better halting point for next attempt.
     pub(crate) fn activate_intervention(&mut self, reason: InterventionReason) {
         if self.intervention_active.is_none() {
+            let candidate_halting_point_for_next_attempt = self.halting_point_stack.last().copied();
+
+            self.reporter.report_start_intervention(
+                reason,
+                candidate_halting_point_for_next_attempt.as_ref(),
+                &self.halting_point_stack,
+            );
+
             self.intervention_active = Some(Intervention {
                 reason,
-                candidate_halting_point_for_next_attempt: self.halting_point_stack.last().copied(),
+                candidate_halting_point_for_next_attempt,
             });
         }
     }

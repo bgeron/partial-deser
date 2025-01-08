@@ -33,7 +33,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         S: Source<'de>,
     {
         let mut state = self.build();
-        let mut attempt = AttemptState::initial();
+        let mut attempt = AttemptState::initial(&state);
 
         while {
             let max_n_backtracks = state.config.max_n_backtracks;

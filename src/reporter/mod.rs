@@ -13,7 +13,7 @@ mod default_reporter;
 
 pub use default_reporter::DefaultReporter;
 
-pub trait Reporter {
+pub trait Reporter: Clone {
     fn report_deserialize_start_any(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_bool(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_i8(&mut self, args: impl DeserializeStartArgs);
@@ -111,6 +111,7 @@ pub trait Reporter {
         &mut self,
         reason: impl Debug,
         candidate_halting_point_for_next_attempt: Option<&HaltingPoint>,
+        halting_point_stack: &[HaltingPoint],
     );
 
     /// The deserializer failed without consuming the visitor. We start computing one of the [`Fallbacks`].

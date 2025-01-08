@@ -14,7 +14,7 @@ where
     Extra: ExtraOptions,
 {
     pub(super) global: &'a mut GlobalState<Extra>,
-    pub(super) attempt: &'a mut AttemptState,
+    pub(super) attempt: &'a mut AttemptState<Extra>,
     pub(super) kind: DeserializeKind,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
@@ -33,7 +33,11 @@ fn framework<'de, Inner, Extra, E>(
     visitor: Visitor<'_, 'de, Inner, Extra>,
     do_visit: impl FnOnce(
         Inner,
-        (&mut GlobalState<Extra>, &mut AttemptState, DeserializeKind),
+        (
+            &mut GlobalState<Extra>,
+            &mut AttemptState<Extra>,
+            DeserializeKind,
+        ),
     ) -> Result<Inner::Value, E>,
     report_end: impl FnOnce(&mut Extra::Reporter, Option<&dyn StdError>),
 ) -> Result<(), E>

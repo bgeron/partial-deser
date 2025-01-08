@@ -31,7 +31,7 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<'input, T: for<'de> 
                     .map_err(|err| err.to_string())
             });
 
-            [ComparisonLine::Heading(&mode_desc)].into_iter().chain(outputs).collect_vec()
+            [ComparisonLine::Heading(mode_desc)].into_iter().chain(outputs).collect_vec()
         })
         .collect_vec()
         .into()

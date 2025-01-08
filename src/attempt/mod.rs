@@ -49,7 +49,7 @@ where
     Extra: ExtraOptions,
 {
     pub(crate) global: &'a mut GlobalState<Extra>,
-    pub(crate) attempt: &'a mut AttemptState,
+    pub(crate) attempt: &'a mut AttemptState<Extra>,
     pub(crate) inner: Inner,
 }
 
@@ -58,7 +58,7 @@ where
     Extra: ExtraOptions,
 {
     pub(crate) global: &'a mut GlobalState<Extra>,
-    pub(crate) attempt: &'a mut AttemptState,
+    pub(crate) attempt: &'a mut AttemptState<Extra>,
     pub(crate) inner: Inner,
 }
 

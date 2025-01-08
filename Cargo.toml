@@ -10,7 +10,6 @@ serde_json = ["dep:serde_json", "dep:rand"]
 unstable = []
 
 [dependencies]
-itertools = "0.13.0"
 rand = { version = "0.8", optional = true }
 serde = "1.0.215"
 serde_json = { version = "1.0.133", optional = true}
@@ -21,6 +20,7 @@ tracing = { version = "0.1", optional = true }
 
 [dev-dependencies]
 bstr = "1.11"
+itertools = "0.13.0"
 serde = { version = "1", features = ["derive"]}
 serde_json = { version = "1"}
 tracing-subscriber = "0.3"

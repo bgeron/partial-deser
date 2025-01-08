@@ -5,8 +5,6 @@ use serde::de::{Expected, Unexpected};
 #[cfg(doc)]
 use serde::de::{DeserializeSeed, Deserializer};
 
-use crate::attempt::HaltingPoint;
-
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 pub struct Error<DeserializerErr> {

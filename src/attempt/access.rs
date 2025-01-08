@@ -11,7 +11,7 @@ where
     Extra: ExtraOptions,
 {
     pub(crate) global: &'a mut GlobalState<Extra>,
-    pub(crate) attempt: &'a mut AttemptState,
+    pub(crate) attempt: &'a mut AttemptState<Extra>,
     pub(crate) kind: DeserializeKind,
     pub(crate) inner: Inner,
     pub(crate) collection_has_ended: bool,
@@ -23,7 +23,7 @@ pub(crate) struct InsideElement {
     pub(crate) halting_point_is_on_stack: bool,
 }
 
-impl<'a, Inner, Extra> Access<'a, Inner, Extra>
+impl<Inner, Extra> Access<'_, Inner, Extra>
 where
     Extra: ExtraOptions,
 {
