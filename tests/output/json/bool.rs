@@ -30,6 +30,19 @@ fn test_bools() {
                 Output(Ok(json!([true, false, true])))
             ],
             vec![
+                Heading("no fallbacks, 0 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)".to_string()
+                )),
+                Input(B(b"[true, false, true]")),
+                Output(Ok(json!([true, false, true])))
+            ],
+            vec![
                 Heading("default behavior, 1 backtracks"),
                 Input(B(b"")),
                 Output(Ok(json!([]))),
@@ -38,6 +51,19 @@ fn test_bools() {
                 Input(B(b"[true, false")),
                 Output(Ok(json!([true, false]))),
                 Input(B(b"[true, false, true")),
+                Output(Ok(json!([true, false, true])))
+            ],
+            vec![
+                Heading("no fallbacks, 1 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 1 backtracks)".to_string()
+                )),
+                Input(B(b"[true, false, true]")),
                 Output(Ok(json!([true, false, true])))
             ],
             vec![

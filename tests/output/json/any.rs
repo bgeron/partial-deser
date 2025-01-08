@@ -26,7 +26,25 @@ fn test_any() {
                 Output(Ok(json!([true, false, 3, 4.5, "hello"])))
             ],
             vec![
+                Heading("no fallbacks, 0 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[true, false, 3, 4.5, \"hello\"]")),
+                Output(Ok(json!([true, false, 3, 4.5, "hello"])))
+            ],
+            vec![
                 Heading("default behavior, 1 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[true, false, 3, 4.5, \"hello\"]")),
+                Output(Ok(json!([true, false, 3, 4.5, "hello"])))
+            ],
+            vec![
+                Heading("no fallbacks, 1 backtracks"),
                 Input(B(b"")),
                 Output(Err(
                     "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()

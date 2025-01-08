@@ -66,6 +66,19 @@ fn test_i32() {
                 Output(Ok(json!([0, 1, 12345, -54321])))
             ],
             vec![
+                Heading("no fallbacks, 0 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)".to_string()
+                )),
+                Input(B(b"[0, 1, 12345, -54321]")),
+                Output(Ok(json!([0, 1, 12345, -54321])))
+            ],
+            vec![
                 Heading("default behavior, 1 backtracks"),
                 Input(B(b"")),
                 Output(Ok(json!([]))),
@@ -92,6 +105,19 @@ fn test_i32() {
                 Input(B(b"[0, 1, 12345, -5432")),
                 Output(Ok(json!([0, 1, 12345, -5432]))),
                 Input(B(b"[0, 1, 12345, -54321")),
+                Output(Ok(json!([0, 1, 12345, -54321])))
+            ],
+            vec![
+                Heading("no fallbacks, 1 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 1 backtracks)".to_string()
+                )),
+                Input(B(b"[0, 1, 12345, -54321]")),
                 Output(Ok(json!([0, 1, 12345, -54321])))
             ],
             vec![
@@ -172,6 +198,19 @@ fn test_i32_overflow() {
                 Output(Ok(json!([0, 1, 1234567890])))
             ],
             vec![
+                Heading("no fallbacks, 0 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)".to_string()
+                )),
+                Input(B(b"[0, 1, 1234567890]")),
+                Output(Ok(json!([0, 1, 1234567890])))
+            ],
+            vec![
                 Heading("default behavior, 1 backtracks"),
                 Input(B(b"")),
                 Output(Ok(json!([]))),
@@ -198,6 +237,19 @@ fn test_i32_overflow() {
                 Input(B(b"[0, 1, 123456789")),
                 Output(Ok(json!([0, 1, 123456789]))),
                 Input(B(b"[0, 1, 1234567890")),
+                Output(Ok(json!([0, 1, 1234567890])))
+            ],
+            vec![
+                Heading("no fallbacks, 1 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 1 backtracks)".to_string()
+                )),
+                Input(B(b"[0, 1, 1234567890]")),
                 Output(Ok(json!([0, 1, 1234567890])))
             ],
             vec![
@@ -397,6 +449,19 @@ fn test_f32() {
                 Output(Ok(json!([0.0, 1.0, 12345.0, 123456792.0, 3.140000104904175, 3.1415927410125732, -1.0, -1000.0, -0.0, 0.0, 42.0])))
             ],
             vec![
+                Heading("no fallbacks, 0 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)".to_string()
+                )),
+                Input(B(b"[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]")),
+                Output(Ok(json!([0.0, 1.0, 12345.0, 123456792.0, 3.140000104904175, 3.1415927410125732, -1.0, -1000.0, -0.0, 0.0, 42.0])))
+            ],
+            vec![
                 Heading("default behavior, 1 backtracks"),
                 Input(B(b"")),
                 Output(Ok(json!([]))),
@@ -481,6 +546,19 @@ fn test_f32() {
                 Input(B(b"[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 4")),
                 Output(Ok(json!([0.0, 1.0, 12345.0, 123456792.0, 3.140000104904175, 3.1415927410125732, -1.0, -1000.0, -0.0, 0.0, 4.0]))),
                 Input(B(b"[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42")),
+                Output(Ok(json!([0.0, 1.0, 12345.0, 123456792.0, 3.140000104904175, 3.1415927410125732, -1.0, -1000.0, -0.0, 0.0, 42.0])))
+            ],
+            vec![
+                Heading("no fallbacks, 1 backtracks"),
+                Input(B(b"")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)".to_string()
+                )),
+                Input(B(b"[")),
+                Output(Err(
+                    "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 1 backtracks)".to_string()
+                )),
+                Input(B(b"[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]")),
                 Output(Ok(json!([0.0, 1.0, 12345.0, 123456792.0, 3.140000104904175, 3.1415927410125732, -1.0, -1000.0, -0.0, 0.0, 42.0])))
             ],
             vec![
