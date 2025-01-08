@@ -53,12 +53,13 @@ fn main() {
         dbg!(parsed);
     }
 
-    // {
-    //     let json = "[";
-    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
-    //         .custom_behavior(UnstableCustomBehavior::strict())
-    //         .from_json_str(json)
-    //         .unwrap();
-    //     dbg!(parsed);
-    // }
+    {
+        let json = "[true, false, tru";
+        let parsed: Vec<bool> = partial_deser::Options::new_json()
+            .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
+            .with_max_n_backtracks(Some(1))
+            .from_json_str(json)
+            .unwrap();
+        dbg!(parsed);
+    }
 }

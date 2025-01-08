@@ -21,6 +21,9 @@ test:
     cargo test --no-fail-fast --all-targets --no-default-features
     cargo test --no-fail-fast --all-features --doc
 
+insta:
+    cargo test --no-fail-fast --all-targets --all-features
+
 fmt:
     cargo +nightly fmt
 

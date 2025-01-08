@@ -1,9 +1,11 @@
+use std::borrow::Cow;
+
+use indexmap::IndexMap;
 use partial_deser::unstable::UnstableCustomBehavior;
 use partial_deser::Options;
 use serde::{Deserialize, Serialize};
 
-use crate::common::{run_on_prefixes_and_format_outputs, ComparisonLine};
-use crate::print_as_constructor::PrintAsConstructor;
+use crate::common::run_on_prefixes_and_format_outputs;
 
 mod any;
 mod bool;
@@ -17,7 +19,7 @@ mod number;
 pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<'input, T: for<'de> Deserialize<'de> + Serialize>(
     modes: &[(&'static str, Options)],
     full_input: &'input [u8],
-) -> PrintAsConstructor<Vec<Vec<ComparisonLine<'input, Result<serde_json::Value, String>>>>> {
+) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<serde_json::Value, String>>> {
     use itertools::Itertools;
 
     modes
@@ -31,10 +33,9 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<'input, T: for<'de> 
                     .map_err(|err| err.to_string())
             });
 
-            [ComparisonLine::Heading(mode_desc)].into_iter().chain(outputs).collect_vec()
+            (*mode_desc, outputs)
         })
-        .collect_vec()
-        .into()
+        .collect()
 }
 
 fn default_modes() -> Vec<(&'static str, Options)> {
