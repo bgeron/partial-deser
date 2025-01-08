@@ -13,6 +13,7 @@ mod bool;
 mod number;
 mod other;
 mod seq;
+mod r#struct;
 
 type BoxSerialize = Box<dyn erased_serde::Serialize>;
 

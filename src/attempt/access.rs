@@ -21,6 +21,7 @@ where
     pub(crate) inside_element: Option<InsideElement>,
 }
 
+#[derive(Debug)]
 pub(crate) struct InsideElement {
     pub(crate) corresponding_halting_point: HaltingPoint,
     pub(crate) halting_point_is_on_stack: bool,
@@ -31,6 +32,7 @@ where
     Extra: ExtraOptions,
 {
     fn enter_element(&mut self, corresponding_halting_point: HaltingPoint) {
+        trace!(%corresponding_halting_point, ?self.inside_element, "entering");
         if self.inside_element.is_some() {
             error!(
                 "access: enter before leaving previous element (maybe next_value_seed was not called?)"
@@ -52,6 +54,7 @@ where
     }
 
     fn leave_element(&mut self) {
+        trace!(?self.inside_element, ?self.attempt.halting_point_stack, "leaving");
         let Some(inside_element) = self.inside_element.take() else {
             error!("access: leave without entering element (maybe next_key_seed was not called?)");
             return;
@@ -220,6 +223,9 @@ where
         if result.is_err() {
             self.attempt
                 .activate_intervention(InterventionReason::VisitError);
+        }
+        if !matches!(result, Ok(Some(_))) {
+            self.leave_element();
         }
 
         match result {

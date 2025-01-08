@@ -8,7 +8,7 @@
 //!
 //! ```
 //! # use serde::Deserialize;
-//! #[derive(Debug, Deserialize)]
+//! #[derive(Debug, Deserialize, PartialEq)]
 //! struct TravelMode {
 //!    mode: String,
 //!    benefit: Option<String>
@@ -16,10 +16,10 @@
 //!
 //! let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
 //! let modes: Vec<TravelMode> = partial_deser::from_json_str(json).unwrap();
-//! assert_eq!(format!("{modes:?}"), r#"[
-//!    TravelMode { mode: "foot", benefit: Some("healthy") },
-//!    TravelMode { mode: "aeropl", benefit: None }
-//! ]"#);
+//! assert_eq!(modes, [
+//!    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
+//!    TravelMode { mode: "aeropl".to_string(), benefit: None }
+//! ]);
 //! ```
 //!
 //! This crate is generic for many or all data formats, not just JSON. There is merely
