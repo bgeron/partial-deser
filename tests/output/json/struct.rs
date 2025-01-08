@@ -71,3 +71,13 @@ fn test_unit_struct() {
     "###
     );
 }
+
+
+#[test]
+fn test_newtype_struct() {
+    #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+    struct Newtype(u8);
+
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Unit>>(&default_modes(), b"[42]"),
+        @"")}
