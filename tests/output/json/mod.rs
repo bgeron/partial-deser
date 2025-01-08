@@ -11,6 +11,7 @@ use crate::common::run_on_prefixes_and_format_outputs;
 mod any;
 mod bool;
 mod number;
+mod other;
 
 /// Partially deserialize all prefixes of the input as JSON. Reserialize the successful
 /// results to JSON for comparison with `assert_eq!`, and stringify any errors.
@@ -22,12 +23,12 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
     T: for<'de> Deserialize<'de> + Serialize + Debug + PartialEq,
 >(
     modes: &[(&'static str, Options)],
-    full_input: &'input [u8],
+    full_input: &'input impl AsRef<[u8]>,
 ) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<impl Serialize, String>>> {
     modes
         .iter()
         .map(|(mode_desc, options)| {
-            let outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
+            let outputs = run_on_prefixes_and_format_outputs(full_input.as_ref(), |inp| {
                 options
                     .clone()
                     .from_json_slice::<T>(inp)
