@@ -66,3 +66,248 @@ fn test_unit() {
     "###
     );
 }
+
+#[test]
+fn test_option() {
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Option<Vec<bool>>>>(&default_modes(), &r#"[null, [], [true], [false], null]"#),
+        @r###"
+    {
+      "default behavior": {
+        "": Ok([]),
+        "[n": Ok([
+          None,
+        ]),
+        "[null, [": Ok([
+          None,
+          Some([]),
+        ]),
+        "[null, [], [": Ok([
+          None,
+          Some([]),
+          Some([]),
+        ]),
+        "[null, [], [true": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+        ]),
+        "[null, [], [true], [": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([]),
+        ]),
+        "[null, [], [true], [false": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+        ]),
+        "[null, [], [true], [false], n": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[n": Ok([
+          None,
+        ]),
+        "[null, [": Ok([
+          None,
+          Some([]),
+        ]),
+        "[null, [], [": Ok([
+          None,
+          Some([]),
+          Some([]),
+        ]),
+        "[null, [], [true": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+        ]),
+        "[null, [], [true], [": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([]),
+        ]),
+        "[null, [], [true], [false": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+        ]),
+        "[null, [], [true], [false], n": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[null, [], [true], [false], null]": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Ok([]),
+        "[null": Ok([
+          None,
+        ]),
+        "[null, [": Ok([
+          None,
+          Some([]),
+        ]),
+        "[null, [], [": Ok([
+          None,
+          Some([]),
+          Some([]),
+        ]),
+        "[null, [], [true": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+        ]),
+        "[null, [], [true], [": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([]),
+        ]),
+        "[null, [], [true], [false": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+        ]),
+        "[null, [], [true], [false], null": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok([]),
+        "[n": Ok([
+          None,
+        ]),
+        "[null, [": Ok([
+          None,
+          Some([]),
+        ]),
+        "[null, [], [": Ok([
+          None,
+          Some([]),
+          Some([]),
+        ]),
+        "[null, [], [true": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+        ]),
+        "[null, [], [true], [": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([]),
+        ]),
+        "[null, [], [true], [false": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+        ]),
+        "[null, [], [true], [false], n": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[null, [], [true], [false], null]": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+    }
+    "###
+    );
+}

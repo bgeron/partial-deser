@@ -1,0 +1,356 @@
+use super::{default_modes, run_json_modes_on_prefixes_and_format_outputs};
+
+#[test]
+fn test_seq() {
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Vec<bool>>>(&default_modes(), &r#"[[], [true], [false], []]"#),
+        @r###"
+    {
+      "default behavior": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[], [": Ok([
+          [],
+          [],
+        ]),
+        "[[], [true": Ok([
+          [],
+          [
+            true,
+          ],
+        ]),
+        "[[], [true], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[], [true], [false": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
+        "[[], [true], [false], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[], [": Ok([
+          [],
+          [],
+        ]),
+        "[[], [true": Ok([
+          [],
+          [
+            true,
+          ],
+        ]),
+        "[[], [true], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[], [true], [false": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
+        "[[], [true], [false], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[], [true], [false], []]": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[], [": Ok([
+          [],
+          [],
+        ]),
+        "[[], [true": Ok([
+          [],
+          [
+            true,
+          ],
+        ]),
+        "[[], [true], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[], [true], [false": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
+        "[[], [true], [false], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[], [": Ok([
+          [],
+          [],
+        ]),
+        "[[], [true": Ok([
+          [],
+          [
+            true,
+          ],
+        ]),
+        "[[], [true], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[], [true], [false": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
+        "[[], [true], [false], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[[], [true], [false], []]": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+    }
+    "###
+    );
+}
+
+#[test]
+fn test_seq_cannot_parse_after_invalid() {
+    // Note: the false is never reached because [true,] is invalid JSON and serde_json
+    // is unable to ever continue past that.
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Vec<bool>>>(&default_modes(), &r#"[[true], null, [true]]"#),
+        @r###"
+    {
+      "default behavior": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+        "[[true], n": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+        "[[true], n": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+        "[[true], n": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+      },
+    }
+    "###
+    );
+}
+
+#[test]
+fn test_seq_cannot_parse_after_trailing_comma() {
+    // Note: the false is never reached because [true,] is invalid JSON and serde_json
+    // is unable to ever continue past that.
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Vec<bool>>>(&default_modes(), &r#"[[true,], [false]]"#),
+        @r###"
+    {
+      "default behavior": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "[": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok([]),
+        "[[": Ok([
+          [],
+        ]),
+        "[[true": Ok([
+          [
+            true,
+          ],
+        ]),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+      },
+    }
+    "###
+    );
+}

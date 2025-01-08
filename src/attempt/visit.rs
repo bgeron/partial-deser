@@ -1,11 +1,12 @@
 use std::error::Error as StdError;
 
 use super::access::Access;
-use super::erase_error_ref;
+use super::{erase_error_ref, Deserializer};
 use crate::options::ExtraOptions;
 use crate::reporter::Reporter;
 use crate::state::{AttemptState, GlobalState};
 use crate::util::DeserializeKind;
+use crate::Error;
 
 /// Something that creates a data value, if only you tell it what the format is like.
 pub(crate) struct Visitor<'a, 'de, Inner, Extra>
@@ -408,7 +409,24 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        todo!()
+        self.global.reporter.report_recv_visit_start_some();
+
+        framework(
+            self,
+            |visitor, (global, attempt, _kind)| {
+                let wrapped = Deserializer {
+                    global,
+                    attempt,
+                    inner: deserializer,
+                };
+                visitor
+                    .visit_some(wrapped)
+                    .map_err(Error::unpack_or_make_custom)
+            },
+            |reporter, error| {
+                reporter.report_recv_visit_finish_some(error);
+            },
+        )
     }
 
     fn visit_unit<E>(self) -> Result<Self::Value, E>
@@ -461,12 +479,24 @@ where
     where
         A: serde::de::MapAccess<'de>,
     {
-        // todo
-        let _ = map;
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Map,
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_map();
+
+        framework(
+            self,
+            |visitor, (global, attempt, kind)| {
+                visitor.visit_map(Access {
+                    global,
+                    attempt,
+                    kind,
+                    inner: map,
+                    collection_has_ended: false,
+                    inside_element: None,
+                })
+            },
+            |reporter, error| {
+                reporter.report_recv_visit_finish_map(error);
+            },
+        )
     }
 
     fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>

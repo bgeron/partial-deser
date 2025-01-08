@@ -12,6 +12,7 @@ mod any;
 mod bool;
 mod number;
 mod other;
+mod seq;
 
 /// Partially deserialize all prefixes of the input as JSON. Reserialize the successful
 /// results to JSON for comparison with `assert_eq!`, and stringify any errors.
@@ -25,10 +26,12 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
     modes: &[(&'static str, Options)],
     full_input: &'input impl AsRef<[u8]>,
 ) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<impl Serialize, String>>> {
+    let full_input = full_input.as_ref();
+
     modes
         .iter()
         .map(|(mode_desc, options)| {
-            let outputs = run_on_prefixes_and_format_outputs(full_input.as_ref(), |inp| {
+            let outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
                 options
                     .clone()
                     .from_json_slice::<T>(inp)
