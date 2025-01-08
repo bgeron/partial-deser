@@ -5,9 +5,9 @@ use crate::util::DeserializeKind;
 use std::error::Error as StdError;
 use std::fmt::{Debug, Formatter};
 
-#[cfg(doc)]
-use serde::de::SeqAccess;
 use serde::de::Visitor;
+#[cfg(doc)]
+use serde::de::{MapAccess, SeqAccess};
 
 mod default_reporter;
 
@@ -157,6 +157,14 @@ pub trait Reporter: Clone {
     /// The data type attempted to read a value from a collection after we already
     /// reported that there are no more.
     fn report_access_past_end(&mut self);
+
+    fn report_enum_start(&mut self);
+    fn report_enum_finish(&mut self, error: Option<&dyn StdError>);
+    fn report_variant_start_unit_variant(&mut self);
+    fn report_variant_start_newtype_variant(&mut self);
+    fn report_variant_start_tuple_variant(&mut self, len: usize);
+    fn report_variant_start_struct_variant(&mut self, fields: &'static [&'static str]);
+    fn report_variant_finish(&mut self, error: Option<&dyn StdError>);
 }
 
 pub trait DeserializeStartArgs {

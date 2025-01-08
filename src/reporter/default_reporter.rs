@@ -535,6 +535,56 @@ impl Reporter for DefaultReporter {
             "access past end of collection"
         );
     }
+
+    fn report_enum_start(&mut self) {
+        trace!(nesting_level = self.level.get(), "start deserializing enum");
+    }
+
+    fn report_enum_finish(&mut self, error: Option<&dyn StdError>) {
+        trace!(
+            nesting_level = self.level.get(),
+            error = error.map(tracing::field::display),
+            "finish deserializing enum"
+        );
+    }
+
+    fn report_variant_start_unit_variant(&mut self) {
+        trace!(
+            nesting_level = self.level.get(),
+            "start deserializing unit variant"
+        );
+    }
+
+    fn report_variant_start_newtype_variant(&mut self) {
+        trace!(
+            nesting_level = self.level.get(),
+            "start deserializing newtype variant"
+        );
+    }
+
+    fn report_variant_start_tuple_variant(&mut self, len: usize) {
+        trace!(
+            nesting_level = self.level.get(),
+            len,
+            "start deserializing tuple variant"
+        );
+    }
+
+    fn report_variant_start_struct_variant(&mut self, fields: &'static [&'static str]) {
+        trace!(
+            nesting_level = self.level.get(),
+            ?fields,
+            "start deserializing struct variant"
+        );
+    }
+
+    fn report_variant_finish(&mut self, error: Option<&dyn StdError>) {
+        trace!(
+            nesting_level = self.level.get(),
+            error = error.map(tracing::field::display),
+            "finish deserializing variant"
+        );
+    }
 }
 
 struct FormatSequence<It>(RefCell<Option<It>>);

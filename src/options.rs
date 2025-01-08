@@ -1,3 +1,6 @@
+#[cfg(doc)]
+use serde::Deserializer;
+
 use crate::{fallback::DefaultFallbacks, reporter::DefaultReporter};
 
 /// Monomorphized options.
@@ -178,6 +181,7 @@ pub struct UnstableCustomBehavior {
     // pub unstable_backtrack_struct_empty: bool,
     pub unstable_fallback_struct_skip_field: bool,
     pub unstable_backtrack_struct_skip_field: bool,
+    pub unstable_fallback_unit_variant: bool,
 }
 
 impl Default for UnstableCustomBehavior {
@@ -225,6 +229,7 @@ impl Default for UnstableCustomBehavior {
             unstable_fallback_struct_empty: true,
             unstable_fallback_struct_skip_field: true,
             unstable_backtrack_struct_skip_field: true,
+            unstable_fallback_unit_variant: true,
         }
     }
 }
@@ -259,6 +264,7 @@ impl UnstableCustomBehavior {
             unstable_fallback_struct_empty,
             unstable_fallback_struct_skip_field,
             unstable_backtrack_struct_skip_field: _,
+            unstable_fallback_unit_variant,
         } = &mut self;
 
         *unstable_fallback_any_as_none = false;
@@ -282,6 +288,7 @@ impl UnstableCustomBehavior {
         *unstable_fallback_map_skip_item = false;
         *unstable_fallback_struct_empty = false;
         *unstable_fallback_struct_skip_field = false;
+        *unstable_fallback_unit_variant = false;
 
         self
     }
@@ -333,6 +340,7 @@ impl UnstableCustomBehavior {
             // unstable_backtrack_struct_empty: false,
             unstable_fallback_struct_skip_field: false,
             unstable_backtrack_struct_skip_field: false,
+            unstable_fallback_unit_variant: false,
         }
     }
 
@@ -381,6 +389,7 @@ impl UnstableCustomBehavior {
             // unstable_backtrack_struct_empty: true,
             unstable_fallback_struct_skip_field: true,
             unstable_backtrack_struct_skip_field: true,
+            unstable_fallback_unit_variant: true,
         }
     }
 }

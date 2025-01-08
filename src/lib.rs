@@ -1,5 +1,8 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![cfg_attr(not(feature = "tracing"), allow(unused_variables, unused_imports))]
+#![cfg_attr(
+    not(feature = "tracing"),
+    allow(unused_variables, unused_imports, dead_code)
+)]
 
 //! Deserialize with Serde from partial JSON and more
 //!

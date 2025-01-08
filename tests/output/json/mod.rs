@@ -10,7 +10,6 @@ use crate::common::run_on_prefixes_and_format_outputs;
 
 mod any;
 mod bool;
-#[cfg(any())] // not working yet
 mod r#enum;
 mod number;
 mod other;

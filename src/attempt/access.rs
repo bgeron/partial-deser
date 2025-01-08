@@ -1,12 +1,13 @@
 #[cfg(doc)]
 use serde::de::Deserializer;
-use serde::de::{MapAccess, SeqAccess};
+use serde::de::{EnumAccess, MapAccess, SeqAccess, VariantAccess};
 
 use crate::options::ExtraOptions;
 use crate::reporter::Reporter;
 use crate::state::InterventionReason;
 use crate::util::DeserializeKind;
 
+use super::visit::Visitor;
 use super::{erase_error_ref, AttemptState, DeserializeSeed, GlobalState, HaltingPoint};
 
 pub(crate) struct Access<'a, Inner, Extra>
@@ -31,6 +32,7 @@ impl<Inner, Extra> Access<'_, Inner, Extra>
 where
     Extra: ExtraOptions,
 {
+    /// Manage halting points for access types that allow backtracking of elements.
     fn enter_element(&mut self, corresponding_halting_point: HaltingPoint) {
         trace!(%corresponding_halting_point, ?self.inside_element, "entering");
         if self.inside_element.is_some() {
@@ -273,5 +275,152 @@ where
         self.leave_element();
 
         result
+    }
+}
+
+impl<'a, 'de, Inner, Extra> EnumAccess<'de> for Access<'a, Inner, Extra>
+where
+    Inner: EnumAccess<'de>,
+    Extra: ExtraOptions,
+{
+    type Error = Inner::Error;
+    type Variant = Access<'a, Inner::Variant, Extra>;
+
+    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+    where
+        V: serde::de::DeserializeSeed<'de>,
+    {
+        self.global.reporter.report_enum_start();
+
+        let result = self.inner.variant_seed(DeserializeSeed {
+            global: self.global,
+            attempt: self.attempt,
+            inner: seed,
+        });
+        self.global
+            .reporter
+            .report_enum_finish(erase_error_ref(&result));
+        if result.is_err() {
+            self.attempt
+                .activate_intervention(InterventionReason::VisitError);
+        }
+
+        let (value, inner_variant) = result?;
+        Ok((
+            value,
+            Access {
+                global: self.global,
+                attempt: self.attempt,
+                kind: self.kind,
+                inner: inner_variant,
+                collection_has_ended: false,
+                inside_element: None,
+            },
+        ))
+    }
+}
+
+fn process_variant_result<T, E: std::error::Error>(
+    result: &Result<T, E>,
+    attempt: &mut AttemptState<impl ExtraOptions>,
+    reporter: &mut impl Reporter,
+) {
+    if result.is_err() {
+        attempt.activate_intervention(InterventionReason::VisitError);
+    }
+    reporter.report_variant_finish(erase_error_ref(result));
+}
+
+impl<'de, Inner, Extra> VariantAccess<'de> for Access<'_, Inner, Extra>
+where
+    Inner: VariantAccess<'de>,
+    Extra: ExtraOptions,
+{
+    type Error = Inner::Error;
+
+    fn unit_variant(self) -> Result<(), Self::Error> {
+        self.global.reporter.report_variant_start_unit_variant();
+        let result = self.inner.unit_variant();
+        if result.is_err() {
+            self.attempt
+                .activate_intervention(InterventionReason::VisitError);
+        }
+        process_variant_result(&result, self.attempt, &mut self.global.reporter);
+        match result {
+            Ok(()) => Ok(()),
+            Err(_) if self.global.config.behavior.unstable_fallback_unit_variant => {
+                self.global.reporter.report_fallback(None);
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
+    where
+        T: serde::de::DeserializeSeed<'de>,
+    {
+        self.global.reporter.report_variant_start_newtype_variant();
+        let result = self.inner.newtype_variant_seed(DeserializeSeed {
+            global: self.global,
+            attempt: self.attempt,
+            inner: seed,
+        });
+        process_variant_result(&result, self.attempt, &mut self.global.reporter);
+        result
+    }
+
+    fn tuple_variant<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        let mut visitor = Some(visitor);
+        let mut value = None;
+
+        self.global.reporter.report_variant_start_tuple_variant(len);
+        let wrapped_visitor = Visitor {
+            global: self.global,
+            attempt: self.attempt,
+            kind: self.kind,
+            inner: &mut visitor,
+            value: &mut value,
+        };
+        let result = self.inner.tuple_variant(len, wrapped_visitor);
+        process_variant_result(&result, self.attempt, &mut self.global.reporter);
+
+        match result {
+            Ok(_) => Ok(value.expect("successful visitor will place its value")),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn struct_variant<V>(
+        self,
+        fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        let mut visitor = Some(visitor);
+        let mut value = None;
+
+        self.global
+            .reporter
+            .report_variant_start_struct_variant(fields);
+        let wrapped_visitor = Visitor {
+            global: self.global,
+            attempt: self.attempt,
+            kind: self.kind,
+            inner: &mut visitor,
+            value: &mut value,
+        };
+        let result = self.inner.struct_variant(fields, wrapped_visitor);
+        process_variant_result(&result, self.attempt, &mut self.global.reporter);
+
+        match result {
+            Ok(_) => Ok(value.expect("successful visitor will place its value")),
+            Err(e) => Err(e),
+        }
     }
 }

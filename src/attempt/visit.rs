@@ -522,11 +522,23 @@ where
     where
         A: serde::de::EnumAccess<'de>,
     {
-        // todo
-        let _ = data;
-        Err(serde::de::Error::invalid_type(
-            serde::de::Unexpected::Enum,
-            &self,
-        ))
+        self.global.reporter.report_recv_visit_start_enum();
+
+        framework(
+            self,
+            |visitor, (global, attempt, kind)| {
+                visitor.visit_enum(Access {
+                    global,
+                    attempt,
+                    kind,
+                    inner: data,
+                    collection_has_ended: false,
+                    inside_element: None,
+                })
+            },
+            |reporter, error| {
+                reporter.report_recv_visit_finish_enum(error);
+            },
+        )
     }
 }
