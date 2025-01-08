@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
-// use tracing::info;
 
-use partial_deser::unstable::UnstableCustomBehavior;
 use tracing::level_filters::LevelFilter;
 
 fn assert_eq_as_ron(left: &impl Serialize, right_ron_str: &str) {
@@ -19,6 +17,13 @@ fn main() {
         .with_line_number(false)
         .with_target(false)
         .init();
+
+    {
+        #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+        struct Newtype(Vec<()>);
+
+        dbg!(serde_json::to_string_pretty(&Newtype(vec![(), ()])).unwrap());
+    }
 
     {
         #[derive(Debug, Deserialize, Serialize)]

@@ -1,5 +1,3 @@
-// use tracing::info;
-
 use partial_deser::unstable::UnstableCustomBehavior;
 use tracing::level_filters::LevelFilter;
 

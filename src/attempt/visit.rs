@@ -448,7 +448,26 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        todo!()
+        self.global
+            .reporter
+            .report_recv_visit_start_newtype_struct();
+
+        framework(
+            self,
+            |visitor, (global, attempt, _kind)| {
+                let wrapped = Deserializer {
+                    global,
+                    attempt,
+                    inner: deserializer,
+                };
+                visitor
+                    .visit_newtype_struct(wrapped)
+                    .map_err(Error::unpack_or_make_custom)
+            },
+            |reporter, error| {
+                reporter.report_recv_visit_finish_newtype_struct(error);
+            },
+        )
     }
 
     fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
