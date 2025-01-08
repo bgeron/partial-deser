@@ -1,4 +1,7 @@
 use std::error::Error as StdError;
+use std::fmt::Debug;
+
+use crate::attempt::HaltingPoint;
 
 use super::{DeserializeStartArgs, DeserializeStartArgsExt, Reporter};
 
@@ -375,6 +378,20 @@ impl Reporter for DefaultReporter {
         );
     }
 
+    fn report_start_intervention(
+        &mut self,
+        reason: impl Debug,
+        candidate_halting_point_for_next_attempt: Option<&HaltingPoint>,
+    ) {
+        trace!(
+            nesting_level = self.level,
+            ?reason,
+            candidate_halting_point_for_next_attempt =
+                candidate_halting_point_for_next_attempt.map(tracing::field::display),
+            "start intervention"
+        );
+    }
+
     fn report_start_fallback(&mut self) {}
 
     fn report_no_fallback(&mut self) {
@@ -401,15 +418,11 @@ impl Reporter for DefaultReporter {
         trace!(nesting_level = self.level, "encountered halting point");
     }
 
-    fn report_seq_next_element_seq_start(&mut self) {
+    fn report_seq_next_element_start(&mut self) {
         trace!(
             nesting_level = self.level,
             "start deserializing next element"
         );
-    }
-
-    fn report_seq_next_element_seq_skip(&mut self) {
-        trace!(nesting_level = self.level, "not deserializing next element");
     }
 
     fn report_seq_next_element_finish(&mut self, present: bool, error: Option<&dyn StdError>) {
@@ -426,6 +439,46 @@ impl Reporter for DefaultReporter {
                 "finish deserializing next element"
             );
         }
+    }
+
+    fn report_seq_next_element_skip(&mut self) {
+        trace!(nesting_level = self.level, "not deserializing next element");
+    }
+
+    fn report_map_next_key_start(&mut self) {
+        trace!(nesting_level = self.level, "start deserializing next key");
+    }
+
+    fn report_map_next_key_finish(&mut self, present: bool, error: Option<&dyn StdError>) {
+        if let Some(error) = error {
+            trace!(
+                nesting_level = self.level,
+                error = %error,
+                "finish deserializing next key"
+            );
+        } else {
+            trace!(
+                nesting_level = self.level,
+                present,
+                "finish deserializing next key"
+            );
+        }
+    }
+
+    fn report_map_next_key_skip(&mut self) {
+        trace!(nesting_level = self.level, "not deserializing next key");
+    }
+
+    fn report_map_next_value_start(&mut self) {
+        trace!(nesting_level = self.level, "start deserializing next value");
+    }
+
+    fn report_map_next_value_finish(&mut self, error: Option<&dyn StdError>) {
+        trace!(
+            nesting_level = self.level,
+            error = error.map(tracing::field::display),
+            "finish deserializing next value"
+        );
     }
 
     fn report_access_past_end(&mut self) {

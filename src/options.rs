@@ -230,6 +230,63 @@ impl Default for UnstableCustomBehavior {
 }
 
 impl UnstableCustomBehavior {
+    pub fn no_fallbacks(mut self) -> Self {
+        let Self {
+            unstable_fallback_deserializer_finish,
+            unstable_fallback_any_as_none,
+            unstable_fallback_ignored_any_as_none,
+            unstable_fallback_default_bool,
+            unstable_fallback_int_zero,
+            unstable_fallback_default_float,
+            unstable_fallback_default_char,
+            unstable_fallback_default_str,
+            unstable_fallback_bytes_empty,
+            unstable_fallback_none,
+            unstable_fallback_unit,
+            unstable_fallback_unit_struct,
+            unstable_fallback_seq_empty,
+            unstable_fallback_seq_skip_item,
+            unstable_backtrack_seq_skip_item: _,
+            unstable_fallback_tuple_empty,
+            unstable_fallback_tuple_skip_item,
+            unstable_backtrack_tuple_skip_item: _,
+            unstable_fallback_tuple_struct_empty,
+            unstable_fallback_tuple_struct_skip_field,
+            unstable_backtrack_tuple_struct_skip_field: _,
+            unstable_fallback_map_empty,
+            unstable_fallback_map_skip_item,
+            unstable_backtrack_map_skip_item: _,
+            unstable_fallback_struct_empty,
+            unstable_fallback_struct_skip_field,
+            unstable_backtrack_struct_skip_field: _,
+        } = &mut self;
+
+        *unstable_fallback_deserializer_finish = false;
+        *unstable_fallback_any_as_none = false;
+        *unstable_fallback_ignored_any_as_none = false;
+        *unstable_fallback_default_bool = None;
+        *unstable_fallback_int_zero = false;
+        *unstable_fallback_default_float = None;
+        *unstable_fallback_default_char = None;
+        *unstable_fallback_default_str = None;
+        *unstable_fallback_bytes_empty = false;
+        *unstable_fallback_none = false;
+        *unstable_fallback_unit = false;
+        *unstable_fallback_unit_struct = false;
+        *unstable_fallback_seq_empty = false;
+        *unstable_fallback_seq_skip_item = false;
+        *unstable_fallback_tuple_empty = false;
+        *unstable_fallback_tuple_skip_item = false;
+        *unstable_fallback_tuple_struct_empty = false;
+        *unstable_fallback_tuple_struct_skip_field = false;
+        *unstable_fallback_map_empty = false;
+        *unstable_fallback_map_skip_item = false;
+        *unstable_fallback_struct_empty = false;
+        *unstable_fallback_struct_skip_field = false;
+
+        self
+    }
+
     /// Maximally strict behavior. Probably this library behaves like ordinary
     /// deserialization with this behavior.
     pub fn strict() -> Self {

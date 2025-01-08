@@ -2,7 +2,7 @@
 use serde::de::SeqAccess;
 
 use crate::attempt::HaltingPoint;
-use crate::error::{BugEnum, InternalError};
+use crate::error::InternalError;
 use crate::options::ExtraOptions;
 use crate::Options;
 
@@ -23,7 +23,7 @@ pub(crate) struct AttemptState {
     pub(super) intend_to_stop_deserializing_at: Option<HaltingPoint>,
 
     /// Whether we have intervened in deserialization, and what the cause originally was.
-    pub(super) are_intervening: Option<ReasonToIntervene>,
+    pub(super) intervention_active: Option<Intervention>,
 
     pub(super) next_halting_point: HaltingPoint,
     /// Stack of points where we may halt deserialization on the next attempt.
@@ -38,7 +38,13 @@ pub(crate) struct AttemptState {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) enum ReasonToIntervene {
+pub(crate) struct Intervention {
+    reason: InterventionReason,
+    candidate_halting_point_for_next_attempt: Option<HaltingPoint>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum InterventionReason {
     /// The deserializer has returned an error before calling the visitor.
     /// (We do not distinguish between its errors.)
     DeserializerStart,
@@ -71,48 +77,45 @@ impl AttemptState {
     pub(crate) fn initial() -> Self {
         Self {
             intend_to_stop_deserializing_at: None,
-            are_intervening: None,
+            intervention_active: None,
             next_halting_point: HaltingPoint::default(),
             halting_point_stack: Vec::new(),
         }
     }
 
-    /// If a potential halting point was saved for next time, then create a state for
-    /// that next attempt.
+    /// When an attempt failed, then compute the state to start next attempt with -- if
+    /// we know a way to potentially do better next attempt.
     ///
     /// Logs to tracing accordingly.
-    pub(crate) fn fresh_state_for_next_round(mut self) -> Result<Option<Self>, InternalError> {
-        match self.halting_point_stack.last().copied() {
-            Some(most_recent_halting_point) => {
-                if self.intend_to_stop_deserializing_at.is_some_and(
-                    |intend_to_stop_deserializing_at| {
-                        self.halting_point_stack
-                            .iter()
-                            .any(|point| **point >= *intend_to_stop_deserializing_at)
-                    },
-                ) {
-                    return Err(BugEnum::PassedHaltingPoint {
-                        intended_to_stop_at: most_recent_halting_point,
-                        halting_point_stack: self.halting_point_stack,
-                    }
-                    .into());
+    pub(crate) fn next_attempt_state_after_failure(
+        mut self,
+    ) -> Result<Option<Self>, InternalError> {
+        match self.intervention_active.take() {
+            Some(Intervention {
+                reason: _,
+                candidate_halting_point_for_next_attempt: Some(next_halting_point),
+            }) => {
+                trace!(?next_halting_point, "creating state for next attempt");
+
+                if !self.halting_point_stack.is_empty() {
+                    warn!("logic error: halting point stack not empty after attempt");
                 }
-
-                trace!(
-                    ?most_recent_halting_point,
-                    ?self.halting_point_stack,
-                    "creating state for next attempt"
-                );
-
                 self.halting_point_stack.clear();
                 Ok(Some(Self {
-                    intend_to_stop_deserializing_at: Some(most_recent_halting_point),
-                    are_intervening: None,
+                    intend_to_stop_deserializing_at: Some(next_halting_point),
+                    intervention_active: None,
                     next_halting_point: HaltingPoint::default(),
                     halting_point_stack: self.halting_point_stack,
                 }))
             }
             None => {
+                debug!("no reason recorded for failure of deserialization attempt; please report a bug against {} if there is no bug report open", env!("CARGO_PKG_NAME"));
+                Ok(None)
+            }
+            Some(Intervention {
+                reason: _,
+                candidate_halting_point_for_next_attempt: None,
+            }) => {
                 trace!("no halting point active after attempt, giving up");
                 Ok(None)
             }
@@ -128,7 +131,7 @@ impl AttemptState {
     /// A new halting point will now happen. Return the value of the current halting point
     /// if we're supposed to continue past this.
     ///
-    /// Sets intervene state if not yet set.
+    /// Activates intervention when applicable.
     pub(crate) fn new_halting_point_and_check_continue(&mut self) -> Option<HaltingPoint> {
         let this_halting_point = self.get_next_halting_point();
 
@@ -141,11 +144,21 @@ impl AttemptState {
                         "we wanted to stop at a halting point, but continued past it"
                     );
                 }
-                self.are_intervening
-                    .get_or_insert(ReasonToIntervene::PlannedHalting { at: stop });
+                self.activate_intervention(InterventionReason::PlannedHalting { at: stop });
                 None
             }
             _ => Some(this_halting_point),
+        }
+    }
+
+    /// If no intervention is active yet, then set a reason for intervention,
+    /// and remember a potential better halting point for next attempt.
+    pub(crate) fn activate_intervention(&mut self, reason: InterventionReason) {
+        if self.intervention_active.is_none() {
+            self.intervention_active = Some(Intervention {
+                reason,
+                candidate_halting_point_for_next_attempt: self.halting_point_stack.last().copied(),
+            });
         }
     }
 }

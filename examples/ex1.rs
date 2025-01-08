@@ -13,30 +13,43 @@ fn main() {
         .with_target(false)
         .init();
 
-    // {
-    //     let json = "true";
-    //     let parsed: bool = partial_deser::from_json_str(json).unwrap();
-    //     dbg!(parsed);
-    // }
+    {
+        let json = "true";
+        let parsed: bool = partial_deser::from_json_str(json).unwrap();
+        dbg!(parsed);
+    }
 
-    // {
-    //     let json = "[true] x";
-    //     let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
-    //     dbg!(parsed);
-    // }
+    {
+        let json = "[true] x";
+        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
+        dbg!(parsed);
+    }
 
-    // {
-    //     let json = "[true, false, true, faaa";
-    //     let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
-    //     dbg!(parsed);
-    // }
+    {
+        let json = "[true, false, true, faaa";
+        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
+        dbg!(parsed);
+    }
 
     {
         let json = "[";
+        let mut behavior = UnstableCustomBehavior::default();
+        behavior.unstable_fallback_seq_empty = false;
+        behavior.unstable_fallback_seq_skip_item = false;
+
         let parsed: Vec<bool> = partial_deser::Options::new_json()
-            .custom_behavior(UnstableCustomBehavior::strict())
+            .custom_behavior(behavior)
             .from_json_str(json)
             .unwrap();
         dbg!(parsed);
     }
+
+    // {
+    //     let json = "[";
+    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //         .custom_behavior(UnstableCustomBehavior::strict())
+    //         .from_json_str(json)
+    //         .unwrap();
+    //     dbg!(parsed);
+    // }
 }

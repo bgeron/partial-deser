@@ -50,6 +50,12 @@ macro_rules! error {
         ::tracing::error!($($arg)*)
     };
 }
+macro_rules! warn {
+    ($($arg:tt)*) => {
+        #[cfg(feature = "tracing")]
+        ::tracing::warn!($($arg)*)
+    };
+}
 macro_rules! debug {
     ($($arg:tt)*) => {
         #[cfg(feature = "tracing")]

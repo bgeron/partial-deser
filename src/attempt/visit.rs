@@ -55,8 +55,7 @@ where
     if result.is_err() {
         visitor
             .attempt
-            .are_intervening
-            .get_or_insert(crate::state::ReasonToIntervene::VisitError);
+            .activate_intervention(crate::state::InterventionReason::VisitError);
     }
     report_end(&mut visitor.global.reporter, erase_error_ref(&result));
 
@@ -445,6 +444,7 @@ where
                     kind,
                     inner: seq,
                     collection_has_ended: false,
+                    inside_element: None,
                 })
             },
             |reporter, error| {

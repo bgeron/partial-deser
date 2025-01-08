@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-use itertools::Itertools as _;
 use serde::de::{Expected, Unexpected};
 
 #[cfg(doc)]
@@ -30,11 +29,6 @@ pub(crate) enum ErrorImpl<DeserializerErr> {
     /// The deserializer behaved in an inconsistent / nondeterministic way.
     #[error(transparent)]
     InconsistentDeserializer(InconsistentDeserializerErr),
-    /// One of the [`crate::fallback::Fallbacks`] failed to compute.
-    ///
-    /// The concrete error type within is not stable.
-    #[error(transparent)]
-    Fallback(FallbackError),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -44,7 +38,7 @@ pub enum InternalError {
     TooManyBacktracks,
     #[error("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after {after_backtracks} backtracks)")]
     NoPotentialBacktrackPoint { after_backtracks: usize },
-    #[error("bug in partial-deser (please report): {0}")]
+    #[error("bug in {pkg} (please report): {0}", pkg = std::env!("CARGO_PKG_NAME"))]
     Bug(Bug),
 }
 
@@ -55,11 +49,6 @@ pub struct Bug(BugEnum);
 // todo: remove?
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum BugEnum {
-    #[error("intended to stop at {intended_to_stop_at}, but then the halting stack turned out as [{}]", halting_point_stack.iter().format(", "))]
-    PassedHaltingPoint {
-        intended_to_stop_at: HaltingPoint,
-        halting_point_stack: Vec<HaltingPoint>,
-    },
     #[error("our visitor should store the obtained value on the stack, but it's missing")]
     OkButValueMissingFromStack,
 }
@@ -124,11 +113,6 @@ impl<DeserializerErr> Error<DeserializerErr> {
             ErrorImpl::InconsistentDeserializer(err) => Some(err),
             _ => None,
         }
-    }
-
-    /// Did we try to construct a fallback error?
-    pub fn is_fallback_error(&self) -> bool {
-        matches!(&*self.err, ErrorImpl::Fallback(_))
     }
 }
 

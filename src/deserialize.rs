@@ -56,7 +56,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
                 }
             }
 
-            attempt = match attempt.fresh_state_for_next_round()? {
+            attempt = match attempt.next_attempt_state_after_failure()? {
                 Some(new_attempt) => new_attempt,
                 None => {
                     return Err(InternalError::NoPotentialBacktrackPoint {

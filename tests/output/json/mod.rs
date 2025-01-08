@@ -1,3 +1,4 @@
+use partial_deser::unstable::UnstableCustomBehavior;
 use partial_deser::Options;
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +41,15 @@ fn default_modes() -> Vec<(&'static str, Options)> {
     vec![
         ("default behavior", Options::new_json()),
         ("default behavior, 0 backtracks", Options::new_json().with_max_n_backtracks(Some(0))),
+        (
+            "no fallbacks, 0 backtracks",
+            Options::new_json().custom_behavior(UnstableCustomBehavior::default().no_fallbacks()).with_max_n_backtracks(Some(0)),
+        ),
         ("default behavior, 1 backtracks", Options::new_json().with_max_n_backtracks(Some(1))),
-        ("strict behavior", Options::new_json().custom_behavior(partial_deser::unstable::UnstableCustomBehavior::strict())),
+        (
+            "no fallbacks, 1 backtracks",
+            Options::new_json().custom_behavior(UnstableCustomBehavior::default().no_fallbacks()).with_max_n_backtracks(Some(1)),
+        ),
+        ("strict behavior", Options::new_json().custom_behavior(UnstableCustomBehavior::strict())),
     ]
 }

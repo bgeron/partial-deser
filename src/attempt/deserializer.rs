@@ -4,7 +4,7 @@ use crate::error::{BugEnum, Error, FallbackError};
 use crate::fallback::FallbacksExt as _;
 use crate::options::ExtraOptions;
 use crate::reporter::{self, Reporter, ReporterExt as _};
-use crate::state::ReasonToIntervene;
+use crate::state::InterventionReason;
 use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};
 
 fn framework<'a, 'de, InnerDeserializer, Extra, InnerVisitor>(
@@ -92,8 +92,7 @@ where
         {
             deserializer
                 .attempt
-                .are_intervening
-                .get_or_insert(ReasonToIntervene::DeserializerFinishSaved);
+                .activate_intervention(InterventionReason::DeserializerFinishSaved);
             deserializer
                 .global
                 .reporter

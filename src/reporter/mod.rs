@@ -1,7 +1,9 @@
+use crate::attempt::HaltingPoint;
 #[cfg(doc)]
 use crate::fallback::Fallbacks;
 use crate::util::DeserializeKind;
-use std::{error::Error as StdError, fmt::Formatter};
+use std::error::Error as StdError;
+use std::fmt::{Debug, Formatter};
 
 #[cfg(doc)]
 use serde::de::SeqAccess;
@@ -105,6 +107,12 @@ pub trait Reporter {
     fn report_recv_visit_start_enum(&mut self);
     fn report_recv_visit_finish_enum(&mut self, error: Option<&dyn StdError>);
 
+    fn report_start_intervention(
+        &mut self,
+        reason: impl Debug,
+        candidate_halting_point_for_next_attempt: Option<&HaltingPoint>,
+    );
+
     /// The deserializer failed without consuming the visitor. We start computing one of the [`Fallbacks`].
     fn report_start_fallback(&mut self);
 
@@ -122,14 +130,23 @@ pub trait Reporter {
     /// We encountered the point where we intend to stop this deserialization attempt.
     fn report_encounter_halting_point(&mut self);
 
-    fn report_seq_next_element_seq_start(&mut self);
+    fn report_seq_next_element_start(&mut self);
+    fn report_seq_next_element_finish(&mut self, present: bool, error: Option<&dyn StdError>);
     /// The next element was requested from [`SeqAccess`], but we're not checking
     /// if there is a next element, we just decide it it's not going to be there.
     ///
-    /// This could be for instance because we encountered our halting point, or
-    /// because
-    fn report_seq_next_element_seq_skip(&mut self);
-    fn report_seq_next_element_finish(&mut self, present: bool, error: Option<&dyn StdError>);
+    /// This could be for instance because we encountered our halting point.
+    fn report_seq_next_element_skip(&mut self);
+
+    fn report_map_next_key_start(&mut self);
+    fn report_map_next_key_finish(&mut self, present: bool, error: Option<&dyn StdError>);
+    /// The next key was requested from [`MapAccess`], but we're not checking
+    /// if there is a next field, we just decide it it's not going to be there.
+    ///
+    /// This could be for instance because we encountered our halting point.
+    fn report_map_next_key_skip(&mut self);
+    fn report_map_next_value_start(&mut self);
+    fn report_map_next_value_finish(&mut self, error: Option<&dyn StdError>);
 
     /// The data type attempted to read a value from a collection after we already
     /// reported that there are no more.
