@@ -49,6 +49,11 @@ where
         .global
         .reporter
         .report_deserialize_finish(erase_error_ref(&result));
+    if result.is_err() {
+        deserializer
+            .attempt
+            .activate_intervention(InterventionReason::DeserializerStart);
+    }
 
     if result.is_err() && visitor.is_some() {
         // We can try to apply a fallback.

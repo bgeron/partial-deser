@@ -399,6 +399,10 @@ impl Reporter for DefaultReporter {
         );
     }
 
+    fn report_new_halting_point(&mut self, point: &HaltingPoint) {
+        trace!(nesting_level = self.level.get(), point = %point, "new halting point");
+    }
+
     fn report_start_intervention(
         &mut self,
         reason: impl Debug,
@@ -535,7 +539,7 @@ impl Reporter for DefaultReporter {
 
 struct FormatSequence<It>(RefCell<Option<It>>);
 
-impl< It> FormatSequence< It> {
+impl<It> FormatSequence<It> {
     fn new(it: It) -> Self {
         Self(RefCell::new(Some(it)))
     }

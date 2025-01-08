@@ -14,7 +14,10 @@ use crate::Error;
 /// Represents a point in the deserialization process where we could choose to stop
 /// deserializing and save this attempt. For instance, before a map key or before a
 /// sequence element.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+
+// This is copyable in practice, but that's not something we want on the
+// public interface.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct HaltingPoint(pub(crate) u64);
 
 impl HaltingPoint {

@@ -2,7 +2,10 @@
 use serde::de::Deserializer;
 use serde::de::{MapAccess, SeqAccess};
 
-use crate::{options::ExtraOptions, reporter::Reporter, util::DeserializeKind};
+use crate::options::ExtraOptions;
+use crate::reporter::Reporter;
+use crate::state::InterventionReason;
+use crate::util::DeserializeKind;
 
 use super::{erase_error_ref, AttemptState, DeserializeSeed, GlobalState, HaltingPoint};
 
@@ -39,7 +42,7 @@ where
         if halting_point_is_on_stack {
             self.attempt
                 .halting_point_stack
-                .push(corresponding_halting_point);
+                .push(corresponding_halting_point.clone());
         }
 
         self.inside_element = Some(InsideElement {
@@ -130,8 +133,7 @@ where
         }
         let Some(this_halting_point) = self
             .attempt
-            .intervention_active
-            .is_none()
+            .intervention_is_empty()
             .then(|| self.attempt.new_halting_point_and_check_continue())
             .flatten()
         else {
@@ -153,7 +155,10 @@ where
             matches!(result, Ok(Some(_))),
             erase_error_ref(&result),
         );
-
+        if result.is_err() {
+            self.attempt
+                .activate_intervention(InterventionReason::VisitError);
+        }
         self.leave_element();
 
         match result {
@@ -191,8 +196,7 @@ where
         }
         let Some(this_halting_point) = self
             .attempt
-            .intervention_active
-            .is_none()
+            .intervention_is_empty()
             .then(|| self.attempt.new_halting_point_and_check_continue())
             .flatten()
         else {
@@ -213,6 +217,10 @@ where
         self.global
             .reporter
             .report_map_next_key_finish(matches!(result, Ok(Some(_))), erase_error_ref(&result));
+        if result.is_err() {
+            self.attempt
+                .activate_intervention(InterventionReason::VisitError);
+        }
 
         match result {
             Ok(Some(v)) => Ok(Some(v)),
@@ -251,11 +259,12 @@ where
             .reporter
             .report_map_next_value_finish(erase_error_ref(&result));
 
-        self.leave_element();
-
         if result.is_err() {
             self.collection_has_ended = true;
+            self.attempt
+                .activate_intervention(InterventionReason::VisitError);
         }
+        self.leave_element();
 
         result
     }

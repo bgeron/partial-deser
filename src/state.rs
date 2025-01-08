@@ -23,12 +23,13 @@ pub(crate) struct AttemptState<Extra: crate::options::ExtraOptions> {
     /// If the previous attempt failed, then there may be a point where we can tell
     /// the visitor there's no more data (e.g. in the sequence or map) and safely
     /// finish deserialization.
-    pub(super) intend_to_stop_deserializing_at: Option<HaltingPoint>,
+    intend_to_stop_deserializing_at: Option<HaltingPoint>,
 
     /// Whether we have intervened in deserialization, and what the cause originally was.
-    pub(super) intervention_active: Option<Intervention>,
+    intervention_active: Option<Intervention>,
 
-    pub(super) next_halting_point: HaltingPoint,
+    next_halting_point: HaltingPoint,
+
     /// Stack of points where we may halt deserialization on the next attempt.
     ///
     /// For instance, if deserializing a field failed, then on the next attempt it
@@ -40,23 +41,27 @@ pub(crate) struct AttemptState<Extra: crate::options::ExtraOptions> {
     pub(super) halting_point_stack: Vec<HaltingPoint>,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct Intervention {
     reason: InterventionReason,
     candidate_halting_point_for_next_attempt: Option<HaltingPoint>,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub(crate) enum InterventionReason {
     /// The deserializer has returned an error before calling the visitor.
     /// (We do not distinguish between its errors.)
     DeserializerStart,
-    /// The deserializer returned an error after calling the visitor. In this
-    /// case, we can salvage the
+    /// The deserializer returned an error after the visitor succeeded. In this
+    /// case, we can salvage the value returned by the visitor.
     DeserializerFinishSaved,
     /// We planned to halt deserialization at a certain point, and we have reached that point.
-    PlannedHalting { at: HaltingPoint },
-    /// A visitor (data type) returned an error.
+    PlannedHalting {
+        #[allow(dead_code)]
+        at: HaltingPoint,
+    },
+    /// A visitor (data type) returned an error. We may or may not have applied a
+    /// fallback.
     ///
     /// This may well be recoverable, e.g. if the error happens inside [`SeqAccess`] or
     /// a map key.
@@ -127,8 +132,8 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
         }
     }
 
-    pub(crate) fn get_next_halting_point(&mut self) -> HaltingPoint {
-        let next = self.next_halting_point;
+    fn get_next_halting_point(&mut self) -> HaltingPoint {
+        let next = self.next_halting_point.clone();
         self.next_halting_point.increment();
         next
     }
@@ -139,8 +144,9 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
     /// Activates intervention when applicable.
     pub(crate) fn new_halting_point_and_check_continue(&mut self) -> Option<HaltingPoint> {
         let this_halting_point = self.get_next_halting_point();
+        self.reporter.report_new_halting_point(&this_halting_point);
 
-        match self.intend_to_stop_deserializing_at {
+        match self.intend_to_stop_deserializing_at.clone() {
             Some(stop) if *stop <= *this_halting_point => {
                 if *stop < *this_halting_point {
                     error!(
@@ -156,14 +162,18 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
         }
     }
 
+    pub(crate) fn intervention_is_empty(&self) -> bool {
+        self.intervention_active.is_none()
+    }
+
     /// If no intervention is active yet, then set a reason for intervention,
     /// and remember a potential better halting point for next attempt.
     pub(crate) fn activate_intervention(&mut self, reason: InterventionReason) {
         if self.intervention_active.is_none() {
-            let candidate_halting_point_for_next_attempt = self.halting_point_stack.last().copied();
+            let candidate_halting_point_for_next_attempt = self.halting_point_stack.last().cloned();
 
             self.reporter.report_start_intervention(
-                reason,
+                &reason,
                 candidate_halting_point_for_next_attempt.as_ref(),
                 &self.halting_point_stack,
             );

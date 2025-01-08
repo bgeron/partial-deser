@@ -13,6 +13,10 @@ mod default_reporter;
 
 pub use default_reporter::DefaultReporter;
 
+/// Reporters are for inspecting the normal behavior of this library.
+///
+/// Logic errors are typically not exposed here, and will be logged with `tracing`
+/// instead.
 pub trait Reporter: Clone {
     fn report_deserialize_start_any(&mut self, args: impl DeserializeStartArgs);
     fn report_deserialize_start_bool(&mut self, args: impl DeserializeStartArgs);
@@ -107,6 +111,7 @@ pub trait Reporter: Clone {
     fn report_recv_visit_start_enum(&mut self);
     fn report_recv_visit_finish_enum(&mut self, error: Option<&dyn StdError>);
 
+    fn report_new_halting_point(&mut self, point: &HaltingPoint);
     fn report_start_intervention(
         &mut self,
         reason: impl Debug,

@@ -33,6 +33,15 @@ fn main() {
 
     {
         let json = "[";
+
+        let parsed: Vec<bool> = partial_deser::Options::new_json()
+            .from_json_str(json)
+            .unwrap();
+        dbg!(parsed);
+    }
+
+    {
+        let json = "[";
         let mut behavior = UnstableCustomBehavior::default();
         behavior.unstable_fallback_seq_empty = false;
         behavior.unstable_fallback_seq_skip_item = false;
