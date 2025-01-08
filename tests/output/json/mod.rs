@@ -14,6 +14,8 @@ mod number;
 mod other;
 mod seq;
 
+type BoxSerialize = Box<dyn erased_serde::Serialize>;
+
 /// Partially deserialize all prefixes of the input as JSON. Reserialize the successful
 /// results to JSON for comparison with `assert_eq!`, and stringify any errors.
 ///
@@ -21,24 +23,54 @@ mod seq;
 #[allow(clippy::type_complexity)]
 pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
     'input,
-    T: for<'de> Deserialize<'de> + Serialize + Debug + PartialEq,
+    T: for<'de> Deserialize<'de> + Serialize + Debug + PartialEq + 'static,
 >(
     modes: &[(&'static str, Options)],
     full_input: &'input impl AsRef<[u8]>,
-) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<impl Serialize, String>>> {
+) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, BoxSerialize>> {
     let full_input = full_input.as_ref();
+
+    let reference_official: Option<T> = serde_json::from_slice(full_input).ok();
 
     modes
         .iter()
         .map(|(mode_desc, options)| {
-            let outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
+            let inputs_outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
                 options
                     .clone()
                     .from_json_slice::<T>(inp)
                     .map_err(|err| err.to_string())
             });
 
-            (*mode_desc, outputs)
+            let last_output_matches_serde_json_friendly =
+                match reference_official.as_ref().map(|reference| {
+                    Ok(reference)
+                        == inputs_outputs
+                            .last()
+                            .expect("every slice has a prefix")
+                            .1
+                            .as_ref()
+                }) {
+                    Some(true) => None,
+                    Some(false) => Some("no"),
+                    None => Some("serde_json failed"),
+                };
+            let trailing_line = (last_output_matches_serde_json_friendly).map(|friendly| {
+                (
+                    Cow::Borrowed("final output matches serde_json?"),
+                    Box::new(friendly) as BoxSerialize,
+                )
+            });
+
+            let lines: IndexMap<_, _> = inputs_outputs
+                .into_iter()
+                .map(|(input, output)| -> (_, Box<dyn erased_serde::Serialize>) {
+                    (input, Box::new(output))
+                })
+                .chain(trailing_line)
+                .collect();
+
+            (*mode_desc, lines)
         })
         .collect()
 }
