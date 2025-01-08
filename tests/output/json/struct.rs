@@ -236,112 +236,275 @@ fn test_newtype_struct() {
 #[test]
 fn test_tuple_struct() {
     #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-    struct Tuple(u8, u8, u8);
+    struct Tuple(Vec<bool>, Vec<bool>, Vec<bool>);
 
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), b"[[12, 34, 56], [12, 34, 56]]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), b"[[[true], [false], [true]], [[false], [true], [false]]]"),
         @r###"
     {
       "default behavior": {
         "": Ok([]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [[false], [true], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [[false], [true], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
-        "[[12, 34, 56]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
-        ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
-        ]),
-        "[[12, 34, 56], [12, 34, 56]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 56], [12, 34, 56]]": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 56], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [[false], [true], [": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[[12, 34, 56], [12, 34, 56]]": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
     }
@@ -351,224 +514,399 @@ fn test_tuple_struct() {
 #[test]
 fn test_tuple_struct_with_default() {
     #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-    struct Tuple(u8, #[serde(default)] u8, #[serde(default)] u8);
+    struct Tuple(
+        Vec<bool>,
+        #[serde(default)] Vec<bool>,
+        #[serde(default)] Vec<bool>,
+    );
 
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), b"[[12, 34, 56], [12, 34, 56]]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), b"[[[true], [false], [true]], [[false], [true], [false]]]"),
         @r###"
     {
       "default behavior": {
         "": Ok([]),
-        "[[1": Ok([
-          Tuple(1, 0, 0),
+        "[[[": Ok([
+          Tuple([], [], []),
         ]),
-        "[[12": Ok([
-          Tuple(12, 0, 0),
+        "[[[true": Ok([
+          Tuple([
+            true,
+          ], [], []),
         ]),
-        "[[12, 3": Ok([
-          Tuple(12, 3, 0),
+        "[[[true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34": Ok([
-          Tuple(12, 34, 0),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [[": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([], [], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [], []),
         ]),
-        "[[12, 34, 56], [1": Ok([
-          Tuple(12, 34, 56),
-          Tuple(1, 0, 0),
+        "[[[true], [false], [true]], [[false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 0, 0),
-        ]),
-        "[[12, 34, 56], [12, 3": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 3, 0),
-        ]),
-        "[[12, 34, 56], [12, 34": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 0),
-        ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
-        ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[[1": Ok([
-          Tuple(1, 0, 0),
+        "[[[": Ok([
+          Tuple([], [], []),
         ]),
-        "[[12": Ok([
-          Tuple(12, 0, 0),
+        "[[[true": Ok([
+          Tuple([
+            true,
+          ], [], []),
         ]),
-        "[[12, 3": Ok([
-          Tuple(12, 3, 0),
+        "[[[true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34": Ok([
-          Tuple(12, 34, 0),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [[": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([], [], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [], []),
         ]),
-        "[[12, 34, 56], [1": Ok([
-          Tuple(12, 34, 56),
-          Tuple(1, 0, 0),
+        "[[[true], [false], [true]], [[false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 0, 0),
-        ]),
-        "[[12, 34, 56], [12, 3": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 3, 0),
-        ]),
-        "[[12, 34, 56], [12, 34": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 0),
-        ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
-        ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
-        "[[12, 34, 56]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
-        ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
-        ]),
-        "[[12, 34, 56], [12, 34, 56]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 56], [12, 34, 56]]": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[1": Ok([
-          Tuple(1, 0, 0),
+        "[[[": Ok([
+          Tuple([], [], []),
         ]),
-        "[[12": Ok([
-          Tuple(12, 0, 0),
+        "[[[true": Ok([
+          Tuple([
+            true,
+          ], [], []),
         ]),
-        "[[12, 3": Ok([
-          Tuple(12, 3, 0),
+        "[[[true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34": Ok([
-          Tuple(12, 34, 0),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([], [], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [], []),
         ]),
-        "[[12, 34, 56], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[12, 34, 56], [1": Ok([
-          Tuple(12, 34, 56),
-          Tuple(1, 0, 0),
+        "[[[true], [false], [true]], [[false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 0, 0),
-        ]),
-        "[[12, 34, 56], [12, 3": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 3, 0),
-        ]),
-        "[[12, 34, 56], [12, 34": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 0),
-        ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
-        ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[[1": Ok([
-          Tuple(1, 0, 0),
+        "[[[": Ok([
+          Tuple([], [], []),
         ]),
-        "[[12": Ok([
-          Tuple(12, 0, 0),
+        "[[[true": Ok([
+          Tuple([
+            true,
+          ], [], []),
         ]),
-        "[[12, 3": Ok([
-          Tuple(12, 3, 0),
+        "[[[true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], []),
         ]),
-        "[[12, 34": Ok([
-          Tuple(12, 34, 0),
+        "[[[true], [false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
         ]),
-        "[[12, 34, 5": Ok([
-          Tuple(12, 34, 5),
+        "[[[true], [false], [true]], [[": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([], [], []),
         ]),
-        "[[12, 34, 56": Ok([
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [], []),
         ]),
-        "[[12, 34, 56], [1": Ok([
-          Tuple(12, 34, 56),
-          Tuple(1, 0, 0),
+        "[[[true], [false], [true]], [[false], [true": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], []),
         ]),
-        "[[12, 34, 56], [12": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 0, 0),
-        ]),
-        "[[12, 34, 56], [12, 3": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 3, 0),
-        ]),
-        "[[12, 34, 56], [12, 34": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 0),
-        ]),
-        "[[12, 34, 56], [12, 34, 5": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 5),
-        ]),
-        "[[12, 34, 56], [12, 34, 56": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[[12, 34, 56], [12, 34, 56]]": Ok([
-          Tuple(12, 34, 56),
-          Tuple(12, 34, 56),
+        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
         ]),
       },
     }
