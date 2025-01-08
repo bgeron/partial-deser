@@ -7,7 +7,7 @@ fn test_any() {
         @r###"
     {
       "default behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, 3, 4.5, \"hello\"]": Ok([
           true,
           false,
@@ -17,7 +17,7 @@ fn test_any() {
         ]),
       },
       "default behavior, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, 3, 4.5, \"hello\"]": Ok([
           true,
           false,
@@ -27,7 +27,7 @@ fn test_any() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, 3, 4.5, \"hello\"]": Ok([
           true,
           false,
@@ -37,7 +37,7 @@ fn test_any() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, 3, 4.5, \"hello\"]": Ok([
           true,
           false,
@@ -47,7 +47,7 @@ fn test_any() {
         ]),
       },
       "default behavior, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, 3, 4.5, \"hello\"]": Ok([
           true,
           false,
@@ -57,7 +57,7 @@ fn test_any() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, 3, 4.5, \"hello\"]": Ok([
           true,
           false,

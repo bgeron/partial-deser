@@ -91,7 +91,7 @@ fn test_seq() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[], [true], [false], []]": Ok([
           [],
@@ -105,7 +105,7 @@ fn test_seq() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[[": Ok([
           [],
@@ -190,7 +190,7 @@ fn test_seq() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[[], [true], [false], []]": Ok([
           [],
           [
@@ -252,12 +252,12 @@ fn test_seq_cannot_parse_after_invalid() {
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[[": Ok([
           [],
@@ -288,7 +288,7 @@ fn test_seq_cannot_parse_after_invalid() {
         "final output matches serde_json?": "serde_json failed",
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
     }
@@ -329,12 +329,12 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[[": Ok([
           [],
@@ -359,7 +359,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         "final output matches serde_json?": "serde_json failed",
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
     }

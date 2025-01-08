@@ -37,7 +37,7 @@ fn test_bools() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[true, false, true]": Ok([
           true,
@@ -46,7 +46,7 @@ fn test_bools() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[true": Ok([
           true,
@@ -77,7 +77,7 @@ fn test_bools() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[true, false, true]": Ok([
           true,
           false,

@@ -137,7 +137,7 @@ fn test_i32() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[0, 1, 12345, -54321]": Ok([
           0,
@@ -147,7 +147,7 @@ fn test_i32() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[0": Ok([
           0,
@@ -278,7 +278,7 @@ fn test_i32() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[0, 1, 12345, -54321]": Ok([
           0,
           1,
@@ -418,7 +418,7 @@ fn test_i32_overflow() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[0, 1, 1234567890]": Ok([
           0,
@@ -427,7 +427,7 @@ fn test_i32_overflow() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[0": Ok([
           0,
@@ -548,7 +548,7 @@ fn test_i32_overflow() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[0, 1, 1234567890]": Ok([
           0,
           1,
@@ -1202,7 +1202,7 @@ fn test_f32() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]": Ok([
           0.0,
@@ -1219,7 +1219,7 @@ fn test_f32() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[0": Ok([
           0.0,
@@ -1852,7 +1852,7 @@ fn test_f32() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type?) (after 0 backtracks)"),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]": Ok([
           0.0,
           1.0,
