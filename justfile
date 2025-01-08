@@ -3,7 +3,7 @@ _default: all
 
 dev: fmt clippy-allow-dead
 
-all: fmt clippy test doc
+all: fmt clippy test doc failing-test
 
 clippy:
     cargo clippy --all-targets --all-features
@@ -19,6 +19,8 @@ main-test:
 test:
     cargo test --no-fail-fast --all-targets --all-features
     cargo test --no-fail-fast --all-targets --no-default-features
+
+failing-test:
     cargo test --no-fail-fast --all-features --doc
 
 insta:

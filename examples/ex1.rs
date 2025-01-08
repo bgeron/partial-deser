@@ -62,4 +62,14 @@ fn main() {
             .unwrap();
         dbg!(parsed);
     }
+
+    {
+        let json = "[null]";
+        let parsed: Vec<()> = partial_deser::Options::new_json()
+            .custom_behavior(UnstableCustomBehavior::strict())
+            .with_max_n_backtracks(Some(0))
+            .from_json_str(json)
+            .unwrap();
+        dbg!(parsed);
+    }
 }
