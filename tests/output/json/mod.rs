@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::fmt::Debug;
 
 use indexmap::IndexMap;
 use partial_deser::unstable::UnstableCustomBehavior;
@@ -18,13 +19,11 @@ mod number;
 #[allow(clippy::type_complexity)]
 pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
     'input,
-    T: for<'de> Deserialize<'de> + Serialize,
+    T: for<'de> Deserialize<'de> + Serialize + Debug + PartialEq,
 >(
     modes: &[(&'static str, Options)],
     full_input: &'input [u8],
-) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<serde_json::Value, String>>> {
-    use itertools::Itertools;
-
+) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, Result<impl Serialize, String>>> {
     modes
         .iter()
         .map(|(mode_desc, options)| {
@@ -32,9 +31,6 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
                 options
                     .clone()
                     .from_json_slice::<T>(inp)
-                    .map(|value| {
-                        serde_json::to_value(&value).expect("could not reserialize to JSON")
-                    })
                     .map_err(|err| err.to_string())
             });
 
