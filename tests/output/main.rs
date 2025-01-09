@@ -5,4 +5,4 @@
 
 mod common;
 #[cfg(feature = "serde_json")]
-mod json;
+mod json_output;

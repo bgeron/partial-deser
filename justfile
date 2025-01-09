@@ -34,3 +34,6 @@ doc:
 
 doc-open:
     RUSTDOCFLAGS="--cfg docsrs" CARGO_TARGET_DIR=target-nightly cargo +nightly doc --lib --bins --examples --all-features --document-private-items --open
+
+tokei:
+    tokei --exclude json_output
