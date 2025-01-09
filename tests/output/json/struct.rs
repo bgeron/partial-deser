@@ -2,912 +2,1577 @@ use serde::{Deserialize, Serialize};
 
 use super::{default_modes, run_json_modes_on_prefixes_and_format_outputs};
 
-#[test]
-fn test_unit_struct() {
-    #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-    struct Unit;
-
-    insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Unit>>(&default_modes(), &"[null, null]"),
-        @r###"
-    {
-      "default behavior": {
-        "": Ok([]),
-        "[n": Ok([
-          Unit,
-        ]),
-        "[null, n": Ok([
-          Unit,
-          Unit,
-        ]),
-      },
-      "default behavior, 0 backtracks": {
-        "": Ok([]),
-        "[n": Ok([
-          Unit,
-        ]),
-        "[null, n": Ok([
-          Unit,
-          Unit,
-        ]),
-      },
-      "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[null, null]": Ok([
-          Unit,
-          Unit,
-        ]),
-      },
-      "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[null": Ok([
-          Unit,
-        ]),
-        "[null, null": Ok([
-          Unit,
-          Unit,
-        ]),
-      },
-      "default behavior, 1 backtracks": {
-        "": Ok([]),
-        "[n": Ok([
-          Unit,
-        ]),
-        "[null, n": Ok([
-          Unit,
-          Unit,
-        ]),
-      },
-      "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[null, null]": Ok([
-          Unit,
-          Unit,
-        ]),
-      },
-    }
-    "###
-    );
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+struct Struct {
+    x: Vec<bool>,
+    y: Vec<bool>,
+    z: Vec<bool>,
 }
 
 #[test]
-fn test_newtype_struct() {
-    #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-    struct Newtype(Vec<()>);
-
+fn test_toplevel_struct() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Newtype>>(&default_modes(), &"[[], [null, null], []]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Struct>(&default_modes(), &r#"{"x": [true], "y": [false], "z": [true]}"#),
         @r###"
     {
       "default behavior": {
-        "": Ok([]),
-        "[[": Ok([
-          Newtype([]),
-        ]),
-        "[[], [": Ok([
-          Newtype([]),
-          Newtype([]),
-        ]),
-        "[[], [n": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-          ]),
-        ]),
-        "[[], [null, n": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-        ]),
-        "[[], [null, null], [": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-          Newtype([]),
-        ]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
       },
       "default behavior, 0 backtracks": {
-        "": Ok([]),
-        "[[": Ok([
-          Newtype([]),
-        ]),
-        "[[], [": Ok([
-          Newtype([]),
-          Newtype([]),
-        ]),
-        "[[], [n": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-          ]),
-        ]),
-        "[[], [null, n": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-        ]),
-        "[[], [null, null], [": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-          Newtype([]),
-        ]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[], [null, null], []]": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-          Newtype([]),
-        ]),
+        "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\": [true]}": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[[": Ok([
-          Newtype([]),
-        ]),
-        "[[], [": Ok([
-          Newtype([]),
-          Newtype([]),
-        ]),
-        "[[], [null": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-          ]),
-        ]),
-        "[[], [null, null": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-        ]),
-        "[[], [null, null], [": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-          Newtype([]),
-        ]),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\": [": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
       },
       "default behavior, 1 backtracks": {
-        "": Ok([]),
-        "[[": Ok([
-          Newtype([]),
-        ]),
-        "[[], [": Ok([
-          Newtype([]),
-          Newtype([]),
-        ]),
-        "[[], [n": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-          ]),
-        ]),
-        "[[], [null, n": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-        ]),
-        "[[], [null, null], [": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-          Newtype([]),
-        ]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[[], [null, null], []]": Ok([
-          Newtype([]),
-          Newtype([
-            (),
-            (),
-          ]),
-          Newtype([]),
-        ]),
+        "{\"x\": [true], \"y\": [false], \"z\": [true]}": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
       },
     }
     "###)
 }
 
 #[test]
-fn test_tuple_struct() {
-    #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-    struct Tuple(Vec<bool>, Vec<bool>, Vec<bool>);
-
+fn test_struct() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), &"[[[true], [false], [true]], [[false], [true], [false]]]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Struct>>(&default_modes(), &r#"[{"x": [true], "y": [false], "z": [true]}, {"x": [false], "y": [true], "z": [false]}]"#),
         @r###"
     {
       "default behavior": {
         "": Ok([]),
-        "[[[true], [false], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[[[true], [false], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-        ]),
-        "[[[true], [false], [true]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [false]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
-        ]),
-        "[[[true], [false], [true]], [[false], [true], [false]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false]}]": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
-        "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[{\"x\": [true], \"y\": [false], \"z\": [": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[[[true], [false], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false]}]": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
       },
     }
     "###)
 }
 
-#[test]
-fn test_tuple_struct_with_default() {
-    #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-    struct Tuple(
-        Vec<bool>,
-        #[serde(default)] Vec<bool>,
-        #[serde(default)] Vec<bool>,
-    );
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+struct StructWithDefault {
+    x: Vec<bool>,
+    #[serde(default)]
+    y: Vec<bool>,
+    #[serde(default)]
+    z: Vec<bool>,
+}
 
+#[test]
+fn test_toplevel_struct_with_default() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), &"[[[true], [false], [true]], [[false], [true], [false]]]"),
+        run_json_modes_on_prefixes_and_format_outputs::<StructWithDefault>(&default_modes(), &r#"{"x": [true], "y": [false], "z": [true]}"#),
+        @r###"
+    {
+      "default behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\":": Ok(StructWithDefault(
+          x: [],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
+      "default behavior, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\":": Ok(StructWithDefault(
+          x: [],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\":": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\": [true]}": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [": Ok(StructWithDefault(
+          x: [],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
+      "default behavior, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\":": Ok(StructWithDefault(
+          x: [],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\": [true]}": Ok(StructWithDefault(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
+    }
+    "###)
+}
+
+#[test]
+fn test_struct_with_default() {
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<StructWithDefault>>(&default_modes(), &r#"[{"x": [true], "y": [false], "z": [true]}, {"x": [false], "y": [true], "z": [false]}])"#),
         @r###"
     {
       "default behavior": {
         "": Ok([]),
-        "[[[": Ok([
-          Tuple([], [], []),
+        "[{\"x\":": Ok([
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true": Ok([
-          Tuple([
-            true,
-          ], [], []),
+        "[{\"x\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\"": Ok([]),
+        "[{\"x\": [true], \"y\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\"": Ok([]),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\"": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\"": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
+        ]),
+        "final output matches serde_json?": "serde_json failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[[[": Ok([
-          Tuple([], [], []),
+        "[{\"x\":": Ok([
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true": Ok([
-          Tuple([
-            true,
-          ], [], []),
+        "[{\"x\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\"": Ok([]),
+        "[{\"x\": [true], \"y\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\"": Ok([]),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\"": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\"": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
+        ]),
+        "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false]}]": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [false]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
-        ]),
-        "[[[true], [false], [true]], [[false], [true], [false]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
-        ]),
+        "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
-        "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[": Ok([
-          Tuple([], [], []),
+        "[{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[{\"x\": [": Ok([
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true": Ok([
-          Tuple([
-            true,
-          ], [], []),
+        "[{\"x\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[[[true], [false], [true]], [[": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
+        "final output matches serde_json?": "serde_json failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[[[": Ok([
-          Tuple([], [], []),
+        "[{\"x\":": Ok([
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true": Ok([
-          Tuple([
-            true,
-          ], [], []),
+        "[{\"x\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], []),
+        "[{\"x\": [true], \"y\"": Ok([]),
+        "[{\"x\": [true], \"y\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
+        "[{\"x\": [true], \"y\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\"": Ok([]),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], []),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [],
+            y: [],
+            z: [],
+          ),
         ]),
-        "[[[true], [false], [true]], [[false], [true], [false": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
         ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\"": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\"": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
+        ]),
+        "final output matches serde_json?": "serde_json failed",
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
-          Tuple([
-            true,
-          ], [
-            false,
-          ], [
-            true,
-          ]),
-          Tuple([
-            false,
-          ], [
-            true,
-          ], [
-            false,
-          ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false]}]": Ok([
+          StructWithDefault(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          StructWithDefault(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
         ]),
+        "final output matches serde_json?": "serde_json failed",
       },
     }
     "###)

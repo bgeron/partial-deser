@@ -12,10 +12,13 @@ mod any;
 mod bool;
 mod r#enum;
 mod error;
+mod newtype_struct;
 mod number;
 mod other;
 mod seq;
 mod r#struct;
+mod tuple_struct;
+mod unit_struct;
 
 type BoxSerialize = Box<dyn erased_serde::Serialize>;
 
