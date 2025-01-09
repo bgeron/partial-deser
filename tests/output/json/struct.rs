@@ -8,7 +8,7 @@ fn test_unit_struct() {
     struct Unit;
 
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Unit>>(&default_modes(), b"[null, null]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Unit>>(&default_modes(), &"[null, null]"),
         @r###"
     {
       "default behavior": {
@@ -78,7 +78,7 @@ fn test_newtype_struct() {
     struct Newtype(Vec<()>);
 
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Newtype>>(&default_modes(), b"[[], [null, null], []]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Newtype>>(&default_modes(), &"[[], [null, null], []]"),
         @r###"
     {
       "default behavior": {
@@ -239,7 +239,7 @@ fn test_tuple_struct() {
     struct Tuple(Vec<bool>, Vec<bool>, Vec<bool>);
 
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), b"[[[true], [false], [true]], [[false], [true], [false]]]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), &"[[[true], [false], [true]], [[false], [true], [false]]]"),
         @r###"
     {
       "default behavior": {
@@ -521,7 +521,7 @@ fn test_tuple_struct_with_default() {
     );
 
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), b"[[[true], [false], [true]], [[false], [true], [false]]]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<Tuple>>(&default_modes(), &"[[[true], [false], [true]], [[false], [true], [false]]]"),
         @r###"
     {
       "default behavior": {

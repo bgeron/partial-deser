@@ -3,7 +3,7 @@ use super::{default_modes, run_json_modes_on_prefixes_and_format_outputs};
 #[test]
 fn test_i32() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<i32>>(&default_modes(), b"[0, 1, 12345, -54321]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<i32>>(&default_modes(), &"[0, 1, 12345, -54321]"),
         @r###"
     {
       "default behavior": {
@@ -294,7 +294,7 @@ fn test_i32() {
 #[test]
 fn test_i32_overflow() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<i32>>(&default_modes(), b"[0, 1, 1234567890]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<i32>>(&default_modes(), &"[0, 1, 1234567890]"),
     @r###"
     {
       "default behavior": {
@@ -565,7 +565,7 @@ fn test_f32() {
     insta::assert_ron_snapshot!(
         run_json_modes_on_prefixes_and_format_outputs::<Vec<f32>>(
             &default_modes(),
-            b"[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]"
+            &"[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]"
         ),
        @r###"
     {

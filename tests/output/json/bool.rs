@@ -3,7 +3,7 @@ use super::{default_modes, run_json_modes_on_prefixes_and_format_outputs};
 #[test]
 fn test_bools() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<bool>>(&default_modes(), b"[true, false, true]"),
+        run_json_modes_on_prefixes_and_format_outputs::<Vec<bool>>(&default_modes(), &"[true, false, true]"),
         @r###"
     {
       "default behavior": {

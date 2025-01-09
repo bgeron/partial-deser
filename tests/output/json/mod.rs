@@ -11,6 +11,7 @@ use crate::common::run_on_prefixes_and_format_outputs;
 mod any;
 mod bool;
 mod r#enum;
+mod error;
 mod number;
 mod other;
 mod seq;
