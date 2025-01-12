@@ -31,15 +31,30 @@ fn test_toplevel_tuple_struct() {
           true,
         ])),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "[[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "[[true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "[[true], [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "[[true], [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "[[true], [false], [": Ok(Tuple([
           true,
         ], [
           false,
         ], [])),
         "[[true], [false], [true": Ok(Tuple([
+          true,
+        ], [
+          false,
+        ], [
+          true,
+        ])),
+      },
+      "default behavior, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[true], [false], [true]": Ok(Tuple([
           true,
         ], [
           false,
@@ -167,7 +182,7 @@ fn test_tuple_struct() {
           ]),
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[[[true], [false], [": Ok([
           Tuple([
@@ -200,6 +215,53 @@ fn test_tuple_struct() {
           ], []),
         ]),
         "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+        ]),
+        "[[[true], [false], [true]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]": Ok([
+          Tuple([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          Tuple([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
+        ]),
+        "[[[true], [false], [true]], [[false], [true], [false]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
           Tuple([
             true,
           ], [
@@ -317,6 +379,7 @@ fn test_tuple_struct() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
+        "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[true], [false], [": Ok([
           Tuple([
             true,
@@ -333,6 +396,7 @@ fn test_tuple_struct() {
             true,
           ]),
         ]),
+        "[[[true], [false], [true]], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[true], [false], [true]], [[false], [true], [": Ok([
           Tuple([
             true,
@@ -420,9 +484,9 @@ fn test_toplevel_tuple_struct_with_default() {
           true,
         ])),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "[[": Ok(TupleWithDefault([], [], [])),
         "[[true": Ok(TupleWithDefault([
           true,
@@ -433,6 +497,17 @@ fn test_toplevel_tuple_struct_with_default() {
           false,
         ], [])),
         "[[true], [false], [true": Ok(TupleWithDefault([
+          true,
+        ], [
+          false,
+        ], [
+          true,
+        ])),
+      },
+      "default behavior, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[true], [false], [true]": Ok(TupleWithDefault([
           true,
         ], [
           false,
@@ -590,7 +665,7 @@ fn test_tuple_struct_with_default() {
           ]),
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[[[": Ok([
           TupleWithDefault([], [], []),
@@ -653,6 +728,53 @@ fn test_tuple_struct_with_default() {
           ], []),
         ]),
         "[[[true], [false], [true]], [[false], [true], [false": Ok([
+          TupleWithDefault([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          TupleWithDefault([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]": Ok([
+          TupleWithDefault([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+        ]),
+        "[[[true], [false], [true]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]": Ok([
+          TupleWithDefault([
+            true,
+          ], [
+            false,
+          ], [
+            true,
+          ]),
+          TupleWithDefault([
+            false,
+          ], [
+            true,
+          ], [
+            false,
+          ]),
+        ]),
+        "[[[true], [false], [true]], [[false], [true], [false]]": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
           TupleWithDefault([
             true,
           ], [
@@ -800,6 +922,7 @@ fn test_tuple_struct_with_default() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
+        "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[": Ok([
           TupleWithDefault([], [], []),
         ]),
@@ -824,6 +947,7 @@ fn test_tuple_struct_with_default() {
             true,
           ]),
         ]),
+        "[[[true], [false], [true]], [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[true], [false], [true]], [[": Ok([
           TupleWithDefault([
             true,

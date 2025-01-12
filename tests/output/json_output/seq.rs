@@ -48,7 +48,7 @@ fn test_seq() {
           [],
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -80,6 +80,20 @@ fn test_seq() {
           ],
         ]),
         "[[], [true], [false], [": Ok([
+          [],
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+          [],
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[[], [true], [false], []]": Ok([
           [],
           [
             true,
@@ -225,15 +239,9 @@ fn test_seq_cannot_parse_after_invalid() {
             true,
           ],
         ]),
-        "[[true], n": Ok([
-          [
-            true,
-          ],
-          [],
-        ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -243,12 +251,11 @@ fn test_seq_cannot_parse_after_invalid() {
             true,
           ],
         ]),
-        "[[true], n": Ok([
-          [
-            true,
-          ],
-          [],
-        ]),
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 0 backtracks": {
@@ -278,12 +285,6 @@ fn test_seq_cannot_parse_after_invalid() {
           [
             true,
           ],
-        ]),
-        "[[true], n": Ok([
-          [
-            true,
-          ],
-          [],
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
@@ -316,7 +317,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -326,6 +327,11 @@ fn test_seq_cannot_parse_after_trailing_comma() {
             true,
           ],
         ]),
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 0 backtracks": {

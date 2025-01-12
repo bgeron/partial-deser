@@ -8,13 +8,20 @@ fn test_tolerate_trailing_whitespace_like_serde_json() {
     {
       "default behavior": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
+          (),
+        ]),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok([]),
+        "[null": Ok([
           (),
         ]),
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[n": Ok([
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[null]": Ok([
           (),
         ]),
       },
@@ -34,7 +41,7 @@ fn test_tolerate_trailing_whitespace_like_serde_json() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           (),
         ]),
       },
@@ -56,14 +63,22 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
     {
       "default behavior": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
+          (),
+        ]),
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok([]),
+        "[null": Ok([
           (),
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[n": Ok([
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[null]": Ok([
           (),
         ]),
         "final output matches serde_json?": "serde_json failed",
@@ -86,7 +101,7 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           (),
         ]),
         "final output matches serde_json?": "serde_json failed",
@@ -106,7 +121,34 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
 fn test_toplevel_unit() {
     insta::assert_ron_snapshot!(
         run_json_modes_on_prefixes_and_format_outputs::<()>(&default_modes(), &r#"null"#),
-        @"")
+        @r###"
+    {
+      "default behavior": {
+        "": Ok(()),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok(()),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok(()),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "null": Ok(()),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "null": Ok(()),
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok(()),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "null": Ok(()),
+      },
+    }
+    "###)
 }
 
 #[test]
@@ -117,20 +159,28 @@ fn test_unit() {
     {
       "default behavior": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           (),
         ]),
-        "[null, n": Ok([
+        "[null, null": Ok([
+          (),
+          (),
+        ]),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok([]),
+        "[null": Ok([
+          (),
+        ]),
+        "[null, null": Ok([
           (),
           (),
         ]),
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[n": Ok([
-          (),
-        ]),
-        "[null, n": Ok([
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[null, null]": Ok([
           (),
           (),
         ]),
@@ -156,10 +206,10 @@ fn test_unit() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           (),
         ]),
-        "[null, n": Ok([
+        "[null, null": Ok([
           (),
           (),
         ]),
@@ -182,7 +232,38 @@ fn test_toplevel_none() {
         run_json_modes_on_prefixes_and_format_outputs::<Option<Vec<bool>>>(&default_modes(), &r#"null"#),
         
         
-        @"")
+        @r###"
+    {
+      "default behavior": {
+        "": Ok(Some([])),
+        "n": Ok(None),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok(Some([])),
+        "n": Ok(None),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok(Some([])),
+        "n": Ok(None),
+      },
+      "no fallbacks, 0 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "null": Ok(None),
+      },
+      "no fallbacks, 1 backtracks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "null": Ok(None),
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok(Some([])),
+        "n": Ok(None),
+      },
+      "strict behavior": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "null": Ok(None),
+      },
+    }
+    "###)
 }
 
 #[test]
@@ -242,7 +323,7 @@ fn test_option() {
           None,
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[n": Ok([
           None,
@@ -282,6 +363,37 @@ fn test_option() {
           ]),
         ]),
         "[null, [], [true], [false], n": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[n": Ok([
+          None,
+        ]),
+        "[null": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[null, [], [true], [false], n": Ok([
+          None,
+          Some([]),
+          Some([
+            true,
+          ]),
+          Some([
+            false,
+          ]),
+          None,
+        ]),
+        "[null, [], [true], [false], null": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[null, [], [true], [false], null]": Ok([
           None,
           Some([]),
           Some([

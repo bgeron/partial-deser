@@ -309,7 +309,7 @@ where
         let result = self.inner.variant_seed(InnerDeserializeSeed {
             global: self.global,
             attempt: self.attempt,
-            is_for_key_or_variant: false,
+            is_for_key_or_variant: true,
             inner: seed,
         });
         self.global

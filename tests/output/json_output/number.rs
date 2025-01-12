@@ -71,7 +71,7 @@ fn test_i32() {
           -54321,
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[0": Ok([
           0,
@@ -130,6 +130,16 @@ fn test_i32() {
           -5432,
         ]),
         "[0, 1, 12345, -54321": Ok([
+          0,
+          1,
+          12345,
+          -54321,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[0, 1, 12345, -54321]": Ok([
           0,
           1,
           12345,
@@ -357,7 +367,7 @@ fn test_i32_overflow() {
           1234567890,
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[0": Ok([
           0,
@@ -412,6 +422,15 @@ fn test_i32_overflow() {
           123456789,
         ]),
         "[0, 1, 1234567890": Ok([
+          0,
+          1,
+          1234567890,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[0, 1, 1234567890]": Ok([
           0,
           1,
           1234567890,
@@ -885,7 +904,7 @@ fn test_f32() {
           42.0,
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[0": Ok([
           0.0,
@@ -1188,6 +1207,23 @@ fn test_f32() {
           4.0,
         ]),
         "[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42": Ok([
+          0.0,
+          1.0,
+          12345.0,
+          123456790.0,
+          3.14,
+          3.1415927,
+          -1.0,
+          -1000.0,
+          -0.0,
+          0.0,
+          42.0,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[0, 1, 12345, 123456789, 3.14, 3.14159265358979323846264338327950288419716939937510, -1, -1000, -0, 0.000, 42]": Ok([
           0.0,
           1.0,
           12345.0,

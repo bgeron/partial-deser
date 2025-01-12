@@ -42,6 +42,16 @@ fn test_string() {
           "de\nf",
         ]),
       },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok([]),
+        "[\"abc\"": Ok([
+          "abc",
+        ]),
+        "[\"abc\", \"de\\nf\"": Ok([
+          "abc",
+          "de\nf",
+        ]),
+      },
       "default behavior, 0 backtracks": {
         "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),

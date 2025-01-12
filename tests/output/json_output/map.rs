@@ -40,6 +40,16 @@ fn test_toplevel_map() {
           "ghi": "jkl",
         }),
       },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok({}),
+        "{\"abc\": \"def\"": Ok({
+          "abc": "def",
+        }),
+        "{\"abc\": \"def\", \"ghi\": \"jkl\"": Ok({
+          "abc": "def",
+          "ghi": "jkl",
+        }),
+      },
       "default behavior, 0 backtracks": {
         "": Ok({}),
         "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
@@ -230,6 +240,49 @@ fn test_map() {
           },
         ]),
         "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"GH": Ok([
+          {
+            "ab": "cd",
+            "ef": "gh",
+          },
+          {
+            "AB": "CD",
+            "EF": "GH",
+          },
+        ]),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok([]),
+        "[{": Ok([
+          {},
+        ]),
+        "[{\"ab\": \"cd\"": Ok([
+          {
+            "ab": "cd",
+          },
+        ]),
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"": Ok([
+          {
+            "ab": "cd",
+            "ef": "gh",
+          },
+        ]),
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {": Ok([
+          {
+            "ab": "cd",
+            "ef": "gh",
+          },
+          {},
+        ]),
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\"": Ok([
+          {
+            "ab": "cd",
+            "ef": "gh",
+          },
+          {
+            "AB": "CD",
+          },
+        ]),
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"GH\"": Ok([
           {
             "ab": "cd",
             "ef": "gh",

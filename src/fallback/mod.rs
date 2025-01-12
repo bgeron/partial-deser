@@ -336,6 +336,20 @@ impl Fallbacks for DefaultFallbacks {
             move || (take_visitor)().visit_map(EmptyAccess::default()),
         )
     }
+    fn fallback_struct<'a, V: Visitor<'a>, E: serde::de::Error>(
+        &self,
+        context: &FallbackContext,
+        take_visitor: impl FnOnce() -> V,
+    ) -> Result<Option<V::Value>, E> {
+        conditional_fallback(
+            if context.is_at_root() {
+                self.behavior.unstable_fallback_struct_empty_at_root
+            } else {
+                self.behavior.unstable_fallback_struct_empty
+            },
+            move || (take_visitor)().visit_map(EmptyAccess::default()),
+        )
+    }
 }
 
 fn conditional_fallback<Value, E>(

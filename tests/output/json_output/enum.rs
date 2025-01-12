@@ -23,12 +23,20 @@ fn test_unit_variant() {
           UnitVariant,
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[\"UnitVariant\"": Ok([
           UnitVariant,
         ]),
         "[\"UnitVariant\", \"UnitVariant\"": Ok([
+          UnitVariant,
+          UnitVariant,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[\"UnitVariant\", \"UnitVariant\"]": Ok([
           UnitVariant,
           UnitVariant,
         ]),

@@ -68,4 +68,12 @@ fn main() {
             .unwrap();
         dbg!(parsed);
     }
+
+    {
+        let json = r#"[{"ab""#;
+        let parsed: Vec<indexmap::IndexMap<String, String>> = partial_deser::Options::new_json()
+            .from_json_str(json.into())
+            .unwrap();
+        dbg!(parsed);
+    }
 }

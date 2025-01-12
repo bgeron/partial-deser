@@ -21,7 +21,7 @@ fn test_bools() {
           true,
         ]),
       },
-      "default behavior, 0 backtracks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[true": Ok([
           true,
@@ -31,6 +31,15 @@ fn test_bools() {
           false,
         ]),
         "[true, false, true": Ok([
+          true,
+          false,
+          true,
+        ]),
+      },
+      "default behavior, 0 backtracks": {
+        "": Ok([]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[true, false, true]": Ok([
           true,
           false,
           true,

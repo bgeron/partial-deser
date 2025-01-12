@@ -14,6 +14,9 @@ fn test_toplevel_unit_struct() {
       "default behavior": {
         "": Ok(UnitStruct),
       },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok(UnitStruct),
+      },
       "default behavior, 0 backtracks": {
         "": Ok(UnitStruct),
       },
@@ -44,6 +47,10 @@ fn test_toplevel_unit_struct_fail() {
     @r###"
     {
       "default behavior": {
+        "": Ok(UnitStruct),
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior except no JSON-specific tricks": {
         "": Ok(UnitStruct),
         "final output matches serde_json?": "serde_json failed",
       },
@@ -80,24 +87,21 @@ fn test_unit_struct_fallible() {
     {
       "default behavior": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           UnitStruct,
         ]),
-        "[null, [": Ok([
-          UnitStruct,
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Ok([]),
+        "[null": Ok([
           UnitStruct,
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[n": Ok([
-          UnitStruct,
-        ]),
-        "[null, [": Ok([
-          UnitStruct,
-          UnitStruct,
-        ]),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "final output matches serde_json?": "serde_json failed",
       },
       "no fallbacks, 0 backtracks": {
@@ -115,11 +119,7 @@ fn test_unit_struct_fallible() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[n": Ok([
-          UnitStruct,
-        ]),
-        "[null, [": Ok([
-          UnitStruct,
+        "[null": Ok([
           UnitStruct,
         ]),
         "final output matches serde_json?": "serde_json failed",
