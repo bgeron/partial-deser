@@ -103,9 +103,16 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
 }
 
 #[test]
+fn test_toplevel_unit() {
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<()>(&default_modes(), &r#"null"#),
+        @"")
+}
+
+#[test]
 fn test_unit() {
     insta::assert_ron_snapshot!(
-        run_json_modes_on_prefixes_and_format_outputs::<Vec<()>>(&default_modes(), &r#"[null, null]"#),
+                run_json_modes_on_prefixes_and_format_outputs::<Vec<()>>(&default_modes(), &r#"[null, null]"#),
         @r###"
     {
       "default behavior": {
@@ -167,6 +174,15 @@ fn test_unit() {
     }
     "###
     );
+}
+
+#[test]
+fn test_toplevel_none() {
+    insta::assert_ron_snapshot!(
+        run_json_modes_on_prefixes_and_format_outputs::<Option<Vec<bool>>>(&default_modes(), &r#"null"#),
+        
+        
+        @"")
 }
 
 #[test]

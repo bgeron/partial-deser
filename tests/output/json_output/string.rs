@@ -8,8 +8,7 @@ fn test_string() {
         @r###"
     {
       "default behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[\"": Ok([
           "",
         ]),
@@ -43,20 +42,8 @@ fn test_string() {
           "de\nf",
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[\"abc\"": Ok([
-          "abc",
-        ]),
-        "[\"abc\", \"de\\nf\"": Ok([
-          "abc",
-          "de\nf",
-        ]),
-      },
       "default behavior, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[\"": Ok([
           "",
         ]),
@@ -135,8 +122,7 @@ fn test_string() {
         ]),
       },
       "default behavior, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[\"": Ok([
           "",
         ]),

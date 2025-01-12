@@ -47,6 +47,9 @@
 //! ## Criteria
 //!
 //! - I tried that the empty string always parses as something
+//!    
+//!   .. but for enums this is not possible
+//!
 //! - I tried that with more input, it never takes something away
 
 #[cfg(feature = "serde_json")]

@@ -17,6 +17,7 @@ where
     pub(super) global: &'a mut GlobalState<Extra>,
     pub(super) attempt: &'a mut AttemptState<Extra>,
     pub(super) kind: DeserializeKind,
+    pub(super) is_at_root: bool,
     pub(super) is_for_key_or_variant: bool,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
@@ -513,6 +514,7 @@ where
         D: serde::Deserializer<'de>,
     {
         self.global.reporter.report_recv_visit_start_some();
+        let is_at_root = self.is_at_root;
 
         framework(
             self,
@@ -520,7 +522,7 @@ where
                 let wrapped = Deserializer {
                     global,
                     attempt,
-                    is_at_root: false,
+                    is_at_root,
                     is_for_key_or_variant: false,
                     inner: deserializer,
                 };
@@ -556,6 +558,7 @@ where
         self.global
             .reporter
             .report_recv_visit_start_newtype_struct();
+        let is_at_root = self.is_at_root;
 
         framework(
             self,
@@ -563,7 +566,7 @@ where
                 let wrapped = Deserializer {
                     global,
                     attempt,
-                    is_at_root: false,
+                    is_at_root,
                     is_for_key_or_variant: false,
                     inner: deserializer,
                 };

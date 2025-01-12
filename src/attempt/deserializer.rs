@@ -41,6 +41,7 @@ where
             global: deserializer.global,
             attempt: deserializer.attempt,
             kind,
+            is_at_root: deserializer.is_at_root,
             is_for_key_or_variant: deserializer.is_for_key_or_variant,
             inner: &mut visitor,
             value: &mut value,
