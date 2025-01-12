@@ -208,8 +208,8 @@ pub struct UnstableCustomBehavior {
     pub unstable_backtrack_tuple_skip_item: bool,
     pub unstable_fallback_tuple_struct_empty: bool,
     // pub unstable_backtrack_tuple_struct_empty: bool,
-    pub unstable_fallback_tuple_struct_skip_field: bool,
-    pub unstable_backtrack_tuple_struct_skip_field: bool,
+    pub unstable_fallback_tuple_struct_skip_item: bool,
+    pub unstable_backtrack_tuple_struct_skip_item: bool,
     pub unstable_fallback_map_empty: bool,
     // pub unstable_backtrack_map_empty: bool,
     pub unstable_fallback_map_skip_item: bool,
@@ -219,6 +219,11 @@ pub struct UnstableCustomBehavior {
     pub unstable_fallback_struct_skip_field: bool,
     pub unstable_backtrack_struct_skip_field: bool,
     pub unstable_fallback_unit_variant: bool,
+
+    /// Whether it's okay to fallback to skipping an element or field in circumstances
+    /// other than [`Deserializer::deserialize_seq`] or [`Deserializer::deserialize_tuple`].
+    pub unstable_fallback_other_skip_item: bool,
+    pub unstable_backtrack_other_skip_item: bool,
 }
 
 impl Default for UnstableCustomBehavior {
@@ -256,8 +261,8 @@ impl Default for UnstableCustomBehavior {
             unstable_backtrack_tuple_skip_item: true,
             unstable_fallback_tuple_struct_empty: false,
             // unstable_backtrack_tuple_struct_empty: false,
-            unstable_fallback_tuple_struct_skip_field: true,
-            unstable_backtrack_tuple_struct_skip_field: true,
+            unstable_fallback_tuple_struct_skip_item: true,
+            unstable_backtrack_tuple_struct_skip_item: true,
             unstable_fallback_map_empty: true,
             // unstable_backtrack_map_empty: false,
             unstable_fallback_map_skip_item: true,
@@ -266,6 +271,8 @@ impl Default for UnstableCustomBehavior {
             unstable_fallback_struct_skip_field: true,
             unstable_backtrack_struct_skip_field: true,
             unstable_fallback_unit_variant: true,
+            unstable_fallback_other_skip_item: true,
+            unstable_backtrack_other_skip_item: true,
         }
     }
 }
@@ -292,8 +299,8 @@ impl UnstableCustomBehavior {
             unstable_fallback_tuple_skip_item,
             unstable_backtrack_tuple_skip_item: _,
             unstable_fallback_tuple_struct_empty,
-            unstable_fallback_tuple_struct_skip_field,
-            unstable_backtrack_tuple_struct_skip_field: _,
+            unstable_fallback_tuple_struct_skip_item: unstable_fallback_tuple_struct_skip_field,
+            unstable_backtrack_tuple_struct_skip_item: _,
             unstable_fallback_map_empty,
             unstable_fallback_map_skip_item,
             unstable_backtrack_map_skip_item: _,
@@ -301,6 +308,8 @@ impl UnstableCustomBehavior {
             unstable_fallback_struct_skip_field,
             unstable_backtrack_struct_skip_field: _,
             unstable_fallback_unit_variant,
+            unstable_fallback_other_skip_item,
+            unstable_backtrack_other_skip_item: _,
         } = &mut self;
 
         *unstable_fallback_any_as_none = false;
@@ -325,6 +334,7 @@ impl UnstableCustomBehavior {
         *unstable_fallback_struct_empty = false;
         *unstable_fallback_struct_skip_field = false;
         *unstable_fallback_unit_variant = false;
+        *unstable_fallback_other_skip_item = false;
 
         self
     }
@@ -363,8 +373,8 @@ impl UnstableCustomBehavior {
             // unstable_backtrack_tuple_empty: false,
             unstable_fallback_tuple_skip_item: false,
             unstable_backtrack_tuple_skip_item: false,
-            unstable_fallback_tuple_struct_skip_field: false,
-            unstable_backtrack_tuple_struct_skip_field: false,
+            unstable_fallback_tuple_struct_skip_item: false,
+            unstable_backtrack_tuple_struct_skip_item: false,
             unstable_fallback_tuple_struct_empty: false,
             // unstable_backtrack_tuple_struct_empty: false,
             unstable_fallback_map_empty: false,
@@ -376,6 +386,8 @@ impl UnstableCustomBehavior {
             unstable_fallback_struct_skip_field: false,
             unstable_backtrack_struct_skip_field: false,
             unstable_fallback_unit_variant: false,
+            unstable_fallback_other_skip_item: false,
+            unstable_backtrack_other_skip_item: false,
         }
     }
 
@@ -413,8 +425,8 @@ impl UnstableCustomBehavior {
             unstable_backtrack_tuple_skip_item: true,
             unstable_fallback_tuple_struct_empty: true,
             // unstable_backtrack_tuple_struct_empty: true,
-            unstable_fallback_tuple_struct_skip_field: true,
-            unstable_backtrack_tuple_struct_skip_field: true,
+            unstable_fallback_tuple_struct_skip_item: true,
+            unstable_backtrack_tuple_struct_skip_item: true,
             unstable_fallback_map_empty: true,
             // unstable_backtrack_map_empty: true,
             unstable_fallback_map_skip_item: true,
@@ -424,6 +436,8 @@ impl UnstableCustomBehavior {
             unstable_fallback_struct_skip_field: true,
             unstable_backtrack_struct_skip_field: true,
             unstable_fallback_unit_variant: true,
+            unstable_fallback_other_skip_item: true,
+            unstable_backtrack_other_skip_item: true,
         }
     }
 }

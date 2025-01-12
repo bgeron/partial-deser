@@ -97,7 +97,12 @@ where
             }
             DeserializeKind::Enum { .. } => false,
 
-            _ => false,
+            _ => {
+                self.global
+                    .config
+                    .behavior
+                    .unstable_fallback_other_skip_item
+            }
         }
     }
 
@@ -117,7 +122,13 @@ where
                     .unstable_backtrack_struct_skip_field
             }
             DeserializeKind::Enum { .. } => false,
-            _ => false,
+
+            _ => {
+                self.global
+                    .config
+                    .behavior
+                    .unstable_backtrack_other_skip_item
+            }
         }
     }
 }

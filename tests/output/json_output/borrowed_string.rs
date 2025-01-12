@@ -2,8 +2,6 @@ use std::{borrow::Cow, marker::PhantomData};
 
 use serde::Serialize;
 
-use super::{default_modes, run_json_modes_on_prefixes_and_format_outputs};
-
 /// Like `Cow<str>`, but deserializes by saving a deserialized string when possible.
 ///
 /// Serializes as an enum... that's different! For testing.
