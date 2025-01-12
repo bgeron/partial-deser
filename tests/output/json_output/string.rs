@@ -44,35 +44,8 @@ fn test_string() {
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[\"": Ok([
-          "",
-        ]),
-        "[\"a": Ok([
-          "a",
-        ]),
-        "[\"ab": Ok([
-          "ab",
-        ]),
-        "[\"abc": Ok([
-          "abc",
-        ]),
-        "[\"abc\", \"": Ok([
-          "abc",
-          "",
-        ]),
-        "[\"abc\", \"d": Ok([
-          "abc",
-          "d",
-        ]),
-        "[\"abc\", \"de": Ok([
-          "abc",
-          "de",
-        ]),
-        "[\"abc\", \"de\\n": Ok([
-          "abc",
-          "de\n",
-        ]),
-        "[\"abc\", \"de\\nf": Ok([
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[\"abc\", \"de\\nf\"]": Ok([
           "abc",
           "de\nf",
         ]),

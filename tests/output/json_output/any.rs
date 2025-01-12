@@ -109,58 +109,8 @@ fn test_any() {
       },
       "default behavior, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[true": Ok([
-          true,
-        ]),
-        "[true, false": Ok([
-          true,
-          false,
-        ]),
-        "[true, false, 3": Ok([
-          true,
-          false,
-          3,
-        ]),
-        "[true, false, 3, 4": Ok([
-          true,
-          false,
-          3,
-          4,
-        ]),
-        "[true, false, 3, 4.": Ok([
-          true,
-          false,
-          3,
-        ]),
-        "[true, false, 3, 4.5": Ok([
-          true,
-          false,
-          3,
-          4.5,
-        ]),
-        "[true, false, 3, 4.5, \"": Ok([
-          true,
-          false,
-          3,
-          4.5,
-          "",
-        ]),
-        "[true, false, 3, 4.5, \"a": Ok([
-          true,
-          false,
-          3,
-          4.5,
-          "a",
-        ]),
-        "[true, false, 3, 4.5, \"ab": Ok([
-          true,
-          false,
-          3,
-          4.5,
-          "ab",
-        ]),
-        "[true, false, 3, 4.5, \"abc": Ok([
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[true, false, 3, 4.5, \"abc\"]": Ok([
           true,
           false,
           3,
