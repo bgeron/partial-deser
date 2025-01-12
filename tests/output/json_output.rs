@@ -87,7 +87,7 @@ fn default_modes() -> Vec<(&'static str, Options)> {
     vec![
         ("default behavior", Options::new_json()),
         (
-            "default behavior except no JSON tricks",
+            "default behavior except no JSON-specific tricks",
             partial_deser::Options::new_generic(),
         ),
         (

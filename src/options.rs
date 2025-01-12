@@ -8,7 +8,7 @@ use crate::Options;
 
 impl<Extra: ExtraOptions> Options<Extra> {
     /// Do our best to take off any potential junk that was only added by us,
-    /// such as the JSON trick stuff.
+    /// such as the JSON-specific trick stuff.
     ///
     /// Return true if the input was modified and we seem to be at the point where the
     /// JSON was cut off.

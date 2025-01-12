@@ -42,7 +42,7 @@ fn test_string() {
           "de\nf",
         ]),
       },
-      "default behavior except no JSON tricks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[\"abc\"": Ok([
           "abc",

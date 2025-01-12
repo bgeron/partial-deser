@@ -43,7 +43,7 @@ fn test_toplevel_struct() {
           ],
         )),
       },
-      "default behavior except no JSON tricks": {
+      "default behavior except no JSON-specific tricks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
@@ -263,7 +263,7 @@ fn test_struct() {
           ),
         ]),
       },
-      "default behavior except no JSON tricks": {
+      "default behavior except no JSON-specific tricks": {
         "": Ok([]),
         "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
           Struct(
