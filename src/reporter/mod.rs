@@ -165,6 +165,8 @@ pub trait Reporter: Clone {
     fn report_variant_start_tuple_variant(&mut self, len: usize);
     fn report_variant_start_struct_variant(&mut self, fields: &'static [&'static str]);
     fn report_variant_finish(&mut self, error: Option<&dyn StdError>);
+
+    fn report_encountered_incomplete_at_end_of_input(&mut self);
 }
 
 pub trait DeserializeStartArgs {

@@ -10,12 +10,14 @@ use crate::common::run_on_prefixes_and_format_outputs;
 
 mod any;
 mod bool;
+mod borrowed_string;
 mod r#enum;
 mod error;
 mod newtype_struct;
 mod number;
 mod other;
 mod seq;
+mod string;
 mod r#struct;
 mod tuple_struct;
 mod unit_struct;
@@ -44,7 +46,7 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
             let inputs_outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
                 options
                     .clone()
-                    .from_json_slice::<T>(inp)
+                    .from_json_slice::<T>(Cow::Borrowed(inp))
                     .map_err(|err| err.to_string())
             });
 
@@ -84,6 +86,10 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
 fn default_modes() -> Vec<(&'static str, Options)> {
     vec![
         ("default behavior", Options::new_json()),
+        (
+            "default behavior except no JSON tricks",
+            partial_deser::Options::new_generic(),
+        ),
         (
             "default behavior, 0 backtracks",
             Options::new_json().with_max_n_backtracks(Some(0)),

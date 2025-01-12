@@ -43,6 +43,34 @@ fn test_toplevel_struct() {
           ],
         )),
       },
+      "default behavior except no JSON tricks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [],
+        )),
+        "{\"x\": [true], \"y\": [false], \"z\": [true": Ok(Struct(
+          x: [
+            true,
+          ],
+          y: [
+            false,
+          ],
+          z: [
+            true,
+          ],
+        )),
+      },
       "default behavior, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
@@ -163,6 +191,79 @@ fn test_struct() {
         @r###"
     {
       "default behavior": {
+        "": Ok([]),
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [],
+          ),
+        ]),
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [false": Ok([
+          Struct(
+            x: [
+              true,
+            ],
+            y: [
+              false,
+            ],
+            z: [
+              true,
+            ],
+          ),
+          Struct(
+            x: [
+              false,
+            ],
+            y: [
+              true,
+            ],
+            z: [
+              false,
+            ],
+          ),
+        ]),
+      },
+      "default behavior except no JSON tricks": {
         "": Ok([]),
         "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
           Struct(

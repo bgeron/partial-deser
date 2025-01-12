@@ -298,10 +298,16 @@ where
         )
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    fn visit_str<E>(self, mut v: &str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
+        if self.global.config.remove_tag_from_stringlike(&mut v) {
+            self.global
+                .reporter
+                .report_encountered_incomplete_at_end_of_input();
+        }
+
         self.global.reporter.report_recv_visit_start_str(v);
 
         framework(
@@ -313,10 +319,16 @@ where
         )
     }
 
-    fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+    fn visit_borrowed_str<E>(self, mut v: &'de str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
+        if self.global.config.remove_tag_from_stringlike(&mut v) {
+            self.global
+                .reporter
+                .report_encountered_incomplete_at_end_of_input();
+        }
+
         self.global.reporter.report_recv_visit_start_borrowed_str(v);
 
         framework(
@@ -328,10 +340,16 @@ where
         )
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    fn visit_string<E>(self, mut v: String) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
+        if self.global.config.remove_tag_from_stringlike(&mut v) {
+            self.global
+                .reporter
+                .report_encountered_incomplete_at_end_of_input();
+        }
+
         self.global.reporter.report_recv_visit_start_string(&v);
 
         framework(
@@ -343,10 +361,16 @@ where
         )
     }
 
-    fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+    fn visit_bytes<E>(self, mut v: &[u8]) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
+        if self.global.config.remove_tag_from_stringlike(&mut v) {
+            self.global
+                .reporter
+                .report_encountered_incomplete_at_end_of_input();
+        }
+
         self.global.reporter.report_recv_visit_start_bytes(v);
 
         framework(
@@ -358,10 +382,16 @@ where
         )
     }
 
-    fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
+    fn visit_borrowed_bytes<E>(self, mut v: &'de [u8]) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
+        if self.global.config.remove_tag_from_stringlike(&mut v) {
+            self.global
+                .reporter
+                .report_encountered_incomplete_at_end_of_input();
+        }
+
         self.global
             .reporter
             .report_recv_visit_start_borrowed_bytes(v);
@@ -375,10 +405,16 @@ where
         )
     }
 
-    fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
+    fn visit_byte_buf<E>(self, mut v: Vec<u8>) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
+        if self.global.config.remove_tag_from_stringlike(&mut v) {
+            self.global
+                .reporter
+                .report_encountered_incomplete_at_end_of_input();
+        }
+
         self.global.reporter.report_recv_visit_start_byte_buf(&v);
 
         framework(

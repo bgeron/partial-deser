@@ -40,6 +40,10 @@
 //!
 //! -
 //!
+//! ## Caveats
+//!
+//! The JSON trick can sometimes TODO (but we disabled fallbacks as appropriate?)
+//!
 
 #[cfg(feature = "serde_json")]
 use std::borrow::Cow;
@@ -84,6 +88,7 @@ mod options;
 mod reporter;
 pub mod source;
 mod state;
+mod string_like;
 mod util;
 
 /// Reexports to satisfy Rust's visibility rules TODO
@@ -92,7 +97,9 @@ mod util;
 pub mod unstable {
     pub use crate::fallback::Fallbacks;
     #[cfg(feature = "serde_json")]
-    pub use crate::json_trick;
+    pub mod json_trick {
+        pub use crate::json_trick::Prepared;
+    }
     pub use crate::options::{
         ExtraOptionsStruct, MakeFallbackProvider, MakeReporter, UnstableCustomBehavior,
     };
@@ -140,7 +147,7 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
 #[cfg(feature = "serde_json")]
 pub fn from_json_str<T>(json: Cow<str>) -> Result<T, Error<serde_json::Error>>
 where
-    T: serde::Deserialize<'static>,
+    T: for<'de> serde::Deserialize<'de>,
 {
     Options::new_json().from_json_str(json)
 }
@@ -151,7 +158,7 @@ where
 #[cfg(feature = "serde_json")]
 pub fn from_json_slice<T>(json: Cow<[u8]>) -> Result<T, Error<serde_json::Error>>
 where
-    T: serde::Deserialize<'static>,
+    T: for<'de> serde::Deserialize<'de>,
 {
     Options::new_json().from_json_slice(json)
 }
@@ -190,20 +197,22 @@ impl Options {
 
     /// Like [`crate::from_json_str`], but with options.
     #[cfg(feature = "serde_json")]
-    pub fn from_json_str<T>(self, json: Cow<str>) -> Result<T, Error<serde_json::Error>>
+    pub fn from_json_str<'a, T>(self, json: Cow<'a, str>) -> Result<T, Error<serde_json::Error>>
     where
-        T: serde::de::Deserialize<'static>,
+        T: for<'de> serde::de::Deserialize<'de>,
     {
-        self.deserialize_source(source::JsonStr(json))
+        let prepared = self.prepare_str_for_borrowed_deserialization(json);
+        self.from_json_str_borrowed(&prepared)
     }
 
     /// Like [`crate::from_json_slice`], but with options.
     #[cfg(feature = "serde_json")]
     pub fn from_json_slice<T>(self, json: Cow<[u8]>) -> Result<T, Error<serde_json::Error>>
     where
-        T: serde::de::Deserialize<'static>,
+        T: for<'de> serde::de::Deserialize<'de>,
     {
-        self.deserialize_source(source::JsonBytes(json))
+        let prepared = self.prepare_slice_for_borrowed_deserialization(json);
+        self.from_json_slice_borrowed(&prepared)
     }
 
     /// Like [`Self::from_json_slice`], but can deserialize borrowed strings and return them
@@ -268,14 +277,41 @@ impl Options {
     /// This is marked unstable because I'm not 100% sure about the [`unstable::json_trick::Prepared`]
     /// type. Input is welcome.
     #[cfg(all(feature = "serde_json", feature = "unstable"))]
-    pub fn from_json_slice_borrowed<'de, T, R>(
+    pub fn from_json_str_borrowed<'de, T>(
         self,
-        json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<[u8]> + 'static>,
+        json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<str>>,
+    ) -> Result<T, Error<serde_json::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(source::JsonStr(prepared_json.as_ref()))
+    }
+
+    /// See [`Self::from_json_str_borrowed`].
+    #[cfg(all(feature = "serde_json", feature = "unstable"))]
+    pub fn from_json_slice_borrowed<'de, T>(
+        self,
+        json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<[u8]>>,
     ) -> Result<T, Error<serde_json::Error>>
     where
         T: serde::de::Deserialize<'de>,
     {
         self.deserialize_source(source::JsonBytes(prepared_json.as_ref()))
+    }
+
+    /// Prepare a string for borrowed deserialization with [`Self::from_json_str_borrowed`].
+    ///
+    /// This only appends to the input. And this returns a newtype wrapper, so you can undo
+    /// the effects yourself.
+    #[cfg(all(feature = "serde_json", feature = "unstable"))]
+    pub fn prepare_str_for_borrowed_deserialization<'a>(
+        &self,
+        mut input: Cow<'a, str>,
+    ) -> json_trick::Prepared<Cow<'a, str>> {
+        if let Some(tag) = self.parse_partial_json_tag.as_ref() {
+            json_trick::prepare_string_with_tag(tag, Cow::to_mut(&mut input));
+        }
+        json_trick::Prepared(input)
     }
 
     /// Prepare a slice for borrowed deserialization with [`Self::from_json_slice_borrowed`].
@@ -288,7 +324,7 @@ impl Options {
         mut input: Cow<'a, [u8]>,
     ) -> json_trick::Prepared<Cow<'a, [u8]>> {
         if let Some(tag) = self.parse_partial_json_tag.as_ref() {
-            json_trick::prepare_slice_with_tag(tag, &mut input);
+            json_trick::prepare_vec_with_tag(tag, Cow::to_mut(&mut input));
         }
         json_trick::Prepared(input)
     }

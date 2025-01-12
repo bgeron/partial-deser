@@ -585,6 +585,13 @@ impl Reporter for DefaultReporter {
             "finish deserializing variant"
         );
     }
+
+    fn report_encountered_incomplete_at_end_of_input(&mut self) {
+        trace!(
+            nesting_level = self.level.get(),
+            "encountered incomplete data at end of input"
+        );
+    }
 }
 
 struct FormatSequence<It>(RefCell<Option<It>>);

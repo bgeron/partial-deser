@@ -13,19 +13,19 @@ fn main() {
 
     {
         let json = "true";
-        let parsed: bool = partial_deser::from_json_str(json).unwrap();
+        let parsed: bool = partial_deser::from_json_str(json.into()).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = "[true] x";
-        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
+        let parsed: Vec<bool> = partial_deser::from_json_str(json.into()).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = "[true, false, true, faaa";
-        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
+        let parsed: Vec<bool> = partial_deser::from_json_str(json.into()).unwrap();
         dbg!(parsed);
     }
 
@@ -33,7 +33,7 @@ fn main() {
         let json = "[";
 
         let parsed: Vec<bool> = partial_deser::Options::new_json()
-            .from_json_str(json)
+            .from_json_str(json.into())
             .unwrap();
         dbg!(parsed);
     }
@@ -46,7 +46,7 @@ fn main() {
 
         let parsed: Vec<bool> = partial_deser::Options::new_json()
             .custom_behavior(behavior)
-            .from_json_str(json)
+            .from_json_str(json.into())
             .unwrap();
         dbg!(parsed);
     }
@@ -56,7 +56,7 @@ fn main() {
         let parsed: Vec<bool> = partial_deser::Options::new_json()
             .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
             .with_max_n_backtracks(Some(1))
-            .from_json_str(json)
+            .from_json_str(json.into())
             .unwrap();
         dbg!(parsed);
     }
@@ -66,7 +66,7 @@ fn main() {
         let parsed: Vec<()> = partial_deser::Options::new_json()
             .custom_behavior(UnstableCustomBehavior::strict())
             .with_max_n_backtracks(Some(0))
-            .from_json_str(json)
+            .from_json_str(json.into())
             .unwrap();
         dbg!(parsed);
     }

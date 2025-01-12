@@ -1,7 +1,29 @@
 #[cfg(doc)]
-use serde::Deserializer;
+use serde::de::{Deserializer, VariantAccess};
 
-use crate::{fallback::DefaultFallbacks, reporter::DefaultReporter};
+use crate::fallback::DefaultFallbacks;
+use crate::reporter::DefaultReporter;
+use crate::string_like::StringLike;
+use crate::Options;
+
+impl<Extra: ExtraOptions> Options<Extra> {
+    /// Do our best to take off any potential junk that was only added by us,
+    /// such as the JSON trick stuff.
+    ///
+    /// Return true if the input was modified and we seem to be at the point where the
+    /// JSON was cut off.
+    #[must_use]
+    pub(crate) fn remove_tag_from_stringlike(&self, stringy: &mut impl StringLike) -> bool {
+        #[cfg(feature = "serde_json")]
+        {
+            if let Some(tag) = self.parse_partial_json_tag.as_ref() {
+                return crate::json_trick::undo_tag_suffix(stringy, &tag);
+            }
+        }
+
+        false
+    }
+}
 
 /// Monomorphized options.
 ///
@@ -155,10 +177,25 @@ pub struct UnstableCustomBehavior {
     // pub unstable_backtrack_default_str: Option<&'static str>,
     pub unstable_fallback_bytes_empty: bool,
     // pub unstable_backtrack_bytes_empty: bool,
+    /// In case [`Deserializer::deserialize_option`] does not do anything, then
+    /// just go in and visit a None.
     pub unstable_fallback_none: bool,
-    // pub unstable_backtrack_none: bool,
+    /// In case [`Deserializer::deserialize_unit`] does not do anything, then
+    /// just go in and visit a unit.
+    ///
+    /// ## Caveat
+    ///
+    /// In combination with the JSON string trick, this can sometimes generate spurious
+    /// list elements.
     pub unstable_fallback_unit: bool,
-    // pub unstable_backtrack_unit: bool,
+
+    /// In case [`Deserializer::deserialize_unit_struct`] does not do anything, then
+    /// just go in and visit a unit struct.
+    ///
+    /// ## Caveat
+    ///
+    /// In combination with the JSON string trick, this can sometimes generate spurious
+    /// list elements.
     pub unstable_fallback_unit_struct: bool,
     // pub unstable_backtrack_unit_struct: bool,
     pub unstable_fallback_seq_empty: bool,
@@ -205,10 +242,9 @@ impl Default for UnstableCustomBehavior {
             unstable_fallback_bytes_empty: false,
             // unstable_backtrack_bytes_empty: false,
             unstable_fallback_none: true,
-            // unstable_backtrack_none: false,
-            unstable_fallback_unit: true,
+            unstable_fallback_unit: false,
             // unstable_backtrack_unit: true,
-            unstable_fallback_unit_struct: true,
+            unstable_fallback_unit_struct: false,
             // unstable_backtrack_unit_struct: true,
             unstable_fallback_seq_empty: true,
             // unstable_backtrack_seq_empty: false,
@@ -315,7 +351,6 @@ impl UnstableCustomBehavior {
             unstable_fallback_bytes_empty: false,
             // unstable_backtrack_bytes_empty: false,
             unstable_fallback_none: false,
-            // unstable_backtrack_none: false,
             unstable_fallback_unit: false,
             // unstable_backtrack_unit: false,
             unstable_fallback_unit_struct: false,
@@ -364,7 +399,6 @@ impl UnstableCustomBehavior {
             unstable_fallback_bytes_empty: true,
             // unstable_backtrack_bytes_empty: true,
             unstable_fallback_none: true,
-            // unstable_backtrack_none: true,
             unstable_fallback_unit: true,
             // unstable_backtrack_unit: true,
             unstable_fallback_unit_struct: true,
