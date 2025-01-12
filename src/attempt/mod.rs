@@ -53,19 +53,28 @@ where
 {
     pub(crate) global: &'a mut GlobalState<Extra>,
     pub(crate) attempt: &'a mut AttemptState<Extra>,
+    /// Whether we are at the root of the deserialization. Typically we will
+    /// be a little bit more lenient at the root -- because we definitely do
+    /// want to generate a value, and there isn't the risk that the JSON string
+    /// trick will generate an unexpected spurious element that was never
+    /// in the input.
+    pub(crate) is_at_root: bool,
+    /// Whether this is used to deserialize a map key or enum variant.
+    pub(crate) is_for_key_or_variant: bool,
     pub(crate) inner: Inner,
 }
 
-pub(crate) struct DeserializeSeed<'a, Inner, Extra>
+pub(crate) struct InnerDeserializeSeed<'a, Inner, Extra>
 where
     Extra: ExtraOptions,
 {
     pub(crate) global: &'a mut GlobalState<Extra>,
     pub(crate) attempt: &'a mut AttemptState<Extra>,
+    pub(crate) is_for_key_or_variant: bool,
     pub(crate) inner: Inner,
 }
 
-impl<'de, Inner, Extra> serde::de::DeserializeSeed<'de> for DeserializeSeed<'_, Inner, Extra>
+impl<'de, Inner, Extra> serde::de::DeserializeSeed<'de> for InnerDeserializeSeed<'_, Inner, Extra>
 where
     Inner: serde::de::DeserializeSeed<'de>,
     Extra: ExtraOptions,
@@ -80,6 +89,8 @@ where
             .deserialize(Deserializer {
                 global: self.global,
                 attempt: self.attempt,
+                is_at_root: false,
+                is_for_key_or_variant: self.is_for_key_or_variant,
                 inner: deserializer,
             })
             .map_err(Error::unpack_or_make_custom)

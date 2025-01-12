@@ -13,6 +13,7 @@ mod bool;
 mod borrowed_string;
 mod r#enum;
 mod error;
+mod map;
 mod newtype_struct;
 mod number;
 mod other;

@@ -62,10 +62,8 @@ fn main() {
     }
 
     {
-        let json = "[null]";
-        let parsed: Vec<()> = partial_deser::Options::new_json()
-            .custom_behavior(UnstableCustomBehavior::strict())
-            .with_max_n_backtracks(Some(0))
+        let json = "[true, false, 3, 4.5, \"hello";
+        let parsed: serde_json::Value = partial_deser::Options::new_json()
             .from_json_str(json.into())
             .unwrap();
         dbg!(parsed);

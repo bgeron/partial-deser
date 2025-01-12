@@ -44,6 +44,10 @@
 //!
 //! The JSON trick can sometimes TODO (but we disabled fallbacks as appropriate?)
 //!
+//! ## Criteria
+//!
+//! - I tried that the empty string always parses as something
+//! - I tried that with more input, it never takes something away
 
 #[cfg(feature = "serde_json")]
 use std::borrow::Cow;

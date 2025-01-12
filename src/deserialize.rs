@@ -46,6 +46,8 @@ impl<Extra: ExtraOptions> Options<Extra> {
             let deserializer = Deserializer {
                 global: &mut state,
                 attempt: &mut attempt,
+                is_at_root: true,
+                is_for_key_or_variant: false,
                 inner: inner_deserializer,
             };
 

@@ -586,10 +586,17 @@ impl Reporter for DefaultReporter {
         );
     }
 
-    fn report_encountered_incomplete_at_end_of_input(&mut self) {
+    fn report_allow_incomplete_string(&mut self) {
         trace!(
             nesting_level = self.level.get(),
-            "encountered incomplete data at end of input"
+            "encountered incomplete string"
+        );
+    }
+
+    fn report_reject_incomplete_string(&mut self) {
+        trace!(
+            nesting_level = self.level.get(),
+            "rejected incomplete string"
         );
     }
 }

@@ -12,21 +12,34 @@ fn test_toplevel_newtype_struct() {
         @r###"
     {
       "default behavior": {
-        "": Ok(Newtype([])),
-        "[n": Ok(Newtype([
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok(Newtype([])),
+        "[null": Ok(Newtype([
           (),
         ])),
-        "[null, n": Ok(Newtype([
+        "[null, null": Ok(Newtype([
+          (),
+          (),
+        ])),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok(Newtype([])),
+        "[null": Ok(Newtype([
+          (),
+        ])),
+        "[null, null": Ok(Newtype([
           (),
           (),
         ])),
       },
       "default behavior, 0 backtracks": {
-        "": Ok(Newtype([])),
-        "[n": Ok(Newtype([
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok(Newtype([])),
+        "[null": Ok(Newtype([
           (),
         ])),
-        "[null, n": Ok(Newtype([
+        "[null, null": Ok(Newtype([
           (),
           (),
         ])),
@@ -51,11 +64,12 @@ fn test_toplevel_newtype_struct() {
         ])),
       },
       "default behavior, 1 backtracks": {
-        "": Ok(Newtype([])),
-        "[n": Ok(Newtype([
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok(Newtype([])),
+        "[null": Ok(Newtype([
           (),
         ])),
-        "[null, n": Ok(Newtype([
+        "[null, null": Ok(Newtype([
           (),
           (),
         ])),
@@ -78,7 +92,8 @@ fn test_newtype_struct() {
         @r###"
     {
       "default behavior": {
-        "": Ok([]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[[": Ok([
           Newtype([]),
         ]),
@@ -86,13 +101,45 @@ fn test_newtype_struct() {
           Newtype([]),
           Newtype([]),
         ]),
-        "[[], [n": Ok([
+        "[[], [null": Ok([
           Newtype([]),
           Newtype([
             (),
           ]),
         ]),
-        "[[], [null, n": Ok([
+        "[[], [null, null": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+            (),
+          ]),
+        ]),
+        "[[], [null, null], [": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+            (),
+          ]),
+          Newtype([]),
+        ]),
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
+        "[[": Ok([
+          Newtype([]),
+        ]),
+        "[[], [": Ok([
+          Newtype([]),
+          Newtype([]),
+        ]),
+        "[[], [null": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+          ]),
+        ]),
+        "[[], [null, null": Ok([
           Newtype([]),
           Newtype([
             (),
@@ -109,7 +156,8 @@ fn test_newtype_struct() {
         ]),
       },
       "default behavior, 0 backtracks": {
-        "": Ok([]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[[": Ok([
           Newtype([]),
         ]),
@@ -117,13 +165,13 @@ fn test_newtype_struct() {
           Newtype([]),
           Newtype([]),
         ]),
-        "[[], [n": Ok([
+        "[[], [null": Ok([
           Newtype([]),
           Newtype([
             (),
           ]),
         ]),
-        "[[], [null, n": Ok([
+        "[[], [null, null": Ok([
           Newtype([]),
           Newtype([
             (),
@@ -184,7 +232,8 @@ fn test_newtype_struct() {
         ]),
       },
       "default behavior, 1 backtracks": {
-        "": Ok([]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[[": Ok([
           Newtype([]),
         ]),
@@ -192,13 +241,13 @@ fn test_newtype_struct() {
           Newtype([]),
           Newtype([]),
         ]),
-        "[[], [n": Ok([
+        "[[], [null": Ok([
           Newtype([]),
           Newtype([
             (),
           ]),
         ]),
-        "[[], [null, n": Ok([
+        "[[], [null, null": Ok([
           Newtype([]),
           Newtype([
             (),
@@ -236,7 +285,8 @@ fn test_newtype_struct_fail() {
         @r###"
     {
       "default behavior": {
-        "": Ok([]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[[": Ok([
           Newtype([]),
         ]),
@@ -244,7 +294,25 @@ fn test_newtype_struct_fail() {
           Newtype([]),
           Newtype([]),
         ]),
-        "[[], [n": Ok([
+        "[[], [null": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+          ]),
+        ]),
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior except no JSON-specific tricks": {
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
+        "[[": Ok([
+          Newtype([]),
+        ]),
+        "[[], [": Ok([
+          Newtype([]),
+          Newtype([]),
+        ]),
+        "[[], [null": Ok([
           Newtype([]),
           Newtype([
             (),
@@ -253,7 +321,8 @@ fn test_newtype_struct_fail() {
         "final output matches serde_json?": "serde_json failed",
       },
       "default behavior, 0 backtracks": {
-        "": Ok([]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[[": Ok([
           Newtype([]),
         ]),
@@ -261,7 +330,7 @@ fn test_newtype_struct_fail() {
           Newtype([]),
           Newtype([]),
         ]),
-        "[[], [n": Ok([
+        "[[], [null": Ok([
           Newtype([]),
           Newtype([
             (),
@@ -293,7 +362,8 @@ fn test_newtype_struct_fail() {
         "final output matches serde_json?": "serde_json failed",
       },
       "default behavior, 1 backtracks": {
-        "": Ok([]),
+        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[": Ok([]),
         "[[": Ok([
           Newtype([]),
         ]),
@@ -301,7 +371,7 @@ fn test_newtype_struct_fail() {
           Newtype([]),
           Newtype([]),
         ]),
-        "[[], [n": Ok([
+        "[[], [null": Ok([
           Newtype([]),
           Newtype([
             (),

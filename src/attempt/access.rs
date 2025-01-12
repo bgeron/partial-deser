@@ -8,7 +8,7 @@ use crate::state::InterventionReason;
 use crate::util::DeserializeKind;
 
 use super::visit::Visitor;
-use super::{erase_error_ref, AttemptState, DeserializeSeed, GlobalState, HaltingPoint};
+use super::{erase_error_ref, AttemptState, GlobalState, HaltingPoint, InnerDeserializeSeed};
 
 pub(crate) struct Access<'a, Inner, Extra>
 where
@@ -161,9 +161,10 @@ where
         self.enter_element(this_halting_point);
 
         self.global.reporter.report_seq_next_element_start();
-        let wrapped_seed = DeserializeSeed {
+        let wrapped_seed = InnerDeserializeSeed {
             global: self.global,
             attempt: self.attempt,
+            is_for_key_or_variant: false,
             inner: seed,
         };
         let result = self.inner.next_element_seed(wrapped_seed);
@@ -224,9 +225,10 @@ where
         self.enter_element(this_halting_point);
 
         self.global.reporter.report_map_next_key_start();
-        let wrapped_seed = DeserializeSeed {
+        let wrapped_seed = InnerDeserializeSeed {
             global: self.global,
             attempt: self.attempt,
+            is_for_key_or_variant: true,
             inner: seed,
         };
         let result = self.inner.next_key_seed(wrapped_seed);
@@ -268,9 +270,10 @@ where
         }
 
         self.global.reporter.report_map_next_value_start();
-        let wrapped_seed = DeserializeSeed {
+        let wrapped_seed = InnerDeserializeSeed {
             global: self.global,
             attempt: self.attempt,
+            is_for_key_or_variant: false,
             inner: seed,
         };
         let result = self.inner.next_value_seed(wrapped_seed);
@@ -303,9 +306,10 @@ where
     {
         self.global.reporter.report_enum_start();
 
-        let result = self.inner.variant_seed(DeserializeSeed {
+        let result = self.inner.variant_seed(InnerDeserializeSeed {
             global: self.global,
             attempt: self.attempt,
+            is_for_key_or_variant: false,
             inner: seed,
         });
         self.global
@@ -372,9 +376,10 @@ where
         T: serde::de::DeserializeSeed<'de>,
     {
         self.global.reporter.report_variant_start_newtype_variant();
-        let result = self.inner.newtype_variant_seed(DeserializeSeed {
+        let result = self.inner.newtype_variant_seed(InnerDeserializeSeed {
             global: self.global,
             attempt: self.attempt,
+            is_for_key_or_variant: false,
             inner: seed,
         });
         process_variant_result(&result, self.attempt, &mut self.global.reporter);
@@ -393,6 +398,7 @@ where
             global: self.global,
             attempt: self.attempt,
             kind: self.kind,
+            is_for_key_or_variant: false,
             inner: &mut visitor,
             value: &mut value,
         };
@@ -423,6 +429,7 @@ where
             global: self.global,
             attempt: self.attempt,
             kind: self.kind,
+            is_for_key_or_variant: false,
             inner: &mut visitor,
             value: &mut value,
         };

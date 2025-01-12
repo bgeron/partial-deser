@@ -1,7 +1,7 @@
 use super::visit::Visitor;
 use super::Deserializer;
 use crate::error::{BugEnum, Error, FallbackError};
-use crate::fallback::FallbacksExt as _;
+use crate::fallback::{FallbackContext, FallbacksExt as _};
 use crate::options::ExtraOptions;
 use crate::reporter::{self, Reporter, ReporterExt as _};
 use crate::state::InterventionReason;
@@ -41,6 +41,7 @@ where
             global: deserializer.global,
             attempt: deserializer.attempt,
             kind,
+            is_for_key_or_variant: deserializer.is_for_key_or_variant,
             inner: &mut visitor,
             value: &mut value,
         },
@@ -58,9 +59,16 @@ where
     if result.is_err() && visitor.is_some() {
         // We can try to apply a fallback.
         deserializer.global.reporter.report_start_fallback();
+        let context = FallbackContext {
+            is_at_root: deserializer.is_at_root,
+        };
         let take_visitor =
             make_fnonce(|| visitor.take().expect("a Some can be .take()n in an FnOnce"));
-        let result_opt = match deserializer.global.fallbacks.fallback(take_visitor, kind) {
+        let result_opt = match deserializer
+            .global
+            .fallbacks
+            .fallback(&context, take_visitor, kind)
+        {
             Ok(Some(value)) => Some(Ok(value)),
             Err(err) => Some(Err(FallbackError::FallbackVisitor(err))),
             Ok(None) if visitor.is_some() => None,

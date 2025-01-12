@@ -166,7 +166,8 @@ pub trait Reporter: Clone {
     fn report_variant_start_struct_variant(&mut self, fields: &'static [&'static str]);
     fn report_variant_finish(&mut self, error: Option<&dyn StdError>);
 
-    fn report_encountered_incomplete_at_end_of_input(&mut self);
+    fn report_allow_incomplete_string(&mut self);
+    fn report_reject_incomplete_string(&mut self);
 }
 
 pub trait DeserializeStartArgs {

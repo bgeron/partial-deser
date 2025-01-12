@@ -6,6 +6,7 @@ use serde::Serialize;
 ///
 /// Serializes as an enum... that's different! For testing.
 #[derive(Debug, Clone, Serialize)]
+#[allow(clippy::enum_variant_names)]
 enum CowString<'a> {
     VisitBorrowedStr(&'a str),
     VisitStr { cloned: String },

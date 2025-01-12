@@ -17,6 +17,7 @@ where
     pub(super) global: &'a mut GlobalState<Extra>,
     pub(super) attempt: &'a mut AttemptState<Extra>,
     pub(super) kind: DeserializeKind,
+    pub(super) is_for_key_or_variant: bool,
 
     /// This should always be set to `Some` while the inner deserializer is being called,
     /// and thus while the [`serde::de::Visitor`] methods of [`Visitor`] are called.
@@ -303,9 +304,20 @@ where
         E: serde::de::Error,
     {
         if self.global.config.remove_tag_from_stringlike(&mut v) {
-            self.global
-                .reporter
-                .report_encountered_incomplete_at_end_of_input();
+            if !self.is_for_key_or_variant
+                || self
+                    .global
+                    .config
+                    .behavior
+                    .unstable_allow_incomplete_string_in_key_or_variant
+            {
+                self.global.reporter.report_allow_incomplete_string();
+            } else {
+                self.global.reporter.report_reject_incomplete_string();
+                return Err(E::custom(
+                    "not allowing incomplete string in key or variant",
+                ));
+            }
         }
 
         self.global.reporter.report_recv_visit_start_str(v);
@@ -324,9 +336,20 @@ where
         E: serde::de::Error,
     {
         if self.global.config.remove_tag_from_stringlike(&mut v) {
-            self.global
-                .reporter
-                .report_encountered_incomplete_at_end_of_input();
+            if !self.is_for_key_or_variant
+                || self
+                    .global
+                    .config
+                    .behavior
+                    .unstable_allow_incomplete_string_in_key_or_variant
+            {
+                self.global.reporter.report_allow_incomplete_string();
+            } else {
+                self.global.reporter.report_reject_incomplete_string();
+                return Err(E::custom(
+                    "not allowing incomplete string in key or variant",
+                ));
+            }
         }
 
         self.global.reporter.report_recv_visit_start_borrowed_str(v);
@@ -345,9 +368,20 @@ where
         E: serde::de::Error,
     {
         if self.global.config.remove_tag_from_stringlike(&mut v) {
-            self.global
-                .reporter
-                .report_encountered_incomplete_at_end_of_input();
+            if !self.is_for_key_or_variant
+                || self
+                    .global
+                    .config
+                    .behavior
+                    .unstable_allow_incomplete_string_in_key_or_variant
+            {
+                self.global.reporter.report_allow_incomplete_string();
+            } else {
+                self.global.reporter.report_reject_incomplete_string();
+                return Err(E::custom(
+                    "not allowing incomplete string in key or variant",
+                ));
+            }
         }
 
         self.global.reporter.report_recv_visit_start_string(&v);
@@ -366,9 +400,20 @@ where
         E: serde::de::Error,
     {
         if self.global.config.remove_tag_from_stringlike(&mut v) {
-            self.global
-                .reporter
-                .report_encountered_incomplete_at_end_of_input();
+            if !self.is_for_key_or_variant
+                || self
+                    .global
+                    .config
+                    .behavior
+                    .unstable_allow_incomplete_string_in_key_or_variant
+            {
+                self.global.reporter.report_allow_incomplete_string();
+            } else {
+                self.global.reporter.report_reject_incomplete_string();
+                return Err(E::custom(
+                    "not allowing incomplete string in key or variant",
+                ));
+            }
         }
 
         self.global.reporter.report_recv_visit_start_bytes(v);
@@ -387,9 +432,20 @@ where
         E: serde::de::Error,
     {
         if self.global.config.remove_tag_from_stringlike(&mut v) {
-            self.global
-                .reporter
-                .report_encountered_incomplete_at_end_of_input();
+            if !self.is_for_key_or_variant
+                || self
+                    .global
+                    .config
+                    .behavior
+                    .unstable_allow_incomplete_string_in_key_or_variant
+            {
+                self.global.reporter.report_allow_incomplete_string();
+            } else {
+                self.global.reporter.report_reject_incomplete_string();
+                return Err(E::custom(
+                    "not allowing incomplete string in key or variant",
+                ));
+            }
         }
 
         self.global
@@ -410,9 +466,20 @@ where
         E: serde::de::Error,
     {
         if self.global.config.remove_tag_from_stringlike(&mut v) {
-            self.global
-                .reporter
-                .report_encountered_incomplete_at_end_of_input();
+            if !self.is_for_key_or_variant
+                || self
+                    .global
+                    .config
+                    .behavior
+                    .unstable_allow_incomplete_string_in_key_or_variant
+            {
+                self.global.reporter.report_allow_incomplete_string();
+            } else {
+                self.global.reporter.report_reject_incomplete_string();
+                return Err(E::custom(
+                    "not allowing incomplete string in key or variant",
+                ));
+            }
         }
 
         self.global.reporter.report_recv_visit_start_byte_buf(&v);
@@ -453,6 +520,8 @@ where
                 let wrapped = Deserializer {
                     global,
                     attempt,
+                    is_at_root: false,
+                    is_for_key_or_variant: false,
                     inner: deserializer,
                 };
                 visitor
@@ -494,6 +563,8 @@ where
                 let wrapped = Deserializer {
                     global,
                     attempt,
+                    is_at_root: false,
+                    is_for_key_or_variant: false,
                     inner: deserializer,
                 };
                 visitor
