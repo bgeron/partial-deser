@@ -101,10 +101,14 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
     ) -> Result<Option<Self>, InternalError> {
         match self.intervention_active.take() {
             Some(Intervention {
-                reason: _,
+                reason,
                 candidate_halting_point_for_next_attempt: Some(next_halting_point),
             }) => {
-                trace!(?next_halting_point, "creating state for next attempt");
+                trace!(
+                    ?next_halting_point,
+                    ?reason,
+                    "creating state for next attempt"
+                );
 
                 if !self.halting_point_stack.is_empty() {
                     warn!("logic error: halting point stack not empty after attempt");
@@ -123,10 +127,10 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
                 Ok(None)
             }
             Some(Intervention {
-                reason: _,
+                reason,
                 candidate_halting_point_for_next_attempt: None,
             }) => {
-                trace!("no halting point active after attempt, giving up");
+                trace!(failed_because=?reason, "no halting point active after attempt, giving up");
                 Ok(None)
             }
         }

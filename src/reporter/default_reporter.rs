@@ -447,13 +447,6 @@ impl Reporter for DefaultReporter {
         );
     }
 
-    fn report_encounter_halting_point(&mut self) {
-        trace!(
-            nesting_level = self.level.get(),
-            "encountered halting point"
-        );
-    }
-
     fn report_seq_next_element_start(&mut self) {
         trace!(
             nesting_level = self.level.get(),

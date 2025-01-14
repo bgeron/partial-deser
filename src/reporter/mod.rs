@@ -133,9 +133,6 @@ pub trait Reporter: Clone {
     /// From an Access type, we return as a fallback that there is no element left.
     fn report_fallback_no_element(&mut self);
 
-    /// We encountered the point where we intend to stop this deserialization attempt.
-    fn report_encounter_halting_point(&mut self);
-
     fn report_seq_next_element_start(&mut self);
     fn report_seq_next_element_finish(&mut self, present: bool, error: Option<&dyn StdError>);
     /// The next element was requested from [`SeqAccess`], but we're not checking

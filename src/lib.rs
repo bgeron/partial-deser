@@ -148,26 +148,26 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     extra: Extra,
 }
 
-/// Partially deserialize the input with [`serde_json`].
+/// Main function. Partially deserialize the input with [`serde_json`].
 ///
 /// See methods on [`Options`] for more generic APIs.
 #[cfg(feature = "serde_json")]
-pub fn from_json_str<T>(json: Cow<str>) -> Result<T, Error<serde_json::Error>>
+pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_json().from_json_str(json)
+    Options::new_json().from_json_str(Cow::Borrowed(json))
 }
 
 /// Like [`from_json_str`], but for bytes.
 ///
 /// See methods on [`Options`] for more generic APIs.
 #[cfg(feature = "serde_json")]
-pub fn from_json_slice<T>(json: Cow<[u8]>) -> Result<T, Error<serde_json::Error>>
+pub fn from_json_slice<T>(json: &[u8]) -> Result<T, Error<serde_json::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_json().from_json_slice(json)
+    Options::new_json().from_json_slice(Cow::Borrowed(json))
 }
 
 impl Options {
@@ -209,7 +209,7 @@ impl Options {
         T: for<'de> serde::de::Deserialize<'de>,
     {
         let prepared = self.prepare_str_for_borrowed_deserialization(json);
-        self.from_json_str_borrowed(&prepared)
+        self.from_json_str_borrowed_unstable(&prepared)
     }
 
     /// Like [`crate::from_json_slice`], but with options.
@@ -219,7 +219,7 @@ impl Options {
         T: for<'de> serde::de::Deserialize<'de>,
     {
         let prepared = self.prepare_slice_for_borrowed_deserialization(json);
-        self.from_json_slice_borrowed(&prepared)
+        self.from_json_slice_borrowed_unstable(&prepared)
     }
 
     /// Like [`Self::from_json_slice`], but can deserialize borrowed strings and return them
@@ -228,7 +228,7 @@ impl Options {
     /// This comes at the cost that we cannot use the JSON trick that gets us the contents of
     /// incomplete strings.
     ///
-    /// If you need incomplete strings as well, then use [`Self::from_json_slice_borrowed`].
+    /// If you need incomplete strings as well, then use [`Self::from_json_slice_borrowed_unstable`].
     ///
     /// ```
     /// # use serde::Deserialize;
@@ -239,7 +239,7 @@ impl Options {
     /// }
     ///
     /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-    /// let modes: Vec<TravelMode> = partial_deser::from_json_str(json).unwrap();
+    /// let modes: Vec<TravelMode> = partial_deser::Options::new_json().from_json_slice_plain_return_borrowed(&json).unwrap();
     /// assert_eq!(modes, [
     ///    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
     ///    // Note: missing aeroplane
@@ -261,6 +261,8 @@ impl Options {
     ///
     /// (The difference is that this only needs `T: serde::de::Deserialize<'de>`, which is weaker.)
     ///
+    /// **Note: This API is relatively likely to change (more unstable) compared to [`Self::from_json_str`].**
+    ///
     /// ```
     /// # use serde::Deserialize;
     /// /// Note: `&'a str` instead of `String`.
@@ -274,7 +276,9 @@ impl Options {
     /// }
     ///
     /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-    /// let modes: Vec<TravelMode> = partial_deser::from_json_str(json).unwrap();
+    /// let options = partial_deser::Options::new_json();
+    /// let prepared = options.prepare_str_for_borrowed_deserialization(json.into());
+    /// let modes: Vec<TravelMode> = options.from_json_str_borrowed_unstable(&prepared).unwrap();
     /// assert_eq!(modes, [
     ///    TravelMode { mode: "foot", benefit: Some("healthy") },
     ///    TravelMode { mode: "aeropl", benefit: None }
@@ -283,8 +287,8 @@ impl Options {
     ///
     /// This is marked unstable because I'm not 100% sure about the [`unstable::json_trick::Prepared`]
     /// type. Input is welcome.
-    #[cfg(all(feature = "serde_json", feature = "unstable"))]
-    pub fn from_json_str_borrowed<'de, T>(
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_str_borrowed_unstable<'de, T>(
         self,
         json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<str>>,
     ) -> Result<T, Error<serde_json::Error>>
@@ -294,9 +298,11 @@ impl Options {
         self.deserialize_source(source::JsonStr(prepared_json.as_ref()))
     }
 
-    /// See [`Self::from_json_str_borrowed`].
-    #[cfg(all(feature = "serde_json", feature = "unstable"))]
-    pub fn from_json_slice_borrowed<'de, T>(
+    /// See [`Self::from_json_str_borrowed_unstable`].
+    ///
+    /// **Note: This API is relatively likely to change (more unstable) compared to [`Self::from_json_slice`].**
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_slice_borrowed_unstable<'de, T>(
         self,
         json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<[u8]>>,
     ) -> Result<T, Error<serde_json::Error>>
@@ -306,11 +312,13 @@ impl Options {
         self.deserialize_source(source::JsonBytes(prepared_json.as_ref()))
     }
 
-    /// Prepare a string for borrowed deserialization with [`Self::from_json_str_borrowed`].
+    /// Prepare a string for borrowed deserialization with [`Self::from_json_str_borrowed_unstable`].
     ///
     /// This only appends to the input. And this returns a newtype wrapper, so you can undo
     /// the effects yourself.
-    #[cfg(all(feature = "serde_json", feature = "unstable"))]
+    ///
+    /// **Note: This API is relatively likely to change (more unstable).**
+    #[cfg(feature = "serde_json")]
     pub fn prepare_str_for_borrowed_deserialization<'a>(
         &self,
         mut input: Cow<'a, str>,
@@ -321,11 +329,13 @@ impl Options {
         json_trick::Prepared(input)
     }
 
-    /// Prepare a slice for borrowed deserialization with [`Self::from_json_slice_borrowed`].
+    /// Prepare a slice for borrowed deserialization with [`Self::from_json_slice_borrowed_unstable`].
     ///
     /// This only appends to the input. And this returns a newtype wrapper, so you can undo
     /// the effects yourself.
-    #[cfg(all(feature = "serde_json", feature = "unstable"))]
+    ///
+    /// **Note: This API is relatively likely to change (more unstable).**
+    #[cfg(feature = "serde_json")]
     pub fn prepare_slice_for_borrowed_deserialization<'a>(
         &self,
         mut input: Cow<'a, [u8]>,

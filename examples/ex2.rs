@@ -33,7 +33,7 @@ fn main() {
         }
 
         let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-        let modes: Vec<TravelMode> = partial_deser::from_json_str(json.into()).unwrap();
+        let modes: Vec<TravelMode> = partial_deser::from_json_str(json).unwrap();
 
         assert_eq_as_ron(
             &modes,

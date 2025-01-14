@@ -3,11 +3,15 @@ _default: all
 
 dev: fmt clippy-allow-dead
 
-all: fmt clippy test doc failing-test
+all: fmt clippy test doc
 
 clippy:
+    cargo clippy --all-features
+    cargo clippy
+    cargo clippy --no-default-features --features serde_json
+    cargo clippy --no-default-features
+    cargo clippy --no-default-features --features tracing
     cargo clippy --all-targets --all-features
-    cargo clippy --all-targets --no-default-features
 
 clippy-allow-dead:
     cargo clippy --all-targets --all-features -- --allow dead_code
@@ -19,8 +23,6 @@ main-test:
 test:
     cargo test --no-fail-fast --all-targets --all-features
     cargo test --no-fail-fast --all-targets --no-default-features
-
-failing-test:
     cargo test --no-fail-fast --all-features --doc
 
 insta:

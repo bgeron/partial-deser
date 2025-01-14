@@ -28,10 +28,14 @@ serde = { version = "1", features = ["derive"]}
 serde_json = { version = "1"}
 tracing-subscriber = "0.3"
 
+[[test]]
+name = "output"
+required-features = ["serde_json", "unstable"]
+
 [[example]]
 name = "ex1"
-required-features = ["tracing", "serde_json"]
+required-features = ["serde_json", "tracing", "unstable"]
 
 [[example]]
 name = "ex2"
-required-features = ["tracing", "serde_json"]
+required-features = ["serde_json", "tracing"]

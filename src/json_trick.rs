@@ -3,6 +3,9 @@ use std::io::Write as _;
 
 use crate::string_like::StringLike;
 
+/// A prepared input for deserialization with the JSON string trick.
+///
+/// **Note: This API is relatively likely to change (unstable).**
 pub struct Prepared<SliceType>(pub SliceType);
 
 pub(crate) fn prepare_string_with_tag(tag: &str, input: &mut String) {
@@ -54,50 +57,73 @@ pub(crate) fn undo_tag_suffix(stringy: &mut impl StringLike, tag: &str) -> bool 
 }
 
 #[cfg(test)]
+#[path = ""]
 mod test {
 
-    use std::borrow::Cow;
+    #[path = "../tests/output/json_output/cow_string.rs"]
+    mod cow_string;
+
+    use cow_string::CowString;
+    use serde::Deserialize;
 
     use super::*;
 
     const TAG: &str = "BERLIN";
 
-    fn parse_and_undo_tag<'a>(prepared: &'a str) -> (Cow<'a, str>, bool) {
-        let mut parsed: Cow<'a, str> = serde_json::from_str(&prepared).unwrap();
+    fn parse_and_undo_tag(prepared: &str) -> (CowString<'_>, bool) {
+        let mut parsed: CowString =
+            CowString::deserialize(&mut serde_json::Deserializer::from_str(prepared)).unwrap();
 
-        let had_tag = undo_tag_suffix(&mut parsed, TAG);
+        let had_tag = match &mut parsed {
+            CowString::VisitBorrowedStr(s) => undo_tag_suffix(s, TAG),
+            CowString::VisitStr { cloned } => undo_tag_suffix(cloned, TAG),
+            CowString::VisitString(s) => undo_tag_suffix(s, TAG),
+        };
+
         (parsed, had_tag)
     }
 
     #[test]
     fn test_tag_suffix() {
         for (input, will_encounter_end, expected_result) in [
-            (r#""Hello, wo"#, true, Cow::Borrowed("Hello, wo")),
             (
-                r#""Hello, wo\\"#,
+                r#""Hello, wo"#,
+                true,
+                CowString::VisitBorrowedStr("Hello, wo"),
+            ),
+            (
+                r#""Hello, wo\"#,
                 true,
                 // Unfinished backslash escape in JSON -> we can't know what it'll eventually represent.
                 //
                 // serde_json has to convert "\t" into <TAB>, so the parsed JSON is no longer a substring
-                // of the JSON itself -> Cow::Owned.
-                Cow::Owned("Hello, wo".to_string()),
+                // of the JSON itself -> CowString::Owned.
+                CowString::VisitStr {
+                    cloned: "Hello, wo".to_string(),
+                },
             ),
-            (r#""Hello, world""#, false, Cow::Borrowed("Hello, world")),
+            (
+                r#""Hello, world""#,
+                false,
+                CowString::VisitBorrowedStr("Hello, world"),
+            ),
             (
                 // \n converts into newline
                 r#""Hello,\nworld""#,
                 false,
-                Cow::Owned("Hello,\nworld".to_string()),
+                CowString::VisitStr {
+                    cloned: "Hello,\nworld".to_string(),
+                },
             ),
         ] {
             let mut prepared = input.to_string();
             prepare_string_with_tag(TAG, &mut prepared);
-            let (result, encountered_end): (Cow<str>, bool) = parse_and_undo_tag(&prepared);
+            let (result, encountered_end): (CowString, bool) = parse_and_undo_tag(&prepared);
             assert_eq!(result, expected_result, "input = {input:?}");
             assert_eq!(encountered_end, will_encounter_end, "input = {input:?}");
             assert_eq!(
-                matches!(result, Cow::Borrowed(_)),
-                matches!(expected_result, Cow::Borrowed(_)),
+                matches!(result, CowString::VisitBorrowedStr(_)),
+                matches!(expected_result, CowString::VisitBorrowedStr(_)),
                 "input = {input:?}"
             )
         }

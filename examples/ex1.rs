@@ -13,19 +13,19 @@ fn main() {
 
     {
         let json = "true";
-        let parsed: bool = partial_deser::from_json_str(json.into()).unwrap();
+        let parsed: bool = partial_deser::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = "[true] x";
-        let parsed: Vec<bool> = partial_deser::from_json_str(json.into()).unwrap();
+        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = "[true, false, true, faaa";
-        let parsed: Vec<bool> = partial_deser::from_json_str(json.into()).unwrap();
+        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 

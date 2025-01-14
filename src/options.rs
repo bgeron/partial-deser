@@ -13,10 +13,12 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// Return true if the input was modified and this value seems to be incomplete.
     #[must_use]
     pub(crate) fn remove_tag_from_stringlike(&self, stringy: &mut impl StringLike) -> bool {
+        #![cfg_attr(not(feature = "serde_json"), allow(unused_variables))]
+
         #[cfg(feature = "serde_json")]
         {
             if let Some(tag) = self.parse_partial_json_tag.as_ref() {
-                return crate::json_trick::undo_tag_suffix(stringy, &tag);
+                return crate::json_trick::undo_tag_suffix(stringy, tag);
             }
         }
 
@@ -245,7 +247,7 @@ pub struct UnstableCustomBehavior {
     pub unstable_backtrack_other_skip_item: bool,
 
     /// Whether incomplete strings should be allowed or rejected
-    /// in [`MapAccess::next_key`] or [`EnumAccess::next_variant`].
+    /// in [`MapAccess::next_key`] or [`EnumAccess::variant`].
     pub unstable_allow_incomplete_string_in_key_or_variant: bool,
 }
 
