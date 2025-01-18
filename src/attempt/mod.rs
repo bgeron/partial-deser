@@ -6,7 +6,7 @@ mod visit;
 use std::fmt::Display;
 use std::ops::Deref;
 
-use crate::options::ExtraOptions;
+use crate::options_impl::ExtraOptions;
 use crate::state::{AttemptState, GlobalState};
 use crate::util::erase_error_ref;
 use crate::Error;

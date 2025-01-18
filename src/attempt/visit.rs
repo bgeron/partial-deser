@@ -2,7 +2,7 @@ use std::error::Error as StdError;
 
 use super::access::Access;
 use super::{erase_error_ref, Deserializer};
-use crate::options::ExtraOptions;
+use crate::options_impl::ExtraOptions;
 use crate::reporter::Reporter;
 use crate::state::{AttemptState, GlobalState};
 use crate::util::DeserializeKind;

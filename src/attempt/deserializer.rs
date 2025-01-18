@@ -2,7 +2,7 @@ use super::visit::Visitor;
 use super::Deserializer;
 use crate::error::{BugEnum, Error, FallbackError};
 use crate::fallback::{FallbackContext, FallbacksExt as _};
-use crate::options::ExtraOptions;
+use crate::options_impl::ExtraOptions;
 use crate::reporter::{self, Reporter, ReporterExt as _};
 use crate::state::InterventionReason;
 use crate::util::{erase_error_ref, make_fnonce, DeserializeKind};

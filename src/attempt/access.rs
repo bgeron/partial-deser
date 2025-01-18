@@ -2,7 +2,7 @@
 use serde::de::Deserializer;
 use serde::de::{EnumAccess, MapAccess, SeqAccess, VariantAccess};
 
-use crate::options::ExtraOptions;
+use crate::options_impl::ExtraOptions;
 use crate::reporter::Reporter;
 use crate::state::InterventionReason;
 use crate::util::DeserializeKind;

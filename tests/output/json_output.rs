@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 
 use indexmap::IndexMap;
-use partial_deser::unstable::UnstableCustomBehavior;
 use partial_deser::Options;
+use partial_deser::{options::JsonExtraOptions, unstable::UnstableCustomBehavior};
 use serde::{Deserialize, Serialize};
 
 use crate::common::run_on_prefixes_and_format_outputs;
@@ -34,7 +34,7 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
     'input,
     T: for<'de> Deserialize<'de> + Serialize + Debug + PartialEq + 'static,
 >(
-    modes: &[(&'static str, Options)],
+    modes: &[(&'static str, Options<JsonExtraOptions>)],
     full_input: &'input impl AsRef<[u8]>,
 ) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, BoxSerialize>> {
     let full_input = full_input.as_ref();
@@ -84,12 +84,15 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
         .collect()
 }
 
-fn default_modes() -> Vec<(&'static str, Options)> {
+fn default_modes() -> Vec<(
+    &'static str,
+    Options<partial_deser::options::JsonExtraOptions>,
+)> {
     vec![
         ("default behavior", Options::new_json()),
         (
-            "default behavior except no JSON-specific tricks",
-            partial_deser::Options::new_generic(),
+            "default behavior except no random trailer",
+            partial_deser::Options::new_json().disable_random_tag(),
         ),
         (
             "default behavior, 0 backtracks",

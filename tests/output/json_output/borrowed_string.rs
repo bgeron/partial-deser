@@ -12,7 +12,7 @@ fn test_borrowed_string_advanced_api() {
     let options = partial_deser::Options::new_json();
     let prepared = options.prepare_str_for_borrowed_deserialization(Cow::Borrowed(partial_json));
 
-    let value: Vec<CowString> = options.from_json_str_borrowed_unstable(&prepared).unwrap();
+    let value: Vec<CowString> = options.from_json_str_borrowed(&prepared).unwrap();
 
     insta::assert_ron_snapshot!(value, @r###"
     [

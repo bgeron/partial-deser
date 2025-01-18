@@ -1,7 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(
-    not(feature = "tracing"),
-    allow(unused_variables, unused_imports, dead_code)
+    not(all(feature = "rand", feature = "tracing")),
+    allow(unused_variables, unused_imports, dead_code, unused_mut)
 )]
 
 //! Deserialize with Serde from partial JSON and more
@@ -34,6 +34,15 @@
 //!
 //! todo
 //!
+//! ## Goal
+//!
+//! - not reverting
+//!
+//! ## Tested support for data formats
+//!
+//! - JSON: works very well. This is what the library was tweaked for.
+//! - YAML: ...
+//!
 //! ## Limitations
 //!
 //! Partial deserialization
@@ -52,11 +61,11 @@
 //!
 //! - I tried that with more input, it never takes something away
 
-#[cfg(feature = "serde_json")]
 use std::borrow::Cow;
-#[cfg(feature = "serde_json")]
+#[cfg(feature = "rand")]
 use std::sync::Arc;
 
+use options::DefaultExtraOptions;
 #[cfg(doc)]
 use serde::Deserialize;
 
@@ -89,37 +98,45 @@ mod attempt;
 mod deserialize;
 mod error;
 mod fallback;
-#[cfg(feature = "serde_json")]
-mod json_trick;
-mod options;
+mod options_impl;
+#[cfg(feature = "rand")]
+pub mod random_trailer;
+#[cfg(not(feature = "rand"))]
+mod random_trailer;
 mod reporter;
 pub mod source;
 mod state;
-mod string_like;
 mod util;
 
-/// Reexports to satisfy Rust's visibility rules TODO
+/// Relatively stable parts to specify options.
+pub mod options {
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
+    pub use crate::options_impl::JsonExtraOptions;
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
+    pub use crate::options_impl::YamlExtraOptions;
+    pub use crate::options_impl::{DefaultExtraOptions, MakeDefaultFallbacks, MakeDefaultReporter};
+}
+
+/// Reexports to satisfy Rust's visibility rules. These are not stable across
+/// versions.
 #[cfg(feature = "unstable")]
 #[allow(unused_imports)]
 pub mod unstable {
     pub use crate::fallback::Fallbacks;
-    #[cfg(feature = "serde_json")]
-    pub mod json_trick {
-        pub use crate::json_trick::Prepared;
-    }
-    pub use crate::options::{
-        ExtraOptionsStruct, MakeFallbackProvider, MakeReporter, UnstableCustomBehavior,
+    pub use crate::options_impl::{
+        ExtraOptions, ExtraOptionsStruct, MakeFallbackProvider, MakeReporter,
+        UnstableCustomBehavior,
     };
     pub use crate::reporter::Reporter;
 }
 
 pub use error::Error;
-pub use options::{DefaultExtraOptions, MakeDefaultFallbacks, MakeDefaultReporter};
-use options::{ExtraOptions, UnstableCustomBehavior};
+use options_impl::{ExtraOptions, ExtraOptionsStruct, UnstableCustomBehavior};
+use random_trailer::InputPlusTrailer;
 pub use source::Source;
 
-#[cfg(feature = "serde_json")]
-const RANDOM_PARTIAL_JSON_TAG_LEN: usize = 8;
+#[cfg(feature = "rand")]
+const RANDOM_TAG_LEN: usize = 8;
 
 /// Number of times that we may backtrack.
 ///
@@ -135,11 +152,11 @@ const DEFAULT_MAX_BACKTRACKS: Option<usize> = Some(10);
 #[derive(Clone, Debug)]
 pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     /// This is a random string that forms part of a suffix we add to
-    /// the input JSON.
+    /// the input, for some data types.
     ///
     /// As of Dec 2024, we don't stabilize the specific string format.
-    #[cfg(feature = "serde_json")]
-    parse_partial_json_tag: Option<Arc<str>>,
+    #[cfg(feature = "rand")]
+    random_tag: Option<Arc<str>>,
 
     max_n_backtracks: Option<usize>,
 
@@ -151,7 +168,7 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
 /// Main function. Partially deserialize the input with [`serde_json`].
 ///
 /// See methods on [`Options`] for more generic APIs.
-#[cfg(feature = "serde_json")]
+#[cfg(all(feature = "rand", feature = "serde_json"))]
 pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
@@ -162,7 +179,7 @@ where
 /// Like [`from_json_str`], but for bytes.
 ///
 /// See methods on [`Options`] for more generic APIs.
-#[cfg(feature = "serde_json")]
+#[cfg(all(feature = "rand", feature = "serde_json"))]
 pub fn from_json_slice<T>(json: &[u8]) -> Result<T, Error<serde_json::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
@@ -173,78 +190,107 @@ where
 /// Partially deserialize the input with [`serde_yaml`].
 ///
 /// See methods on [`Options`] for more generic APIs.
-#[cfg(feature = "serde_yaml")]
+#[cfg(all(feature = "rand", feature = "serde_yaml"))]
 pub fn from_yaml_str<T>(yaml: &str) -> Result<T, Error<serde_yaml::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_json().from_yaml_str_borrowed(yaml)
+    Options::new_yaml().from_yaml_str_borrowed(yaml)
 }
 
 /// Like [`from_yaml_str`], but for bytes.
 ///
 /// See methods on [`Options`] for more generic APIs.
-#[cfg(feature = "serde_yaml")]
+#[cfg(all(feature = "rand", feature = "serde_yaml"))]
 pub fn from_yaml_slice<T>(yaml: &[u8]) -> Result<T, Error<serde_yaml::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_json().from_yaml_slice_borrowed(yaml)
+    Options::new_yaml().from_yaml_slice_borrowed(yaml)
 }
 
 impl Options {
     /// Default config for JSON.
     ///
-    /// This currently will generate a short extra trailer on inputs
+    /// This will currently generate a short extra trailer on inputs
     /// for improved deserialization of partial strings.
-    /// 
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
+    pub fn new_json() -> Options<options_impl::JsonExtraOptions> {
+        let base = Options {
+            ..Options::new_nonce()
+        };
+        base.set_random_trailer(random_trailer::json::JsonRandomTrailer)
+    }
+
+    /// Default config for YAML.
+    ///
+    /// This will currently generate a short extra trailer on inputs
+    /// for improved deserialization of partial strings.
+    ///
     /// For YAML in particular, this suffix is important to get
     /// good behavior.
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
+    pub fn new_yaml() -> Options<options_impl::YamlExtraOptions> {
+        let base = Options {
+            ..Options::new_nonce()
+        };
+        base.set_random_trailer(random_trailer::yaml::YamlRandomTrailer)
+    }
+
+    /// Basic config, suitable for any data format.
+    ///
+    /// These options support adding a random trailer to the input.
+    /// However, you should probably call [`Options::set_random_trailer`]
+    /// to specify how this trailer should be removed from parsed strings.
     #[cfg(feature = "rand")]
-    pub fn new_json() -> Options<DefaultExtraOptions> {
+    pub fn new_nonce() -> Options<DefaultExtraOptions> {
         use rand::distributions::{Alphanumeric, DistString};
         use rand::thread_rng;
 
-        let tag = Alphanumeric.sample_string(&mut thread_rng(), RANDOM_PARTIAL_JSON_TAG_LEN);
+        // In the future, this may change to only generate a single random
+        // tag for the lifetime of the application.
+        let tag = Alphanumeric.sample_string(&mut thread_rng(), RANDOM_TAG_LEN);
         Options {
-            parse_partial_json_tag: Some(tag.into()),
+            random_tag: Some(tag.into()),
             ..Options::new_no_nonce()
         }
     }
 
     /// Basic config, suitable for any data format. However, this
     /// config does not allow adding a random trailer to the input,
-    /// which 
+    /// which
     ///
     /// This does not apply the JSON-specific string trick to parse
     /// partial strings.
     pub fn new_no_nonce() -> Options<DefaultExtraOptions> {
         Options {
-            #[cfg(feature = "serde_json")]
-            parse_partial_json_tag: None,
+            #[cfg(feature = "rand")]
+            random_tag: None,
             max_n_backtracks: DEFAULT_MAX_BACKTRACKS,
             behavior: UnstableCustomBehavior::default(),
             extra: DefaultExtraOptions::default(),
         }
     }
+}
 
+impl<Extra: ExtraOptions> Options<Extra> {
     pub fn with_max_n_backtracks(mut self, max_n_backtracks: Option<usize>) -> Self {
         self.max_n_backtracks = max_n_backtracks;
         self
     }
 
     /// Like [`crate::from_json_str`], but with options.
-    #[cfg(feature = "serde_json")]
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
     pub fn from_json_str<T>(self, json: Cow<str>) -> Result<T, Error<serde_json::Error>>
     where
         T: for<'de> serde::de::Deserialize<'de>,
     {
         let prepared = self.prepare_str_for_borrowed_deserialization(json);
-        self.from_json_str_borrowed_unstable(&prepared)
+        self.from_json_str_borrowed(&prepared)
     }
 
     /// Like [`crate::from_json_slice`], but with options.
-    #[cfg(feature = "serde_json")]
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
     pub fn from_json_slice<T>(self, json: Cow<[u8]>) -> Result<T, Error<serde_json::Error>>
     where
         T: for<'de> serde::de::Deserialize<'de>,
@@ -258,7 +304,7 @@ impl Options {
     ///
     /// This will not produce partial strings, because we don't have the
     /// JSON string trick for YAML.
-    #[cfg(feature = "serde_yaml")]
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
     pub fn from_yaml_str_borrowed<'de, T>(
         self,
         yaml: &'de str,
@@ -274,7 +320,7 @@ impl Options {
     ///
     /// This will not produce partial strings, because we don't have the
     /// JSON string trick for YAML.
-    #[cfg(feature = "serde_yaml")]
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
     pub fn from_yaml_slice_borrowed<'de, T>(
         self,
         yaml: &'de [u8],
@@ -347,13 +393,10 @@ impl Options {
     ///    TravelMode { mode: "aeropl", benefit: None }
     /// ]);
     /// ```
-    ///
-    /// This is marked unstable because I'm not 100% sure about the [`unstable::json_trick::Prepared`]
-    /// type. Input is welcome.
     #[cfg(feature = "serde_json")]
-    pub fn from_json_str_borrowed_unstable<'de, T>(
+    pub fn from_json_str_borrowed<'de, T>(
         self,
-        json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<str>>,
+        InputPlusTrailer(prepared_json): &'de InputPlusTrailer<impl AsRef<str>>,
     ) -> Result<T, Error<serde_json::Error>>
     where
         T: serde::de::Deserialize<'de>,
@@ -367,7 +410,7 @@ impl Options {
     #[cfg(feature = "serde_json")]
     pub fn from_json_slice_borrowed_unstable<'de, T>(
         self,
-        json_trick::Prepared(prepared_json): &'de json_trick::Prepared<impl AsRef<[u8]>>,
+        InputPlusTrailer(prepared_json): &'de InputPlusTrailer<impl AsRef<[u8]>>,
     ) -> Result<T, Error<serde_json::Error>>
     where
         T: serde::de::Deserialize<'de>,
@@ -381,15 +424,20 @@ impl Options {
     /// the effects yourself.
     ///
     /// **Note: This API is relatively likely to change (more unstable).**
-    #[cfg(feature = "serde_json")]
+    #[cfg(feature = "rand")]
     pub fn prepare_str_for_borrowed_deserialization<'a>(
         &self,
         mut input: Cow<'a, str>,
-    ) -> json_trick::Prepared<Cow<'a, str>> {
-        if let Some(tag) = self.parse_partial_json_tag.as_ref() {
-            json_trick::prepare_string_with_tag(tag, Cow::to_mut(&mut input));
+    ) -> InputPlusTrailer<Cow<'a, str>> {
+        use options_impl::RandomTrailer as _;
+
+        #[cfg(feature = "rand")]
+        if let Some(tag) = self.random_tag.as_ref() {
+            self.extra
+                .get_random_trailer()
+                .prepare_string_with_tag(Cow::to_mut(&mut input), tag);
         }
-        json_trick::Prepared(input)
+        InputPlusTrailer(input)
     }
 
     /// Prepare a slice for borrowed deserialization with [`Self::from_json_slice_borrowed_unstable`].
@@ -398,19 +446,67 @@ impl Options {
     /// the effects yourself.
     ///
     /// **Note: This API is relatively likely to change (more unstable).**
-    #[cfg(feature = "serde_json")]
+    #[cfg(feature = "rand")]
     pub fn prepare_slice_for_borrowed_deserialization<'a>(
         &self,
         mut input: Cow<'a, [u8]>,
-    ) -> json_trick::Prepared<Cow<'a, [u8]>> {
-        if let Some(tag) = self.parse_partial_json_tag.as_ref() {
-            json_trick::prepare_vec_with_tag(tag, Cow::to_mut(&mut input));
+    ) -> InputPlusTrailer<Cow<'a, [u8]>> {
+        use options_impl::RandomTrailer as _;
+
+        #[cfg(feature = "rand")]
+        if let Some(tag) = self.random_tag.as_ref() {
+            self.extra
+                .get_random_trailer()
+                .prepare_vec_with_tag(Cow::to_mut(&mut input), tag);
         }
-        json_trick::Prepared(input)
+        InputPlusTrailer(input)
     }
 
     #[cfg(feature = "unstable")]
     pub fn custom_behavior(self, behavior: UnstableCustomBehavior) -> Self {
         Options { behavior, ..self }
+    }
+
+    /// Don't use a random tag. This can make deserialization a tiny bit cheaper,
+    /// because the input does not have to be reallocated.
+    #[cfg(feature = "rand")]
+    pub fn disable_random_tag(mut self) -> Self {
+        self.random_tag = None;
+        self
+    }
+}
+
+#[cfg(feature = "rand")]
+impl<R, F, RT> Options<ExtraOptionsStruct<R, F, RT>>
+where
+    R: options_impl::MakeReporter,
+    F: options_impl::MakeFallbackProvider,
+    RT: options_impl::RandomTrailer,
+{
+    /// Set a different method for random trailers.
+    pub fn set_random_trailer<RT2>(
+        self,
+        random_trailer: RT2,
+    ) -> Options<ExtraOptionsStruct<R, F, RT2>>
+    where
+        RT2: options_impl::RandomTrailer,
+    {
+        let Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra,
+        } = self;
+
+        Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra: ExtraOptionsStruct {
+                make_reporter: extra.make_reporter,
+                make_fallback_provider: extra.make_fallback_provider,
+                random_trailer,
+            },
+        }
     }
 }

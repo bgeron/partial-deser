@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::attempt::Deserializer;
 use crate::error::InternalError;
-use crate::options::ExtraOptions;
+use crate::options_impl::ExtraOptions;
 use crate::state::AttemptState;
 use crate::{Error, Options, Source};
 

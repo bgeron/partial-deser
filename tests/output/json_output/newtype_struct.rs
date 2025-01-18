@@ -21,7 +21,7 @@ fn test_toplevel_newtype_struct() {
           (),
         ])),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok(Newtype([])),
         "[null": Ok(Newtype([
           (),
@@ -116,7 +116,7 @@ fn test_newtype_struct() {
           Newtype([]),
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           Newtype([]),
@@ -272,7 +272,7 @@ fn test_newtype_struct_fail() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           Newtype([]),

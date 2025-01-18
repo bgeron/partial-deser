@@ -48,7 +48,7 @@ fn test_seq() {
           [],
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -241,7 +241,7 @@ fn test_seq_cannot_parse_after_invalid() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -317,7 +317,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           [],

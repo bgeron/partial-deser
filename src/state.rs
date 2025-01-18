@@ -3,11 +3,11 @@ use serde::de::SeqAccess;
 
 use crate::attempt::HaltingPoint;
 use crate::error::InternalError;
-use crate::options::ExtraOptions;
+use crate::options_impl::ExtraOptions;
 use crate::reporter::Reporter;
 use crate::Options;
 
-pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
+pub(crate) struct GlobalState<Extra: crate::options_impl::ExtraOptions> {
     /// Set to 1 during first attempt
     pub(super) n_backtracks: usize,
 
@@ -17,7 +17,7 @@ pub(crate) struct GlobalState<Extra: crate::options::ExtraOptions> {
     pub(super) fallbacks: Extra::FallbackProvider,
 }
 
-pub(crate) struct AttemptState<Extra: crate::options::ExtraOptions> {
+pub(crate) struct AttemptState<Extra: crate::options_impl::ExtraOptions> {
     pub(super) reporter: Extra::Reporter,
 
     /// If the previous attempt failed, then there may be a point where we can tell

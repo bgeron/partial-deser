@@ -43,7 +43,7 @@ fn test_toplevel_struct() {
           ],
         )),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
@@ -254,7 +254,7 @@ fn test_struct() {
           ),
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[{\"x\": [true], \"y\": [false], \"z\": [": Ok([
           Struct(
@@ -655,7 +655,7 @@ fn test_toplevel_struct_with_defaults() {
           ],
         )),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "{\"x\": [": Ok(StructWithSomeDefaults(
@@ -963,7 +963,7 @@ fn test_struct_with_defaults() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[{\"x\": [": Ok([
           StructWithSomeDefaults(
@@ -1569,7 +1569,7 @@ fn test_toplevel_struct_with_all_defaults() {
           ],
         )),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok(NeedsNoFields(
           x: [],
         )),
@@ -1676,7 +1676,7 @@ fn test_struct_with_all_defaults() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[{": Ok([
           NeedsNoFields(

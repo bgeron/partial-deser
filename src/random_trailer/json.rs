@@ -1,20 +1,7 @@
 use std::fmt::{Display, Formatter, Write as _};
 use std::io::Write as _;
 
-use crate::string_like::StringLike;
-
-/// A prepared input for deserialization with the JSON string trick.
-///
-/// **Note: This API is relatively likely to change (unstable).**
-pub struct Prepared<SliceType>(pub SliceType);
-
-pub(crate) fn prepare_string_with_tag(tag: &str, input: &mut String) {
-    write!(input, "{}", TagSuffix { tag }).expect("writing to a string always succeeds")
-}
-
-pub(crate) fn prepare_vec_with_tag(tag: &str, input: &mut Vec<u8>) {
-    write!(input, "{}", TagSuffix { tag }).expect("writing to a vec always succeeds")
-}
+use super::{RandomTrailer, StringLike};
 
 /// Prints as whatever we suffix an incomplete JSON input with, before passing it
 /// through [`serde_json`], to ensure that we actually receive this unfinished string
@@ -40,19 +27,30 @@ impl Display for TagSuffix<'_> {
     }
 }
 
-/// Take off the tag suffix from a deserialized string. Report whether the suffix was present.
-#[must_use]
-pub(crate) fn undo_tag_suffix(stringy: &mut impl StringLike, tag: &str) -> bool {
-    if stringy.ends_with_string(tag) {
-        let target_len = stringy.len()
+#[derive(Clone, Debug, Default)]
+pub struct JsonRandomTrailer;
+
+impl RandomTrailer for JsonRandomTrailer {
+    fn prepare_string_with_tag(&self, input: &mut String, tag: &str) {
+        write!(input, "{}", TagSuffix { tag }).expect("writing to a string always succeeds")
+    }
+
+    fn prepare_vec_with_tag(&self, input: &mut Vec<u8>, tag: &str) {
+        write!(input, "{}", TagSuffix { tag }).expect("writing to a vec always succeeds")
+    }
+
+    fn remove_trailer(&self, string_like: &mut impl StringLike, tag: &str) -> bool {
+        if string_like.ends_with_string(tag) {
+            let target_len = string_like.len()
             - tag.len()
             // Both `"t"` and `"\t"` are 1 byte
             - 1;
 
-        stringy.truncate_to_bytes(target_len);
-        true
-    } else {
-        false
+            string_like.truncate_to_bytes(target_len);
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -60,7 +58,7 @@ pub(crate) fn undo_tag_suffix(stringy: &mut impl StringLike, tag: &str) -> bool 
 #[path = ""]
 mod test {
 
-    #[path = "../tests/output/json_output/cow_string.rs"]
+    #[path = "../../tests/output/json_output/cow_string.rs"]
     mod cow_string;
 
     use cow_string::CowString;
@@ -75,9 +73,9 @@ mod test {
             CowString::deserialize(&mut serde_json::Deserializer::from_str(prepared)).unwrap();
 
         let had_tag = match &mut parsed {
-            CowString::VisitBorrowedStr(s) => undo_tag_suffix(s, TAG),
-            CowString::VisitStr { cloned } => undo_tag_suffix(cloned, TAG),
-            CowString::VisitString(s) => undo_tag_suffix(s, TAG),
+            CowString::VisitBorrowedStr(s) => JsonRandomTrailer.remove_trailer(s, TAG),
+            CowString::VisitStr { cloned } => JsonRandomTrailer.remove_trailer(cloned, TAG),
+            CowString::VisitString(s) => JsonRandomTrailer.remove_trailer(s, TAG),
         };
 
         (parsed, had_tag)
@@ -117,7 +115,7 @@ mod test {
             ),
         ] {
             let mut prepared = input.to_string();
-            prepare_string_with_tag(TAG, &mut prepared);
+            JsonRandomTrailer.prepare_string_with_tag(&mut prepared, TAG);
             let (result, encountered_end): (CowString, bool) = parse_and_undo_tag(&prepared);
             assert_eq!(result, expected_result, "input = {input:?}");
             assert_eq!(encountered_end, will_encounter_end, "input = {input:?}");

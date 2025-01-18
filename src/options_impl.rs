@@ -2,8 +2,9 @@
 use serde::de::{Deserializer, EnumAccess, MapAccess};
 
 use crate::fallback::DefaultFallbacks;
+pub use crate::random_trailer::RandomTrailer;
+use crate::random_trailer::{NoopRandomTrailer, StringLike};
 use crate::reporter::DefaultReporter;
-use crate::string_like::StringLike;
 use crate::Options;
 
 impl<Extra: ExtraOptions> Options<Extra> {
@@ -13,12 +14,12 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// Return true if the input was modified and this value seems to be incomplete.
     #[must_use]
     pub(crate) fn remove_tag_from_stringlike(&self, stringy: &mut impl StringLike) -> bool {
-        #![cfg_attr(not(feature = "serde_json"), allow(unused_variables))]
+        #![cfg_attr(not(feature = "rand"), allow(unused_variables))]
 
-        #[cfg(feature = "serde_json")]
+        #[cfg(feature = "rand")]
         {
-            if let Some(tag) = self.parse_partial_json_tag.as_ref() {
-                return crate::json_trick::undo_tag_suffix(stringy, tag);
+            if let Some(tag) = self.random_tag.as_ref() {
+                return self.extra.get_random_trailer().remove_trailer(stringy, tag);
             }
         }
 
@@ -52,14 +53,31 @@ pub trait ExtraOptions {
         behavior: &UnstableCustomBehavior,
     ) -> Self::FallbackProvider;
     type FallbackProvider: crate::fallback::Fallbacks;
+
+    fn get_random_trailer(&self) -> &Self::RandomTrailer;
+    type RandomTrailer: RandomTrailer;
 }
 
-pub type DefaultExtraOptions = ExtraOptionsStruct<MakeDefaultReporter, MakeDefaultFallbacks>;
+pub type DefaultExtraOptions =
+    ExtraOptionsStruct<MakeDefaultReporter, MakeDefaultFallbacks, NoopRandomTrailer>;
+#[cfg(all(feature = "rand", feature = "serde_json"))]
+pub type JsonExtraOptions = ExtraOptionsStruct<
+    MakeDefaultReporter,
+    MakeDefaultFallbacks,
+    crate::random_trailer::json::JsonRandomTrailer,
+>;
+#[cfg(all(feature = "rand", feature = "serde_yaml"))]
+pub type YamlExtraOptions = ExtraOptionsStruct<
+    MakeDefaultReporter,
+    MakeDefaultFallbacks,
+    crate::random_trailer::yaml::YamlRandomTrailer,
+>;
 
 #[derive(Debug, Clone, Default)]
-pub struct ExtraOptionsStruct<MakeReporter, MakeFallbackProvider> {
-    make_reporter: MakeReporter,
-    make_fallback_provider: MakeFallbackProvider,
+pub struct ExtraOptionsStruct<MakeReporter, MakeFallbackProvider, RandomTrailer> {
+    pub(crate) make_reporter: MakeReporter,
+    pub(crate) make_fallback_provider: MakeFallbackProvider,
+    pub(crate) random_trailer: RandomTrailer,
 }
 
 pub trait MakeReporter {
@@ -96,10 +114,11 @@ impl MakeFallbackProvider for MakeDefaultFallbacks {
     }
 }
 
-impl<R, F> ExtraOptions for ExtraOptionsStruct<R, F>
+impl<R, F, RT> ExtraOptions for ExtraOptionsStruct<R, F, RT>
 where
     R: MakeReporter,
     F: MakeFallbackProvider,
+    RT: RandomTrailer,
 {
     fn make_reporter(&mut self) -> Self::Reporter {
         self.make_reporter.make_reporter()
@@ -113,6 +132,11 @@ where
         self.make_fallback_provider.make_fallback_provider(behavior)
     }
     type FallbackProvider = F::FallbackProvider;
+
+    fn get_random_trailer(&self) -> &RT {
+        &self.random_trailer
+    }
+    type RandomTrailer = RT;
 }
 
 /// Customize behavior.
@@ -126,7 +150,7 @@ where
 ///
 ///     For instance, when deserializing an option, JSON `fa` will choose the
 ///     `Some` case, the deserializer will error, but can save deserialization
-///     and fill in `n`n    (todo check this)
+///     and fill in `none`.
 ///
 ///   - which points are eligible for backtracking, e.g. is it okay to retry
 ///     but omit a list item, a map item, or convert `Some` into `None`.

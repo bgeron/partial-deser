@@ -67,7 +67,7 @@ fn test_any() {
           "abc",
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[true": Ok([

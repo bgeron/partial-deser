@@ -24,19 +24,29 @@ fn main() {
     }
 
     {
-        let yaml = r#"[["abc", "def"], ["abc", de\
+        let yaml = r#"[["abc", "def"], ["abc", "de\
         
-'""#;
+# '"#;
         let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     {
+        let yaml = r#"
+- ["abc", "def"]
+- ["abc", "de
+        
+# '"#;
+        let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
+        dbg!(parsed);
+    }
+
+    if false {
         let yaml = dbg!(
             r#"[["abc", "def"]]
 
 
-#'""#
+#'"#
         );
         let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
