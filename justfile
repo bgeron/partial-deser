@@ -8,6 +8,7 @@ all: fmt clippy test doc
 clippy:
     cargo clippy --all-features
     cargo clippy
+    cargo clippy --no-default-features --features serde_yaml
     cargo clippy --no-default-features --features serde_json
     cargo clippy --no-default-features
     cargo clippy --no-default-features --features tracing

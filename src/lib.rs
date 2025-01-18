@@ -170,12 +170,37 @@ where
     Options::new_json().from_json_slice(Cow::Borrowed(json))
 }
 
+/// Partially deserialize the input with [`serde_yaml`].
+///
+/// See methods on [`Options`] for more generic APIs.
+#[cfg(feature = "serde_yaml")]
+pub fn from_yaml_str<T>(yaml: &str) -> Result<T, Error<serde_yaml::Error>>
+where
+    T: for<'de> serde::Deserialize<'de>,
+{
+    Options::new_json().from_yaml_str_borrowed(yaml)
+}
+
+/// Like [`from_yaml_str`], but for bytes.
+///
+/// See methods on [`Options`] for more generic APIs.
+#[cfg(feature = "serde_yaml")]
+pub fn from_yaml_slice<T>(yaml: &[u8]) -> Result<T, Error<serde_yaml::Error>>
+where
+    T: for<'de> serde::Deserialize<'de>,
+{
+    Options::new_json().from_yaml_slice_borrowed(yaml)
+}
+
 impl Options {
     /// Default config for JSON.
     ///
-    /// This currently will generate a short random string for improved deserialization of
-    /// partial strings.
-    #[cfg(feature = "serde_json")]
+    /// This currently will generate a short extra trailer on inputs
+    /// for improved deserialization of partial strings.
+    /// 
+    /// For YAML in particular, this suffix is important to get
+    /// good behavior.
+    #[cfg(feature = "rand")]
     pub fn new_json() -> Options<DefaultExtraOptions> {
         use rand::distributions::{Alphanumeric, DistString};
         use rand::thread_rng;
@@ -183,11 +208,17 @@ impl Options {
         let tag = Alphanumeric.sample_string(&mut thread_rng(), RANDOM_PARTIAL_JSON_TAG_LEN);
         Options {
             parse_partial_json_tag: Some(tag.into()),
-            ..Options::new_generic()
+            ..Options::new_no_nonce()
         }
     }
 
-    pub fn new_generic() -> Options<DefaultExtraOptions> {
+    /// Basic config, suitable for any data format. However, this
+    /// config does not allow adding a random trailer to the input,
+    /// which 
+    ///
+    /// This does not apply the JSON-specific string trick to parse
+    /// partial strings.
+    pub fn new_no_nonce() -> Options<DefaultExtraOptions> {
         Options {
             #[cfg(feature = "serde_json")]
             parse_partial_json_tag: None,
@@ -204,7 +235,7 @@ impl Options {
 
     /// Like [`crate::from_json_str`], but with options.
     #[cfg(feature = "serde_json")]
-    pub fn from_json_str<'a, T>(self, json: Cow<'a, str>) -> Result<T, Error<serde_json::Error>>
+    pub fn from_json_str<T>(self, json: Cow<str>) -> Result<T, Error<serde_json::Error>>
     where
         T: for<'de> serde::de::Deserialize<'de>,
     {
@@ -220,6 +251,38 @@ impl Options {
     {
         let prepared = self.prepare_slice_for_borrowed_deserialization(json);
         self.from_json_slice_borrowed_unstable(&prepared)
+    }
+
+    /// Like [`crate::from_yaml_str`], but with options, and it is able
+    /// to return borrowed strings into the source.
+    ///
+    /// This will not produce partial strings, because we don't have the
+    /// JSON string trick for YAML.
+    #[cfg(feature = "serde_yaml")]
+    pub fn from_yaml_str_borrowed<'de, T>(
+        self,
+        yaml: &'de str,
+    ) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(source::YamlStr(yaml))
+    }
+
+    /// Like [`crate::from_yaml_slice`], but with options, and it is able
+    /// to return borrowed strings into the source.
+    ///
+    /// This will not produce partial strings, because we don't have the
+    /// JSON string trick for YAML.
+    #[cfg(feature = "serde_yaml")]
+    pub fn from_yaml_slice_borrowed<'de, T>(
+        self,
+        yaml: &'de [u8],
+    ) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(source::YamlBytes(yaml))
     }
 
     /// Like [`Self::from_json_slice`], but can deserialize borrowed strings and return them

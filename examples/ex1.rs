@@ -24,56 +24,69 @@ fn main() {
     }
 
     {
-        let json = "[true, false, true, faaa";
-        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
+        let yaml = r#"[["abc", "def"], ["abc", de\
+        
+'""#;
+        let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     {
-        let json = "[";
+        let yaml = dbg!(
+            r#"[["abc", "def"]]
 
-        let parsed: Vec<bool> = partial_deser::Options::new_json()
-            .from_json_str(json.into())
-            .unwrap();
+
+#'""#
+        );
+        let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
-    {
-        let json = "[";
-        let mut behavior = UnstableCustomBehavior::default();
-        behavior.unstable_fallback_seq_empty = false;
-        behavior.unstable_fallback_seq_skip_item = false;
+    // {
+    //     let json = "[";
 
-        let parsed: Vec<bool> = partial_deser::Options::new_json()
-            .custom_behavior(behavior)
-            .from_json_str(json.into())
-            .unwrap();
-        dbg!(parsed);
-    }
+    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //         .from_json_str(json.into())
+    //         .unwrap();
+    //     dbg!(parsed);
+    // }
 
-    {
-        let json = "[true, false, tru";
-        let parsed: Vec<bool> = partial_deser::Options::new_json()
-            .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
-            .with_max_n_backtracks(Some(1))
-            .from_json_str(json.into())
-            .unwrap();
-        dbg!(parsed);
-    }
+    // {
+    //     let json = "[";
+    //     let mut behavior = UnstableCustomBehavior::default();
+    //     behavior.unstable_fallback_seq_empty = false;
+    //     behavior.unstable_fallback_seq_skip_item = false;
 
-    {
-        let json = "[true, false, 3, 4.5, \"hello";
-        let parsed: serde_json::Value = partial_deser::Options::new_json()
-            .from_json_str(json.into())
-            .unwrap();
-        dbg!(parsed);
-    }
+    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //         .custom_behavior(behavior)
+    //         .from_json_str(json.into())
+    //         .unwrap();
+    //     dbg!(parsed);
+    // }
 
-    {
-        let json = r#"[{"ab""#;
-        let parsed: Vec<indexmap::IndexMap<String, String>> = partial_deser::Options::new_json()
-            .from_json_str(json.into())
-            .unwrap();
-        dbg!(parsed);
-    }
+    // {
+    //     let json = "[true, false, tru";
+    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //         .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
+    //         .with_max_n_backtracks(Some(1))
+    //         .from_json_str(json.into())
+    //         .unwrap();
+    //     dbg!(parsed);
+    // }
+
+    // {
+    //     let json = "[true, false, 3, 4.5, \"hello";
+    //     let parsed: serde_json::Value = partial_deser::Options::new_json()
+    //         .from_json_str(json.into())
+    //         .unwrap();
+    //     dbg!(parsed);
+    // }
+
+    // {
+    //     let json = r#"[{"ab""#;
+    //     let parsed: Vec<indexmap::IndexMap<String, String>> = partial_deser::Options::new_json()
+    //         .from_json_str(json.into())
+    //         .unwrap();
+    //     dbg!(parsed);
+    // }
 }
