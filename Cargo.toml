@@ -41,6 +41,11 @@ required-features = ["serde_json", "unstable"]
 
 [[example]]
 name = "show-live"
+required-features = ["serde_json", "tracing"]
+
+[[example]]
+name = "parse" # dummy
+required-features = ["serde_json", "tracing"]
 
 [[example]]
 name = "ex1"
