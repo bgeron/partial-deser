@@ -223,7 +223,7 @@ fn test_seq() {
 
 #[test]
 fn test_seq_cannot_parse_after_invalid() {
-    // Note: the false is never reached because [true,] is invalid JSON and serde_json
+    // Note: the false is never reached because null is invalid there and serde_json
     // is unable to ever continue past that.
     insta::assert_ron_snapshot!(
         run_json_modes_on_prefixes_and_format_outputs::<Vec<Vec<bool>>>(&default_modes(), &r#"[[true], null, [true]]"#),

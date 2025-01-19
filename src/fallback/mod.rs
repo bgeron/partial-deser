@@ -264,6 +264,30 @@ pub struct DefaultFallbacks {
 }
 
 impl Fallbacks for DefaultFallbacks {
+    fn fallback_str<'a, V: Visitor<'a>, E: serde::de::Error>(
+        &self,
+        _context: &FallbackContext,
+        take_visitor: impl FnOnce() -> V,
+    ) -> Result<Option<V::Value>, E> {
+        if let Some(s) = self.behavior.unstable_fallback_default_str {
+            (take_visitor)().visit_str(s).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn fallback_string<'a, V: Visitor<'a>, E: serde::de::Error>(
+        &self,
+        _context: &FallbackContext,
+        take_visitor: impl FnOnce() -> V,
+    ) -> Result<Option<V::Value>, E> {
+        if let Some(s) = self.behavior.unstable_fallback_default_str {
+            (take_visitor)().visit_string(s.to_string()).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+
     fn fallback_option<'a, V: Visitor<'a>, E: serde::de::Error>(
         &self,
         context: &FallbackContext,

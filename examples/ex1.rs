@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 
+use indexmap::IndexMap;
 use partial_deser::unstable::UnstableCustomBehavior;
 use tracing::level_filters::LevelFilter;
 
@@ -34,8 +35,8 @@ fn main() {
     }
 
     {
-        let yaml = r#"null"#;
-        let parsed: Option<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
+        let yaml = "{\"abc\":";
+        let parsed: IndexMap<String, String> = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 

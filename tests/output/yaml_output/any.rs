@@ -3,7 +3,7 @@ use super::{default_modes, run_yaml_modes_on_prefixes_and_format_outputs};
 #[test]
 fn test_any() {
     insta::assert_ron_snapshot!(
-        run_yaml_modes_on_prefixes_and_format_outputs::<serde_json::Value>(&default_modes(), &"[true, false, 3, 4.5, \"abc\"]"),
+        run_yaml_modes_on_prefixes_and_format_outputs::<serde_yaml::Value>(&default_modes(), &"[true, false, 3, 4.5, \"abc\"]"),
         @r###"
     {
       "default behavior": {

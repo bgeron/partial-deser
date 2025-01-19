@@ -51,7 +51,7 @@
 //!
 //! ## Caveats
 //!
-//! - YAML is less exhaustively tested
+//! - YAML works very well too, but is a bit less exhaustively tested
 //!
 //! ## Criteria
 //!

@@ -7,12 +7,12 @@ use cow_string::CowString;
 
 #[test]
 fn test_borrowed_string_advanced_api() {
-    let partial_json = r#"["abc", "de\nf", "unterminated"#;
+    let partial_yaml = r#"["abc", "de\nf", "unterminated"#;
 
-    let options = partial_deser::Options::new_json();
-    let prepared = options.prepare_str_for_borrowed_deserialization(Cow::Borrowed(partial_json));
+    let options = partial_deser::Options::new_yaml();
+    let prepared = options.prepare_str_for_borrowed_deserialization(Cow::Borrowed(partial_yaml));
 
-    let value: Vec<CowString> = options.from_json_str_borrowed(&prepared).unwrap();
+    let value: Vec<CowString> = options.from_yaml_str_borrowed(&prepared).unwrap();
 
     insta::assert_ron_snapshot!(value, @r###"
     [
@@ -20,7 +20,9 @@ fn test_borrowed_string_advanced_api() {
       VisitStr(
         cloned: "de\nf",
       ),
-      VisitBorrowedStr("unterminated"),
+      VisitStr(
+        cloned: "unterminated",
+      ),
     ]
     "###);
 }

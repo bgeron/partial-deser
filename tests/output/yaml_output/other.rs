@@ -1,7 +1,7 @@
 use super::{default_modes, run_yaml_modes_on_prefixes_and_format_outputs};
 
 #[test]
-fn test_tolerate_trailing_whitespace_like_serde_json() {
+fn test_tolerate_trailing_whitespace_like_serde_yaml() {
     insta::assert_ron_snapshot!(
         run_yaml_modes_on_prefixes_and_format_outputs::<Vec<()>>(&default_modes(), &r#"[null]  "#),
         @r###"
@@ -56,7 +56,7 @@ fn test_tolerate_trailing_whitespace_like_serde_json() {
 }
 
 #[test]
-fn test_tolerate_trailing_junk_unlike_serde_json() {
+fn test_tolerate_trailing_junk_unlike_serde_yaml() {
     insta::assert_ron_snapshot!(
         run_yaml_modes_on_prefixes_and_format_outputs::<Vec<()>>(&default_modes(), &r#"[null]  junk"#),
         @r###"
