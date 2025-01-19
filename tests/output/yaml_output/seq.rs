@@ -15,7 +15,7 @@ fn test_seq() {
           [],
           [],
         ]),
-        "[[], [true]": Ok([
+        "[[], [true": Ok([
           [],
           [
             true,
@@ -28,7 +28,7 @@ fn test_seq() {
           ],
           [],
         ]),
-        "[[], [true], [false]": Ok([
+        "[[], [true], [false": Ok([
           [],
           [
             true,
@@ -127,7 +127,7 @@ fn test_seq() {
           [],
           [],
         ]),
-        "[[], [true]": Ok([
+        "[[], [true": Ok([
           [],
           [
             true,
@@ -140,7 +140,7 @@ fn test_seq() {
           ],
           [],
         ]),
-        "[[], [true], [false]": Ok([
+        "[[], [true], [false": Ok([
           [],
           [
             true,
@@ -169,7 +169,7 @@ fn test_seq() {
           [],
           [],
         ]),
-        "[[], [true]": Ok([
+        "[[], [true": Ok([
           [],
           [
             true,
@@ -182,7 +182,7 @@ fn test_seq() {
           ],
           [],
         ]),
-        "[[], [true], [false]": Ok([
+        "[[], [true], [false": Ok([
           [],
           [
             true,
@@ -234,7 +234,7 @@ fn test_seq_cannot_parse_after_invalid() {
         "[[": Ok([
           [],
         ]),
-        "[[true]": Ok([
+        "[[true": Ok([
           [
             true,
           ],
@@ -268,7 +268,7 @@ fn test_seq_cannot_parse_after_invalid() {
         "[[": Ok([
           [],
         ]),
-        "[[true]": Ok([
+        "[[true": Ok([
           [
             true,
           ],
@@ -280,7 +280,7 @@ fn test_seq_cannot_parse_after_invalid() {
         "[[": Ok([
           [],
         ]),
-        "[[true]": Ok([
+        "[[true": Ok([
           [
             true,
           ],
@@ -310,7 +310,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         "[[": Ok([
           [],
         ]),
-        "[[true,": Ok([
+        "[[true": Ok([
           [
             true,
           ],
@@ -321,7 +321,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
           ],
           [],
         ]),
-        "[[true,], [false]": Ok([
+        "[[true,], [false": Ok([
           [
             true,
           ],
@@ -384,7 +384,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         "[[": Ok([
           [],
         ]),
-        "[[true,": Ok([
+        "[[true": Ok([
           [
             true,
           ],
@@ -395,7 +395,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
           ],
           [],
         ]),
-        "[[true,], [false]": Ok([
+        "[[true,], [false": Ok([
           [
             true,
           ],
@@ -409,7 +409,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         "[[": Ok([
           [],
         ]),
-        "[[true,": Ok([
+        "[[true": Ok([
           [
             true,
           ],
@@ -420,7 +420,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
           ],
           [],
         ]),
-        "[[true,], [false]": Ok([
+        "[[true,], [false": Ok([
           [
             true,
           ],

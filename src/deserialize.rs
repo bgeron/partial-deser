@@ -48,6 +48,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
                 attempt: &mut attempt,
                 is_at_root: true,
                 is_for_key_or_variant: false,
+                is_for_map_value: false,
                 inner: inner_deserializer,
             };
 

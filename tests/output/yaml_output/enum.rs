@@ -28,6 +28,7 @@ fn test_unit_variant() {
         "[\"UnitVariant\"": Ok([
           UnitVariant,
         ]),
+        "[\"UnitVariant\", \"": Ok([]),
         "[\"UnitVariant\", \"UnitVariant\"": Ok([
           UnitVariant,
           UnitVariant,
@@ -42,7 +43,7 @@ fn test_unit_variant() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[\"UnitVariant\", \"UnitVariant\"]": Ok([
           UnitVariant,
@@ -50,8 +51,7 @@ fn test_unit_variant() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[\"UnitVariant\"": Ok([
           UnitVariant,
         ]),
@@ -71,7 +71,8 @@ fn test_unit_variant() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[\"UnitVariant\", \"UnitVariant\"]": Ok([
           UnitVariant,
           UnitVariant,

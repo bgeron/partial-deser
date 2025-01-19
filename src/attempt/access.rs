@@ -63,12 +63,16 @@ where
         };
 
         if inside_element.halting_point_is_on_stack {
-            let actual_point = self
-                .attempt
-                .halting_point_stack
-                .pop()
-                .expect("halting point stack did not stay balanced");
-            debug_assert_eq!(actual_point, inside_element.corresponding_halting_point);
+            loop {
+                let last_point = self
+                    .attempt
+                    .halting_point_stack
+                    .pop()
+                    .expect("halting point unexpectedly disappeared from stack");
+                if last_point == inside_element.corresponding_halting_point {
+                    break;
+                }
+            }
         }
     }
 }
@@ -165,6 +169,7 @@ where
             global: self.global,
             attempt: self.attempt,
             is_for_key_or_variant: false,
+            is_for_map_value: false,
             inner: seed,
         };
         let result = self.inner.next_element_seed(wrapped_seed);
@@ -229,6 +234,7 @@ where
             global: self.global,
             attempt: self.attempt,
             is_for_key_or_variant: true,
+            is_for_map_value: false,
             inner: seed,
         };
         let result = self.inner.next_key_seed(wrapped_seed);
@@ -274,6 +280,7 @@ where
             global: self.global,
             attempt: self.attempt,
             is_for_key_or_variant: false,
+            is_for_map_value: true,
             inner: seed,
         };
         let result = self.inner.next_value_seed(wrapped_seed);
@@ -310,6 +317,7 @@ where
             global: self.global,
             attempt: self.attempt,
             is_for_key_or_variant: true,
+            is_for_map_value: false,
             inner: seed,
         });
         self.global
@@ -380,6 +388,7 @@ where
             global: self.global,
             attempt: self.attempt,
             is_for_key_or_variant: false,
+            is_for_map_value: true,
             inner: seed,
         });
         process_variant_result(&result, self.attempt, &mut self.global.reporter);

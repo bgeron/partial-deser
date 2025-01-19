@@ -2,7 +2,15 @@
 
 use indexmap::IndexMap;
 use partial_deser::unstable::UnstableCustomBehavior;
+use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+struct Struct {
+    x: Vec<bool>,
+    y: Vec<bool>,
+    z: Vec<bool>,
+}
 
 fn main() {
     tracing_subscriber::fmt::fmt()
@@ -37,6 +45,18 @@ fn main() {
     {
         let yaml = "{\"abc\":";
         let parsed: IndexMap<String, String> = partial_deser::from_yaml_str(yaml).unwrap();
+        dbg!(parsed);
+    }
+
+    {
+        let yaml = r#"{"x": [true], "y": [false], "z":"#;
+        let parsed: Struct = partial_deser::from_yaml_str(&yaml).unwrap();
+        dbg!(parsed);
+    }
+
+    {
+        let json = r#"["#;
+        let parsed: Vec<Vec<bool>> = partial_deser::from_json_str(&json).unwrap();
         dbg!(parsed);
     }
 

@@ -51,8 +51,8 @@
 //!
 //! ## Caveats
 //!
-//! - YAML works very well too, but is a bit less exhaustively tested,
-//!   and contains some nonmonotonicity ("flickering").
+//! - YAML works very well too, but is a bit less exhaustively tested.
+//!   The random trailer is really important here.
 //!
 //! ## Criteria
 //!
@@ -76,12 +76,12 @@ macro_rules! error {
         ::tracing::error!($($arg)*)
     };
 }
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        #[cfg(feature = "tracing")]
-        ::tracing::warn!($($arg)*)
-    };
-}
+// macro_rules! warn {
+//     ($($arg:tt)*) => {
+//         #[cfg(feature = "tracing")]
+//         ::tracing::warn!($($arg)*)
+//     };
+// }
 macro_rules! debug {
     ($($arg:tt)*) => {
         #[cfg(feature = "tracing")]

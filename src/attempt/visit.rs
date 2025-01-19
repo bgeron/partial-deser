@@ -524,6 +524,7 @@ where
                     attempt,
                     is_at_root,
                     is_for_key_or_variant: false,
+                    is_for_map_value: false,
                     inner: deserializer,
                 };
                 visitor
@@ -568,6 +569,7 @@ where
                     attempt,
                     is_at_root,
                     is_for_key_or_variant: false,
+                    is_for_map_value: false,
                     inner: deserializer,
                 };
                 visitor

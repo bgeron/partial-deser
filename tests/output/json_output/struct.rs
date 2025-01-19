@@ -18,11 +18,13 @@ fn test_toplevel_struct() {
       "default behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\":": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 3 backtracks)"),
         "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true], \"y\":": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true], \"y\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 3 backtracks)"),
         "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [false], \"z\": [": Ok(Struct(
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
           x: [
             true,
           ],
@@ -46,11 +48,13 @@ fn test_toplevel_struct() {
       "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\":": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 3 backtracks)"),
         "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true], \"y\":": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
+        "{\"x\": [true], \"y\": [": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 3 backtracks)"),
         "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [false], \"z\": [": Ok(Struct(
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
           x: [
             true,
           ],
@@ -104,11 +108,11 @@ fn test_toplevel_struct() {
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\":": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\":": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [false], \"z\": [": Ok(Struct(
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
           x: [
             true,
           ],
@@ -132,11 +136,11 @@ fn test_toplevel_struct() {
       "default behavior, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\":": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "{\"x\": [true]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "{\"x\": [true], \"y\":": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "{\"x\": [true], \"y\": [false]": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [true], \"y\": [false], \"z\": [": Ok(Struct(
+        "{\"x\": [true], \"y\": [false], \"z\":": Ok(Struct(
           x: [
             true,
           ],
@@ -183,7 +187,7 @@ fn test_struct() {
     {
       "default behavior": {
         "": Ok([]),
-        "[{\"x\": [true], \"y\": [false], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -207,7 +211,7 @@ fn test_struct() {
             ],
           ),
         ]),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -256,7 +260,7 @@ fn test_struct() {
       },
       "default behavior except no random trailer": {
         "": Ok([]),
-        "[{\"x\": [true], \"y\": [false], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -280,7 +284,7 @@ fn test_struct() {
             ],
           ),
         ]),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -426,7 +430,7 @@ fn test_struct() {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [true], \"y\": [false], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -451,7 +455,7 @@ fn test_struct() {
           ),
         ]),
         "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -501,7 +505,7 @@ fn test_struct() {
       "default behavior, 1 backtracks": {
         "": Ok([]),
         "[{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [true], \"y\": [false], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -526,7 +530,7 @@ fn test_struct() {
           ),
         ]),
         "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [false], \"y\": [true], \"z\":": Ok([
           Struct(
             x: [
               true,
@@ -622,7 +626,7 @@ fn test_toplevel_struct_with_defaults() {
       "default behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Ok(StructWithSomeDefaults(
+        "{\"x\":": Ok(StructWithSomeDefaults(
           x: [],
           y: [],
           z: [],
@@ -658,7 +662,7 @@ fn test_toplevel_struct_with_defaults() {
       "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Ok(StructWithSomeDefaults(
+        "{\"x\":": Ok(StructWithSomeDefaults(
           x: [],
           y: [],
           z: [],
@@ -742,7 +746,7 @@ fn test_toplevel_struct_with_defaults() {
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Ok(StructWithSomeDefaults(
+        "{\"x\":": Ok(StructWithSomeDefaults(
           x: [],
           y: [],
           z: [],
@@ -778,7 +782,7 @@ fn test_toplevel_struct_with_defaults() {
       "default behavior, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
-        "{\"x\": [": Ok(StructWithSomeDefaults(
+        "{\"x\":": Ok(StructWithSomeDefaults(
           x: [],
           y: [],
           z: [],
@@ -837,7 +841,7 @@ fn test_struct_with_defaults() {
     {
       "default behavior": {
         "": Ok([]),
-        "[{\"x\": [": Ok([
+        "[{\"x\":": Ok([
           StructWithSomeDefaults(
             x: [],
             y: [],
@@ -877,7 +881,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
           StructWithSomeDefaults(
             x: [
               true,
@@ -965,7 +969,7 @@ fn test_struct_with_defaults() {
       },
       "default behavior except no random trailer": {
         "": Ok([]),
-        "[{\"x\": [": Ok([
+        "[{\"x\":": Ok([
           StructWithSomeDefaults(
             x: [],
             y: [],
@@ -1005,7 +1009,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
           StructWithSomeDefaults(
             x: [
               true,
@@ -1258,7 +1262,7 @@ fn test_struct_with_defaults() {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Ok([]),
         "[{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [": Ok([
+        "[{\"x\":": Ok([
           StructWithSomeDefaults(
             x: [],
             y: [],
@@ -1299,7 +1303,7 @@ fn test_struct_with_defaults() {
           ),
         ]),
         "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
           StructWithSomeDefaults(
             x: [
               true,
@@ -1388,7 +1392,7 @@ fn test_struct_with_defaults() {
       "default behavior, 1 backtracks": {
         "": Ok([]),
         "[{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [": Ok([
+        "[{\"x\":": Ok([
           StructWithSomeDefaults(
             x: [],
             y: [],
@@ -1429,7 +1433,7 @@ fn test_struct_with_defaults() {
           ),
         ]),
         "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\": [": Ok([
+        "[{\"x\": [true], \"y\": [false], \"z\": [true]}, {\"x\":": Ok([
           StructWithSomeDefaults(
             x: [
               true,

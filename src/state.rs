@@ -110,9 +110,6 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
                     "creating state for next attempt"
                 );
 
-                if !self.halting_point_stack.is_empty() {
-                    warn!("logic error: halting point stack not empty after attempt");
-                }
                 self.halting_point_stack.clear();
                 Ok(Some(Self {
                     reporter: self.reporter,

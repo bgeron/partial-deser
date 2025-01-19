@@ -1,3 +1,4 @@
+use super::empty_access::EmptyAccess;
 use super::visit::Visitor;
 use super::Deserializer;
 use crate::error::{BugEnum, Error, FallbackError};
@@ -412,6 +413,25 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
+        let Some(this_halting_point) = self
+            .attempt
+            .intervention_is_empty()
+            .then(|| self.attempt.new_halting_point_and_check_continue())
+            .flatten()
+        else {
+            return inner_visitor.visit_seq(EmptyAccess::default());
+        };
+
+        if self.is_for_map_value
+            && self
+                .global
+                .config
+                .behavior
+                .unstable_backtrack_seq_empty_for_value
+        {
+            self.attempt.halting_point_stack.push(this_halting_point);
+        }
+
         framework(
             self,
             inner_visitor,
@@ -453,6 +473,25 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
+        let Some(this_halting_point) = self
+            .attempt
+            .intervention_is_empty()
+            .then(|| self.attempt.new_halting_point_and_check_continue())
+            .flatten()
+        else {
+            return inner_visitor.visit_map(EmptyAccess::default());
+        };
+
+        if self.is_for_map_value
+            && self
+                .global
+                .config
+                .behavior
+                .unstable_backtrack_map_empty_for_value
+        {
+            self.attempt.halting_point_stack.push(this_halting_point);
+        }
+
         framework(
             self,
             inner_visitor,
@@ -470,6 +509,25 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
+        let Some(this_halting_point) = self
+            .attempt
+            .intervention_is_empty()
+            .then(|| self.attempt.new_halting_point_and_check_continue())
+            .flatten()
+        else {
+            return inner_visitor.visit_map(EmptyAccess::default());
+        };
+
+        if self.is_for_map_value
+            && self
+                .global
+                .config
+                .behavior
+                .unstable_backtrack_struct_empty_for_value
+        {
+            self.attempt.halting_point_stack.push(this_halting_point);
+        }
+
         framework(
             self,
             inner_visitor,

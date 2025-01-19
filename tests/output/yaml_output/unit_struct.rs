@@ -23,12 +23,12 @@ fn test_toplevel_unit_struct() {
       "no fallbacks, 0 backtracks": {
         "": Ok(UnitStruct),
         "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_yaml?": "no",
+        "null": Ok(UnitStruct),
       },
       "no fallbacks, 1 backtracks": {
         "": Ok(UnitStruct),
         "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_yaml?": "no",
+        "null": Ok(UnitStruct),
       },
       "default behavior, 1 backtracks": {
         "": Ok(UnitStruct),
@@ -36,7 +36,7 @@ fn test_toplevel_unit_struct() {
       "strict behavior": {
         "": Ok(UnitStruct),
         "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_yaml?": "no",
+        "null": Ok(UnitStruct),
       },
     }
     "###
@@ -93,7 +93,7 @@ fn test_unit_struct_fallible() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null,": Ok([
+        "[null": Ok([
           UnitStruct,
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
@@ -117,14 +117,14 @@ fn test_unit_struct_fallible() {
       },
       "no fallbacks, 1 backtracks": {
         "": Ok([]),
-        "[null,": Ok([
+        "[null": Ok([
           UnitStruct,
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null,": Ok([
+        "[null": Ok([
           UnitStruct,
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",

@@ -61,6 +61,9 @@ where
     pub(crate) is_at_root: bool,
     /// Whether this is used to deserialize a map key or enum variant.
     pub(crate) is_for_key_or_variant: bool,
+    /// Whether this is used to deserialize a map value or the value inside an
+    /// enum -- somewhere we know for sure that a value should go there.
+    pub(crate) is_for_map_value: bool,
     pub(crate) inner: Inner,
 }
 
@@ -71,6 +74,7 @@ where
     pub(crate) global: &'a mut GlobalState<Extra>,
     pub(crate) attempt: &'a mut AttemptState<Extra>,
     pub(crate) is_for_key_or_variant: bool,
+    pub(crate) is_for_map_value: bool,
     pub(crate) inner: Inner,
 }
 
@@ -91,6 +95,7 @@ where
                 attempt: self.attempt,
                 is_at_root: false,
                 is_for_key_or_variant: self.is_for_key_or_variant,
+                is_for_map_value: self.is_for_map_value,
                 inner: deserializer,
             })
             .map_err(Error::unpack_or_make_custom)
