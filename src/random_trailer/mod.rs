@@ -56,10 +56,12 @@ pub struct InputPlusTrailer<SliceType>(pub SliceType);
 
 /// Bytes and string types, which for serde_json may suffer from trailing data
 /// that wasn't present in the input.
-pub trait StringLike {
+pub trait StringLike:std::fmt::Debug {
     /// Length in bytes
     fn len(&self) -> usize;
     fn ends_with_string(&self, string: &str) -> bool;
+    /// Check whether this ends in `s1 + s2`.
+    fn ends_with_2_strings(&self, s1: &str, s2: &str) -> bool;
     fn truncate_to_bytes(&mut self, target_len: usize);
 }
 
@@ -70,6 +72,10 @@ impl StringLike for &str {
 
     fn ends_with_string(&self, string: &str) -> bool {
         self.ends_with(string)
+    }
+
+    fn ends_with_2_strings(&self, s1: &str, s2: &str) -> bool {
+        self.ends_with(s2) && self[0..self.len() - s2.len()].ends_with(s1)
     }
 
     fn truncate_to_bytes(&mut self, target_len: usize) {
@@ -86,6 +92,10 @@ impl StringLike for &[u8] {
         self.ends_with(string.as_bytes())
     }
 
+    fn ends_with_2_strings(&self, s1: &str, s2: &str) -> bool {
+        self.ends_with(s2.as_bytes()) && self[0..self.len() - s2.len()].ends_with(s1.as_bytes())
+    }
+
     fn truncate_to_bytes(&mut self, target_len: usize) {
         *self = &self[..target_len];
     }
@@ -98,6 +108,10 @@ impl StringLike for String {
 
     fn ends_with_string(&self, string: &str) -> bool {
         self.ends_with(string)
+    }
+
+    fn ends_with_2_strings(&self, s1: &str, s2: &str) -> bool {
+        self.ends_with(s2) && self[0..self.len() - s2.len()].ends_with(s1)
     }
 
     fn truncate_to_bytes(&mut self, target_len: usize) {
@@ -114,6 +128,10 @@ impl StringLike for Vec<u8> {
         self.ends_with(string.as_bytes())
     }
 
+    fn ends_with_2_strings(&self, s1: &str, s2: &str) -> bool {
+        self.ends_with(s2.as_bytes()) && self[0..self.len() - s2.len()].ends_with(s1.as_bytes())
+    }
+
     fn truncate_to_bytes(&mut self, target_len: usize) {
         self.truncate(target_len);
     }
@@ -127,6 +145,10 @@ impl StringLike for std::borrow::Cow<'_, str> {
 
     fn ends_with_string(&self, string: &str) -> bool {
         self.ends_with(string)
+    }
+
+    fn ends_with_2_strings(&self, s1: &str, s2: &str) -> bool {
+        self.ends_with(s2) && self[0..self.len() - s2.len()].ends_with(s1)
     }
 
     fn truncate_to_bytes(&mut self, target_len: usize) {
