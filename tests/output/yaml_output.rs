@@ -3,7 +3,8 @@ use std::fmt::Debug;
 
 use indexmap::IndexMap;
 use partial_deser::Options;
-use partial_deser::{options::YamlExtraOptions, unstable::UnstableCustomBehavior};
+use partial_deser::options::YamlExtraOptions;
+use partial_deser::unstable::UnstableCustomBehavior;
 use serde::{Deserialize, Serialize};
 
 use crate::common::run_on_prefixes_and_format_outputs;

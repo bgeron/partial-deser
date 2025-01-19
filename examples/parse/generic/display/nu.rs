@@ -3,15 +3,15 @@ use std::process::Stdio;
 use std::sync::Arc;
 
 use anyhow::Context as _;
-use futures::{future::BoxFuture, FutureExt};
+use futures::FutureExt;
+use futures::future::BoxFuture;
 use tap::{Conv, Pipe, TapFallible};
-use tokio::{
-    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::Command,
-    runtime::Runtime,
-    sync::Mutex,
-};
-use tokio_stream::{wrappers::LinesStream, StreamExt};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::process::Command;
+use tokio::runtime::Runtime;
+use tokio::sync::Mutex;
+use tokio_stream::StreamExt;
+use tokio_stream::wrappers::LinesStream;
 use tracing::info;
 
 use crate::generic::format::ParseResult;
