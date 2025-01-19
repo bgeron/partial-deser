@@ -49,15 +49,12 @@ fn main() {
         .init();
 
     let args = Args::parse();
-    dbg!(&args);
 
-    let display = generic::display::Display::init(&args.display);
+    let mut display = generic::display::Display::init(&args.display);
 
     let mut input = String::new();
     std::io::stdin().read_to_string(&mut input).unwrap();
 
     let result = args.schema.parse(args.format, input.as_bytes());
-    display.display(&result);
-
-    dbg!(result).unwrap();
+    dbg!(display.display(&result));
 }

@@ -7,7 +7,7 @@ pub struct Display {
 }
 
 impl ActiveDisplay for Display {
-    fn display(&self, value: &ParseResult) {
-        println!("{}{:?}", self.prefix, value);
+    fn display(&mut self, value: &ParseResult) -> String {
+        format!("{}{:?}", self.prefix, value)
     }
 }

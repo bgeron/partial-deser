@@ -39,5 +39,5 @@ impl Display {
 }
 
 pub trait ActiveDisplay {
-    fn display(&self, value: &ParseResult);
+    fn display(&mut self, value: &ParseResult) -> String;
 }

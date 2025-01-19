@@ -1,34 +1,35 @@
-use std::{
-    future::Future,
-    io::{Read, Write},
-    process::Stdio,
-    sync::Arc,
-    time::Duration,
-};
+use std::os::fd::OwnedFd;
+use std::process::Stdio;
+use std::sync::Arc;
 
 use anyhow::Context as _;
 use futures::{future::BoxFuture, FutureExt};
 use tap::{Conv, Pipe, TapFallible};
 use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt as _, AsyncWriteExt, BufReader},
+    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     process::Command,
     runtime::Runtime,
     sync::Mutex,
 };
 use tokio_stream::{wrappers::LinesStream, StreamExt};
-use tracing::{error, info};
+use tracing::info;
 
-use crate::generic::format::{ParseResult, Parsed};
+use crate::generic::format::ParseResult;
 
 use super::ActiveDisplay;
 
 pub const KNOWN_GOOD_NU_VERSION: &str = "0.101.0";
 
 pub const NU_COMMAND: &str =
-    "open -r /dev/stdin | lines | each { from json | table | ansi strip | to json } | to text";
+    "open -r /dev/stdin | lines | each { from json | table | ansi strip | to json } | to text ";
 
+/// Format values using nushell.
+///
+/// This implementation may be a bit horrible, threads-wise.
 pub struct Display {
     pub prefix: String,
+    runtime: Runtime,
+    pub tableize: Tableize,
 }
 
 impl Display {
@@ -47,7 +48,17 @@ impl Display {
             )
         };
 
-        Some(Self { prefix })
+        let runtime = Runtime::new().unwrap();
+
+        let tableize = runtime
+            .block_on(async { tableize_json_with_nu().await })
+            .ok()?;
+
+        Some(Self {
+            prefix,
+            runtime,
+            tableize,
+        })
     }
 }
 
@@ -66,7 +77,7 @@ pub fn nu_version() -> Option<String> {
         .next()
         .is_some_and(|c| char::is_ascii_digit(&c))
     {
-        Some(version)
+        Some(version.trim().to_string())
     } else {
         None
     }
@@ -79,35 +90,43 @@ pub fn check_nu_support() -> bool {
     let result: anyhow::Result<String> = Runtime::new().unwrap().block_on(async move {
         Ok(tableize_json_with_nu().await?("'hello\"world'".to_string()).await)
     });
-    dbg!(result).ok() == Some(r#""hello\"world""#.to_string())
+    result.ok() == Some(r#"'hello"world'"#.to_string())
 }
+
+pub type Tableize = Box<dyn FnMut(String) -> BoxFuture<'static, String>>;
 
 /// Use nushell to convert JSONs into tables.
 ///
 /// May leak a process.
-pub async fn tableize_json_with_nu(
-) -> anyhow::Result<impl FnMut(String) -> BoxFuture<'static, String>> {
+pub async fn tableize_json_with_nu() -> anyhow::Result<Tableize> {
+    let (out_tx, out_rx) =
+        interprocess::unnamed_pipe::pipe().context("could not construct pipe for output")?;
+
     let cmd = Command::new("nu")
         .args(&["-c", NU_COMMAND])
         .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
+        .stdout(OwnedFd::from(out_tx))
         .spawn()
         .context("could not spawn nushell to see if we have a compatible version: {err}")?;
 
-    let outputs = cmd
-        .stdout
-        // .unwrap()
-        // .pipe(BufReader::new)
-        // .lines()
-        // .pipe(LinesStream::new)
-        // .map(|out_json_result| {
-        //     let out_json = match dbg!(out_json_result) {
-        //         Ok(out_json) => out_json,
-        //         Err(err) => return format!("could not read nushell table output: {err}"),
-        //     };
-        //     serde_json::from_str::<String>(&out_json)
-        //         .unwrap_or_else(|err| format!("could not parse nushell table output: {err}"))
-        // })
+    let outputs = out_rx
+        .conv::<OwnedFd>()
+        .conv::<std::process::ChildStdout>()
+        .pipe(tokio::process::ChildStdout::from_std)
+        .context("could not wrap nu stdout")?
+        .pipe(Some)
+        .unwrap()
+        .pipe(BufReader::new)
+        .lines()
+        .pipe(LinesStream::new)
+        .map(|out_json_result| {
+            let out_json = match out_json_result {
+                Ok(out_json) => out_json,
+                Err(err) => return format!("could not read nushell table output: {err}"),
+            };
+            serde_json::from_str::<String>(&out_json)
+                .unwrap_or_else(|err| format!("could not parse nushell table output: {err}"))
+        })
         .pipe(Mutex::new)
         .pipe(Arc::new);
 
@@ -118,46 +137,31 @@ pub async fn tableize_json_with_nu(
         let outputs = outputs.clone();
         async move {
             let mut stdin_guard = stdin.lock().await;
-            stdin_guard
-                .write_all("3\n3\n\n\n".as_bytes())
-                .await
-                .unwrap();
-            stdin_guard.flush().await.unwrap();
-            stdin_guard
-                .write_all((input + "\n").as_bytes())
-                .await
-                .unwrap();
+            stdin_guard.write_all(input.as_bytes()).await.unwrap();
+            stdin_guard.write_all(b"\n").await.unwrap();
             stdin_guard.flush().await.unwrap();
 
-            info!("flushed input");
-
-            let mut outputs = outputs.lock().await.take().unwrap();
-            let mut out = Vec::new();
-            for _ in 0..3 {
-                dbg!(outputs.read(&mut out).await.unwrap());
-                tokio::time::sleep(Duration::from_secs(1)).await;
-            }
-
-            dbg!(String::from_utf8_lossy(&out));
-
-            // dbg!(
-            //     outputs
-            //         .try_lock()
-            //         .expect("tried to tableize multiple values concurrently")
-            //         .next()
-            //         .await
-            // )
-            // .unwrap_or_else(|| "nushell did not format our value".to_string())
-
-            todo!()
+            outputs
+                .try_lock()
+                .expect("tried to tableize multiple values concurrently")
+                .next()
+                .await
+                .unwrap_or_else(|| "nushell did not format our value".to_string())
         }
         .boxed()
     };
-    Ok(f)
+    Ok(Box::new(f))
 }
 
 impl ActiveDisplay for Display {
-    fn display(&self, value: &ParseResult) {
-        println!("{}{:?}", self.prefix, value);
+    fn display(&mut self, value: &ParseResult) -> String {
+        self.runtime.block_on(async {
+            let tableized = match value {
+                Ok(value) => (self.tableize)(serde_json::to_string(value).unwrap()).await,
+                Err(err) => format!("could not parse input: {err}"),
+            };
+
+            format!("{}{}", self.prefix, tableized)
+        })
     }
 }
