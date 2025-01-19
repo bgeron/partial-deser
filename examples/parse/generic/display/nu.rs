@@ -3,6 +3,7 @@ use std::{
     io::{Read, Write},
     process::Stdio,
     sync::Arc,
+    time::Duration,
 };
 
 use anyhow::Context as _;
@@ -23,7 +24,8 @@ use super::ActiveDisplay;
 
 pub const KNOWN_GOOD_NU_VERSION: &str = "0.101.0";
 
-pub const NU_COMMAND:&str = "loop { let $x = input -s; if $x == '' { break }; $x | each { from json | table | ansi strip | to json } | print }";
+pub const NU_COMMAND: &str =
+    "open -r /dev/stdin | lines | each { from json | table | ansi strip | to json } | to text";
 
 pub struct Display {
     pub prefix: String,
@@ -116,7 +118,10 @@ pub async fn tableize_json_with_nu(
         let outputs = outputs.clone();
         async move {
             let mut stdin_guard = stdin.lock().await;
-            stdin_guard.write_all("3\n\n".as_bytes()).await.unwrap();
+            stdin_guard
+                .write_all("3\n3\n\n\n".as_bytes())
+                .await
+                .unwrap();
             stdin_guard.flush().await.unwrap();
             stdin_guard
                 .write_all((input + "\n").as_bytes())
@@ -126,17 +131,14 @@ pub async fn tableize_json_with_nu(
 
             info!("flushed input");
 
-            let mut out = String::new();
-            dbg!(outputs
-                .lock()
-                .await
-                .take()
-                .unwrap()
-                .read_to_string(&mut out)
-                .await
-                .unwrap());
+            let mut outputs = outputs.lock().await.take().unwrap();
+            let mut out = Vec::new();
+            for _ in 0..3 {
+                dbg!(outputs.read(&mut out).await.unwrap());
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
 
-            dbg!(&out);
+            dbg!(String::from_utf8_lossy(&out));
 
             // dbg!(
             //     outputs
