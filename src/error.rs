@@ -207,3 +207,22 @@ where
         Self::from_de(DeserializerErr::duplicate_field(field))
     }
 }
+
+impl<DeserializerErr> Error<DeserializerErr>
+where
+    DeserializerErr: std::error::Error + 'static,
+{
+    pub fn erase(self) -> Error<Box<dyn std::error::Error>> {
+        let inner = *self.err;
+
+        let err = Box::new(match inner {
+            ErrorImpl::Deserializer(err) => {
+                ErrorImpl::Deserializer(Box::new(err) as Box<dyn std::error::Error>)
+            }
+            ErrorImpl::Internal(err) => ErrorImpl::Internal(err),
+            ErrorImpl::InconsistentDeserializer(err) => ErrorImpl::InconsistentDeserializer(err),
+        });
+
+        Error { err }
+    }
+}

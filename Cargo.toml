@@ -5,7 +5,7 @@ edition = "2021"
 description = "Deserialize with Serde from partial JSON and more"
 
 [features]
-default = ["serde_json", "tracing"]
+default = ["rand", "serde_json", "tracing"]
 serde_json = ["dep:serde_json"]
 unstable = []
 
@@ -21,17 +21,25 @@ thiserror = "2.0.3"
 tracing = { version = "0.1", optional = true }
 
 [dev-dependencies]
+anyhow = "1.0.95"
+clap = { version = "4.5.26", features = ["derive"] }
 erased-serde = "0.4.5"
+futures = "0.3.31"
 indexmap = { version = "2.7.0", features = ["serde"] }
 itertools = "0.13.0"
 ron = "0.7"
 serde = { version = "1", features = ["derive"]}
 serde_json = { version = "1"}
+tokio = { version = "1.43.0", features = ["fs", "io-util", "process", "rt", "rt-multi-thread"] }
+tokio-stream = { version = "0.1.17", features = ["io-util"] }
 tracing-subscriber = "0.3"
 
 [[test]]
 name = "output"
 required-features = ["serde_json", "unstable"]
+
+[[example]]
+name = "show-live"
 
 [[example]]
 name = "ex1"
