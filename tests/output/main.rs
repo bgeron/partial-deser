@@ -6,3 +6,5 @@
 mod common;
 #[cfg(feature = "serde_json")]
 mod json_output;
+#[cfg(feature = "serde_yaml")]
+mod yaml_output;

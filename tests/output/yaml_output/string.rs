@@ -42,7 +42,7 @@ fn test_string() {
           "de\nf",
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[\"abc\"": Ok([
           "abc",

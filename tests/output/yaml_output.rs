@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 
 use indexmap::IndexMap;
-use partial_deser::unstable::UnstableCustomBehavior;
 use partial_deser::Options;
+use partial_deser::{options::YamlExtraOptions, unstable::UnstableCustomBehavior};
 use serde::{Deserialize, Serialize};
 
 use crate::common::run_on_prefixes_and_format_outputs;
@@ -34,7 +34,7 @@ pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
     'input,
     T: for<'de> Deserialize<'de> + Serialize + Debug + PartialEq + 'static,
 >(
-    modes: &[(&'static str, Options)],
+    modes: &[(&'static str, Options<YamlExtraOptions>)],
     full_input: &'input impl AsRef<[u8]>,
 ) -> IndexMap<&'input str, IndexMap<Cow<'input, str>, BoxSerialize>> {
     let full_input = full_input.as_ref();
@@ -47,7 +47,7 @@ pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
             let inputs_outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
                 options
                     .clone()
-                    .from_yaml_slice_borrowed::<T>(inp)
+                    .from_yaml_slice::<T>(Cow::Borrowed(inp))
                     .map_err(|err| err.to_string())
             });
 
@@ -84,32 +84,36 @@ pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
         .collect()
 }
 
-fn default_modes() -> Vec<(&'static str, Options)> {
+fn default_modes() -> Vec<(&'static str, Options<YamlExtraOptions>)> {
     vec![
-        ("default behavior", Options::new_no_nonce()),
+        ("default behavior", Options::new_yaml()),
+        (
+            "default behavior except no random trailer",
+            partial_deser::Options::new_yaml().disable_random_tag(),
+        ),
         (
             "default behavior, 0 backtracks",
-            Options::new_no_nonce().with_max_n_backtracks(Some(0)),
+            Options::new_yaml().with_max_n_backtracks(Some(0)),
         ),
         (
             "no fallbacks, 0 backtracks",
-            Options::new_no_nonce()
+            Options::new_yaml()
                 .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
                 .with_max_n_backtracks(Some(0)),
         ),
         (
             "no fallbacks, 1 backtracks",
-            Options::new_no_nonce()
+            Options::new_yaml()
                 .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
                 .with_max_n_backtracks(Some(1)),
         ),
         (
             "default behavior, 1 backtracks",
-            Options::new_no_nonce().with_max_n_backtracks(Some(1)),
+            Options::new_yaml().with_max_n_backtracks(Some(1)),
         ),
         (
             "strict behavior",
-            Options::new_no_nonce().custom_behavior(UnstableCustomBehavior::strict()),
+            Options::new_yaml().custom_behavior(UnstableCustomBehavior::strict()),
         ),
     ]
 }

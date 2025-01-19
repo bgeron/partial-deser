@@ -40,7 +40,7 @@ fn test_toplevel_map() {
           "ghi": "jkl",
         }),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok({}),
         "{\"abc\": \"def\"": Ok({
           "abc": "def",
@@ -250,7 +250,7 @@ fn test_map() {
           },
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[{": Ok([
           {},

@@ -31,7 +31,7 @@ fn main() {
         dbg!(parsed);
     }
 
-    {
+    if false {
         let yaml = r#"
 - ["abc", "def"]
 - ["abc", "de

@@ -31,7 +31,7 @@ fn test_toplevel_tuple_struct() {
           true,
         ])),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "[[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 2 backtracks)"),
@@ -182,7 +182,7 @@ fn test_tuple_struct() {
           ]),
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[[true], [false], [": Ok([
           Tuple([
@@ -484,7 +484,7 @@ fn test_toplevel_tuple_struct_with_default() {
           true,
         ])),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "[[": Ok(TupleWithDefault([], [], [])),
@@ -665,7 +665,7 @@ fn test_tuple_struct_with_default() {
           ]),
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[[": Ok([
           TupleWithDefault([], [], []),

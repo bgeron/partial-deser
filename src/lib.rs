@@ -195,7 +195,7 @@ pub fn from_yaml_str<T>(yaml: &str) -> Result<T, Error<serde_yaml::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_yaml().from_yaml_str_borrowed(yaml)
+    Options::new_yaml().from_yaml_str(Cow::Borrowed(yaml))
 }
 
 /// Like [`from_yaml_str`], but for bytes.
@@ -206,7 +206,7 @@ pub fn from_yaml_slice<T>(yaml: &[u8]) -> Result<T, Error<serde_yaml::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_yaml().from_yaml_slice_borrowed(yaml)
+    Options::new_yaml().from_yaml_slice(Cow::Borrowed(yaml))
 }
 
 impl Options {
@@ -296,39 +296,27 @@ impl<Extra: ExtraOptions> Options<Extra> {
         T: for<'de> serde::de::Deserialize<'de>,
     {
         let prepared = self.prepare_slice_for_borrowed_deserialization(json);
-        self.from_json_slice_borrowed_unstable(&prepared)
+        self.from_json_slice_borrowed(&prepared)
     }
 
-    /// Like [`crate::from_yaml_str`], but with options, and it is able
-    /// to return borrowed strings into the source.
-    ///
-    /// This will not produce partial strings, because we don't have the
-    /// JSON string trick for YAML.
+    /// Like [`crate::from_yaml_str`], but with options.
     #[cfg(all(feature = "rand", feature = "serde_yaml"))]
-    pub fn from_yaml_str_borrowed<'de, T>(
-        self,
-        yaml: &'de str,
-    ) -> Result<T, Error<serde_yaml::Error>>
+    pub fn from_yaml_str<T>(self, yaml: Cow<str>) -> Result<T, Error<serde_yaml::Error>>
     where
-        T: serde::de::Deserialize<'de>,
+        T: for<'de> serde::de::Deserialize<'de>,
     {
-        self.deserialize_source(source::YamlStr(yaml))
+        let prepared = self.prepare_str_for_borrowed_deserialization(yaml);
+        self.from_yaml_str_borrowed(&prepared)
     }
 
-    /// Like [`crate::from_yaml_slice`], but with options, and it is able
-    /// to return borrowed strings into the source.
-    ///
-    /// This will not produce partial strings, because we don't have the
-    /// JSON string trick for YAML.
+    /// Like [`crate::from_yaml_slice`], but with options.
     #[cfg(all(feature = "rand", feature = "serde_yaml"))]
-    pub fn from_yaml_slice_borrowed<'de, T>(
-        self,
-        yaml: &'de [u8],
-    ) -> Result<T, Error<serde_yaml::Error>>
+    pub fn from_yaml_slice<T>(self, yaml: Cow<[u8]>) -> Result<T, Error<serde_yaml::Error>>
     where
-        T: serde::de::Deserialize<'de>,
+        T: for<'de> serde::de::Deserialize<'de>,
     {
-        self.deserialize_source(source::YamlBytes(yaml))
+        let prepared = self.prepare_slice_for_borrowed_deserialization(yaml);
+        self.from_yaml_slice_borrowed(&prepared)
     }
 
     /// Like [`Self::from_json_slice`], but can deserialize borrowed strings and return them
@@ -387,7 +375,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
     /// let options = partial_deser::Options::new_json();
     /// let prepared = options.prepare_str_for_borrowed_deserialization(json.into());
-    /// let modes: Vec<TravelMode> = options.from_json_str_borrowed_unstable(&prepared).unwrap();
+    /// let modes: Vec<TravelMode> = options.from_json_str_borrowed(&prepared).unwrap();
     /// assert_eq!(modes, [
     ///    TravelMode { mode: "foot", benefit: Some("healthy") },
     ///    TravelMode { mode: "aeropl", benefit: None }
@@ -404,11 +392,11 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.deserialize_source(source::JsonStr(prepared_json.as_ref()))
     }
 
-    /// See [`Self::from_json_str_borrowed_unstable`].
+    /// See [`Self::from_json_str_borrowed`].
     ///
     /// **Note: This API is relatively likely to change (more unstable) compared to [`Self::from_json_slice`].**
     #[cfg(feature = "serde_json")]
-    pub fn from_json_slice_borrowed_unstable<'de, T>(
+    pub fn from_json_slice_borrowed<'de, T>(
         self,
         InputPlusTrailer(prepared_json): &'de InputPlusTrailer<impl AsRef<[u8]>>,
     ) -> Result<T, Error<serde_json::Error>>
@@ -418,12 +406,32 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.deserialize_source(source::JsonBytes(prepared_json.as_ref()))
     }
 
-    /// Prepare a string for borrowed deserialization with [`Self::from_json_str_borrowed_unstable`].
+    #[cfg(feature = "serde_yaml")]
+    pub fn from_yaml_str_borrowed<'de, T>(
+        self,
+        InputPlusTrailer(prepared_yaml): &'de InputPlusTrailer<impl AsRef<str>>,
+    ) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(source::YamlStr(prepared_yaml.as_ref()))
+    }
+
+    #[cfg(feature = "serde_yaml")]
+    pub fn from_yaml_slice_borrowed<'de, T>(
+        self,
+        InputPlusTrailer(prepared_yaml): &'de InputPlusTrailer<impl AsRef<[u8]>>,
+    ) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(source::YamlBytes(prepared_yaml.as_ref()))
+    }
+
+    /// Prepare a string for borrowed deserialization with a method like [`Self::from_json_str_borrowed`].
     ///
-    /// This only appends to the input. And this returns a newtype wrapper, so you can undo
-    /// the effects yourself.
-    ///
-    /// **Note: This API is relatively likely to change (more unstable).**
+    /// This appends to the input, according to the random trailer method. And this returns a newtype
+    /// wrapper, so you can undo the effects yourself.
     #[cfg(feature = "rand")]
     pub fn prepare_str_for_borrowed_deserialization<'a>(
         &self,
@@ -440,12 +448,10 @@ impl<Extra: ExtraOptions> Options<Extra> {
         InputPlusTrailer(input)
     }
 
-    /// Prepare a slice for borrowed deserialization with [`Self::from_json_slice_borrowed_unstable`].
+    /// Prepare a slice for borrowed deserialization with a method like [`Self::from_json_slice_borrowed`].
     ///
-    /// This only appends to the input. And this returns a newtype wrapper, so you can undo
-    /// the effects yourself.
-    ///
-    /// **Note: This API is relatively likely to change (more unstable).**
+    /// This appends to the input, according to the random trailer method. And this returns a newtype
+    /// wrapper, so you can undo the effects yourself.
     #[cfg(feature = "rand")]
     pub fn prepare_slice_for_borrowed_deserialization<'a>(
         &self,

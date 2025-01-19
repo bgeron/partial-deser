@@ -23,7 +23,7 @@ fn test_unit_variant() {
           UnitVariant,
         ]),
       },
-      "default behavior except no JSON-specific tricks": {
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[\"UnitVariant\"": Ok([
           UnitVariant,

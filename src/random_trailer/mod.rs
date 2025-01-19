@@ -56,7 +56,7 @@ pub struct InputPlusTrailer<SliceType>(pub SliceType);
 
 /// Bytes and string types, which for serde_json may suffer from trailing data
 /// that wasn't present in the input.
-pub trait StringLike:std::fmt::Debug {
+pub trait StringLike: std::fmt::Debug {
     /// Length in bytes
     fn len(&self) -> usize;
     fn ends_with_string(&self, string: &str) -> bool;

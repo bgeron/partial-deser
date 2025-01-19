@@ -21,6 +21,16 @@ fn test_toplevel_newtype_struct() {
           (),
         ])),
       },
+      "default behavior except no random trailer": {
+        "": Ok(Newtype([])),
+        "[null": Ok(Newtype([
+          (),
+        ])),
+        "[null, null": Ok(Newtype([
+          (),
+          (),
+        ])),
+      },
       "default behavior, 0 backtracks": {
         "": Ok(Newtype([])),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
@@ -76,6 +86,37 @@ fn test_newtype_struct() {
         @r###"
     {
       "default behavior": {
+        "": Ok([]),
+        "[[": Ok([
+          Newtype([]),
+        ]),
+        "[[], [": Ok([
+          Newtype([]),
+          Newtype([]),
+        ]),
+        "[[], [null": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+          ]),
+        ]),
+        "[[], [null, null": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+            (),
+          ]),
+        ]),
+        "[[], [null, null], [": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+            (),
+          ]),
+          Newtype([]),
+        ]),
+      },
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           Newtype([]),
@@ -215,6 +256,27 @@ fn test_newtype_struct_fail() {
         @r###"
     {
       "default behavior": {
+        "": Ok([]),
+        "[[": Ok([
+          Newtype([]),
+        ]),
+        "[[], [": Ok([
+          Newtype([]),
+          Newtype([]),
+        ]),
+        "[[], [null": Ok([
+          Newtype([]),
+          Newtype([
+            (),
+          ]),
+        ]),
+        "[[], [null n": Ok([
+          Newtype([]),
+          Newtype([]),
+        ]),
+        "final output matches serde_json?": "serde_json failed",
+      },
+      "default behavior except no random trailer": {
         "": Ok([]),
         "[[": Ok([
           Newtype([]),
