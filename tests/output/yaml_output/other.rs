@@ -8,7 +8,7 @@ fn test_tolerate_trailing_whitespace_like_serde_json() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null": Ok([
+        "[null]": Ok([
           (),
         ]),
       },
@@ -26,27 +26,27 @@ fn test_tolerate_trailing_whitespace_like_serde_json() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[null]": Ok([
           (),
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[null": Ok([
+        "": Ok([]),
+        "[null]": Ok([
           (),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null": Ok([
+        "[null]": Ok([
           (),
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[null]": Ok([
           (),
         ]),
@@ -63,17 +63,17 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null": Ok([
+        "[null]": Ok([
           (),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior except no random trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
@@ -81,37 +81,38 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
         "[null]": Ok([
           (),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[null]": Ok([
           (),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[null": Ok([
-          (),
-        ]),
-        "final output matches serde_json?": "serde_json failed",
-      },
-      "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null": Ok([
-          (),
-        ]),
-        "final output matches serde_json?": "serde_json failed",
-      },
-      "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[null]": Ok([
           (),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
+      },
+      "default behavior, 1 backtracks": {
+        "": Ok([]),
+        "[null]": Ok([
+          (),
+        ]),
+        "final output matches serde_yaml?": "serde_yaml failed",
+      },
+      "strict behavior": {
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[null]": Ok([
+          (),
+        ]),
+        "[null]  j": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
     }
     "### )
@@ -133,19 +134,22 @@ fn test_toplevel_unit() {
         "": Ok(()),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "null": Ok(()),
+        "": Ok(()),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "no",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "null": Ok(()),
+        "": Ok(()),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "no",
       },
       "default behavior, 1 backtracks": {
         "": Ok(()),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "null": Ok(()),
+        "": Ok(()),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "no",
       },
     }
     "###)
@@ -159,10 +163,10 @@ fn test_unit() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null": Ok([
+        "[null,": Ok([
           (),
         ]),
-        "[null, null": Ok([
+        "[null, null]": Ok([
           (),
           (),
         ]),
@@ -186,7 +190,7 @@ fn test_unit() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[null, null]": Ok([
           (),
@@ -194,28 +198,28 @@ fn test_unit() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[null": Ok([
+        "": Ok([]),
+        "[null,": Ok([
           (),
         ]),
-        "[null, null": Ok([
+        "[null, null]": Ok([
           (),
           (),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null": Ok([
+        "[null,": Ok([
           (),
         ]),
-        "[null, null": Ok([
+        "[null, null]": Ok([
           (),
           (),
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[null, null]": Ok([
           (),
           (),

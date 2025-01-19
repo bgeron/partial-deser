@@ -11,14 +11,14 @@ struct TagSuffix<'a> {
 impl Display for TagSuffix<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if self.add_backslash {
-            f.write_str("\\#")?;
+            f.write_str("\\ #")?;
         } else {
-            f.write_str("#\\\\")?;
+            f.write_str(" #\\\\")?;
         }
         write!(f, r#" # \"{}' # ""#, self.tag)
     }
 }
-const EXTRA_BYTES_IN_PARSED_SINGLE_QUOTED_STRING: usize = 8;
+const EXTRA_BYTES_IN_PARSED_SINGLE_QUOTED_STRING: usize = 9;
 const TRAILER_FOR_DOUBLE_QUOTED_STRING: &str = "' # ";
 const MINUS_BYTES_ON_TOP_FOR_DOUBLE_QUOTED_STRING: usize = 2;
 
@@ -39,7 +39,6 @@ impl RandomTrailer for YamlRandomTrailer {
     }
 
     fn remove_trailer(&self, string_like: &mut impl StringLike, tag: &str) -> bool {
-        dbg!(&string_like);
         if string_like.ends_with_string(tag) {
             // Single-quoted string
             let target_len =
@@ -51,9 +50,9 @@ impl RandomTrailer for YamlRandomTrailer {
             // Double-quoted string
             let target_len = string_like.len()
                 - tag.len()
-                - EXTRA_BYTES_IN_PARSED_SINGLE_QUOTED_STRING
-                - TRAILER_FOR_DOUBLE_QUOTED_STRING.len()
-                + MINUS_BYTES_ON_TOP_FOR_DOUBLE_QUOTED_STRING;
+                - (EXTRA_BYTES_IN_PARSED_SINGLE_QUOTED_STRING
+                    - MINUS_BYTES_ON_TOP_FOR_DOUBLE_QUOTED_STRING)
+                - TRAILER_FOR_DOUBLE_QUOTED_STRING.len();
 
             string_like.truncate_to_bytes(target_len);
             true

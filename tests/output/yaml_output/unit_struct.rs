@@ -21,19 +21,22 @@ fn test_toplevel_unit_struct() {
         "": Ok(UnitStruct),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "null": Ok(UnitStruct),
+        "": Ok(UnitStruct),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "no",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "null": Ok(UnitStruct),
+        "": Ok(UnitStruct),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "no",
       },
       "default behavior, 1 backtracks": {
         "": Ok(UnitStruct),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "null": Ok(UnitStruct),
+        "": Ok(UnitStruct),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "no",
       },
     }
     "###
@@ -48,31 +51,34 @@ fn test_toplevel_unit_struct_fail() {
     {
       "default behavior": {
         "": Ok(UnitStruct),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior except no random trailer": {
         "": Ok(UnitStruct),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok(UnitStruct),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "": Ok(UnitStruct),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "": Ok(UnitStruct),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok(UnitStruct),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "": Ok(UnitStruct),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
     }
     "###
@@ -87,46 +93,46 @@ fn test_unit_struct_fallible() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null": Ok([
+        "[null,": Ok([
           UnitStruct,
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior except no random trailer": {
         "": Ok([]),
         "[null": Ok([
           UnitStruct,
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
-        "[null": Ok([
+        "": Ok([]),
+        "[null,": Ok([
           UnitStruct,
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null": Ok([
+        "[null,": Ok([
           UnitStruct,
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
     }
     "###

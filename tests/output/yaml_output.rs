@@ -51,7 +51,7 @@ pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
                     .map_err(|err| err.to_string())
             });
 
-            let last_output_matches_serde_json_friendly =
+            let last_output_matches_serde_yaml_friendly =
                 match reference_official.as_ref().map(|reference| {
                     Ok(reference)
                         == inputs_outputs
@@ -62,11 +62,11 @@ pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
                 }) {
                     Some(true) => None,
                     Some(false) => Some("no"),
-                    None => Some("serde_json failed"),
+                    None => Some("serde_yaml failed"),
                 };
-            let trailing_line = (last_output_matches_serde_json_friendly).map(|friendly| {
+            let trailing_line = (last_output_matches_serde_yaml_friendly).map(|friendly| {
                 (
-                    Cow::Borrowed("final output matches serde_json?"),
+                    Cow::Borrowed("final output matches serde_yaml?"),
                     Box::new(friendly) as BoxSerialize,
                 )
             });

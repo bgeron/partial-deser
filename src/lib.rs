@@ -51,7 +51,7 @@
 //!
 //! ## Caveats
 //!
-//! The JSON trick can sometimes TODO (but we disabled fallbacks as appropriate?)
+//! - YAML is less exhaustively tested
 //!
 //! ## Criteria
 //!

@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use partial_deser::unstable::UnstableCustomBehavior;
 use tracing::level_filters::LevelFilter;
 
@@ -28,6 +30,12 @@ fn main() {
         
 # '"#;
         let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
+        dbg!(parsed);
+    }
+
+    {
+        let yaml = r#"null"#;
+        let parsed: Option<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 

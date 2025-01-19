@@ -961,7 +961,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior except no random trailer": {
         "": Ok([]),
@@ -1089,7 +1089,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
@@ -1223,7 +1223,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
@@ -1252,7 +1252,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
@@ -1383,7 +1383,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
@@ -1513,7 +1513,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
@@ -1541,7 +1541,7 @@ fn test_struct_with_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
     }
     "###)
@@ -1674,7 +1674,7 @@ fn test_struct_with_all_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior except no random trailer": {
         "": Ok([]),
@@ -1712,7 +1712,7 @@ fn test_struct_with_all_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
@@ -1755,12 +1755,12 @@ fn test_struct_with_all_defaults() {
           ),
         ]),
         "[{\"x\": [true]}, {\"x\": [false]}": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 0 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 1 backtracks": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
@@ -1799,7 +1799,7 @@ fn test_struct_with_all_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
@@ -1837,11 +1837,11 @@ fn test_struct_with_all_defaults() {
             ],
           ),
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "strict behavior": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
     }
     "###)

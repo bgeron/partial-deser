@@ -15,7 +15,7 @@ fn test_seq() {
           [],
           [],
         ]),
-        "[[], [true": Ok([
+        "[[], [true]": Ok([
           [],
           [
             true,
@@ -28,7 +28,7 @@ fn test_seq() {
           ],
           [],
         ]),
-        "[[], [true], [false": Ok([
+        "[[], [true], [false]": Ok([
           [],
           [
             true,
@@ -105,7 +105,7 @@ fn test_seq() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[], [true], [false], []]": Ok([
           [],
@@ -119,8 +119,7 @@ fn test_seq() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[[": Ok([
           [],
         ]),
@@ -128,7 +127,7 @@ fn test_seq() {
           [],
           [],
         ]),
-        "[[], [true": Ok([
+        "[[], [true]": Ok([
           [],
           [
             true,
@@ -141,7 +140,7 @@ fn test_seq() {
           ],
           [],
         ]),
-        "[[], [true], [false": Ok([
+        "[[], [true], [false]": Ok([
           [],
           [
             true,
@@ -170,7 +169,7 @@ fn test_seq() {
           [],
           [],
         ]),
-        "[[], [true": Ok([
+        "[[], [true]": Ok([
           [],
           [
             true,
@@ -183,7 +182,7 @@ fn test_seq() {
           ],
           [],
         ]),
-        "[[], [true], [false": Ok([
+        "[[], [true], [false]": Ok([
           [],
           [
             true,
@@ -204,7 +203,8 @@ fn test_seq() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[[], [true], [false], []]": Ok([
           [],
           [
@@ -234,12 +234,12 @@ fn test_seq_cannot_parse_after_invalid() {
         "[[": Ok([
           [],
         ]),
-        "[[true": Ok([
+        "[[true]": Ok([
           [
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior except no random trailer": {
         "": Ok([]),
@@ -251,46 +251,46 @@ fn test_seq_cannot_parse_after_invalid() {
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[[": Ok([
           [],
         ]),
-        "[[true": Ok([
+        "[[true]": Ok([
           [
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
         "[[": Ok([
           [],
         ]),
-        "[[true": Ok([
+        "[[true]": Ok([
           [
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "final output matches serde_yaml?": "serde_yaml failed",
       },
     }
     "###
@@ -310,12 +310,25 @@ fn test_seq_cannot_parse_after_trailing_comma() {
         "[[": Ok([
           [],
         ]),
-        "[[true": Ok([
+        "[[true,": Ok([
           [
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "[[true,], [": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[true,], [false]": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
       "default behavior except no random trailer": {
         "": Ok([]),
@@ -327,46 +340,106 @@ fn test_seq_cannot_parse_after_trailing_comma() {
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "[[true,], [": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[true,], [false": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "[[true,], [false]]": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "[[true,], [false]]": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[[": Ok([
           [],
         ]),
-        "[[true": Ok([
+        "[[true,": Ok([
           [
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "[[true,], [": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[true,], [false]": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
         "[[": Ok([
           [],
         ]),
-        "[[true": Ok([
+        "[[true,": Ok([
           [
             true,
           ],
         ]),
-        "final output matches serde_json?": "serde_json failed",
+        "[[true,], [": Ok([
+          [
+            true,
+          ],
+          [],
+        ]),
+        "[[true,], [false]": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_json?": "serde_json failed",
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "[[true,], [false]]": Ok([
+          [
+            true,
+          ],
+          [
+            false,
+          ],
+        ]),
       },
     }
     "###
