@@ -7,11 +7,20 @@ use crate::UnstableCustomBehavior;
 #[derive(Debug)]
 pub struct FallbackContext {
     pub(crate) is_at_root: bool,
+    pub(crate) is_for_map_value: bool,
 }
 
 impl FallbackContext {
     pub fn is_at_root(&self) -> bool {
         self.is_at_root
+    }
+
+    pub fn is_for_map_value(&self) -> bool {
+        self.is_for_map_value
+    }
+
+    pub fn is_at_mandatory(&self) -> bool {
+        self.is_at_root() || self.is_for_map_value()
     }
 }
 
@@ -294,8 +303,8 @@ impl Fallbacks for DefaultFallbacks {
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
-            if context.is_at_root() {
-                self.behavior.unstable_fallback_none_at_root
+            if context.is_at_mandatory() {
+                self.behavior.unstable_fallback_none_at_mandatory
             } else {
                 self.behavior.unstable_fallback_none
             },
@@ -309,8 +318,8 @@ impl Fallbacks for DefaultFallbacks {
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
-            if context.is_at_root() {
-                self.behavior.unstable_fallback_unit_at_root
+            if context.is_at_mandatory() {
+                self.behavior.unstable_fallback_unit_at_mandatory
             } else {
                 self.behavior.unstable_fallback_unit
             },
@@ -324,8 +333,8 @@ impl Fallbacks for DefaultFallbacks {
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
-            if context.is_at_root() {
-                self.behavior.unstable_fallback_unit_struct_at_root
+            if context.is_at_mandatory() {
+                self.behavior.unstable_fallback_unit_struct_at_mandatory
             } else {
                 self.behavior.unstable_fallback_unit_struct
             },

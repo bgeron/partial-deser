@@ -8,7 +8,7 @@ fn test_tolerate_trailing_whitespace_like_serde_yaml() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null]": Ok([
+        "[null": Ok([
           (),
         ]),
       },
@@ -34,13 +34,13 @@ fn test_tolerate_trailing_whitespace_like_serde_yaml() {
       },
       "no fallbacks, 1 backtracks": {
         "": Ok([]),
-        "[null]": Ok([
+        "[null": Ok([
           (),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null]": Ok([
+        "[null": Ok([
           (),
         ]),
       },
@@ -63,7 +63,7 @@ fn test_tolerate_trailing_junk_unlike_serde_yaml() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null]": Ok([
+        "[null": Ok([
           (),
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
@@ -93,14 +93,14 @@ fn test_tolerate_trailing_junk_unlike_serde_yaml() {
       },
       "no fallbacks, 1 backtracks": {
         "": Ok([]),
-        "[null]": Ok([
+        "[null": Ok([
           (),
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null]": Ok([
+        "[null": Ok([
           (),
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
@@ -136,12 +136,12 @@ fn test_toplevel_unit() {
       "no fallbacks, 0 backtracks": {
         "": Ok(()),
         "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_yaml?": "no",
+        "null": Ok(()),
       },
       "no fallbacks, 1 backtracks": {
         "": Ok(()),
         "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_yaml?": "no",
+        "null": Ok(()),
       },
       "default behavior, 1 backtracks": {
         "": Ok(()),
@@ -149,7 +149,7 @@ fn test_toplevel_unit() {
       "strict behavior": {
         "": Ok(()),
         "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "final output matches serde_yaml?": "no",
+        "null": Ok(()),
       },
     }
     "###)
@@ -163,10 +163,10 @@ fn test_unit() {
     {
       "default behavior": {
         "": Ok([]),
-        "[null,": Ok([
+        "[null": Ok([
           (),
         ]),
-        "[null, null]": Ok([
+        "[null, null": Ok([
           (),
           (),
         ]),
@@ -199,20 +199,20 @@ fn test_unit() {
       },
       "no fallbacks, 1 backtracks": {
         "": Ok([]),
-        "[null,": Ok([
+        "[null": Ok([
           (),
         ]),
-        "[null, null]": Ok([
+        "[null, null": Ok([
           (),
           (),
         ]),
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[null,": Ok([
+        "[null": Ok([
           (),
         ]),
-        "[null, null]": Ok([
+        "[null, null": Ok([
           (),
           (),
         ]),
@@ -239,31 +239,38 @@ fn test_toplevel_none() {
         @r###"
     {
       "default behavior": {
-        "": Ok(Some([])),
-        "n": Ok(None),
+        "": Ok(None),
+        "n": Ok(Some([])),
+        "null": Ok(None),
       },
       "default behavior except no random trailer": {
-        "": Ok(Some([])),
-        "n": Ok(None),
+        "": Ok(None),
+        "n": Ok(Some([])),
+        "null": Ok(None),
       },
       "default behavior, 0 backtracks": {
-        "": Ok(Some([])),
-        "n": Ok(None),
+        "": Ok(None),
+        "n": Ok(Some([])),
+        "null": Ok(None),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok(None),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "null": Ok(None),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok(None),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "null": Ok(None),
       },
       "default behavior, 1 backtracks": {
-        "": Ok(Some([])),
-        "n": Ok(None),
+        "": Ok(None),
+        "n": Ok(Some([])),
+        "null": Ok(None),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok(None),
+        "n": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "null": Ok(None),
       },
     }
@@ -278,7 +285,7 @@ fn test_option() {
     {
       "default behavior": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           None,
         ]),
         "[null, [": Ok([
@@ -315,7 +322,7 @@ fn test_option() {
             false,
           ]),
         ]),
-        "[null, [], [true], [false], n": Ok([
+        "[null, [], [true], [false], null": Ok([
           None,
           Some([]),
           Some([
@@ -329,7 +336,7 @@ fn test_option() {
       },
       "default behavior except no random trailer": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           None,
         ]),
         "[null, [": Ok([
@@ -366,7 +373,7 @@ fn test_option() {
             false,
           ]),
         ]),
-        "[null, [], [true], [false], n": Ok([
+        "[null, [], [true], [false], null": Ok([
           None,
           Some([]),
           Some([
@@ -381,22 +388,6 @@ fn test_option() {
       "default behavior, 0 backtracks": {
         "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[n": Ok([
-          None,
-        ]),
-        "[null": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[null, [], [true], [false], n": Ok([
-          None,
-          Some([]),
-          Some([
-            true,
-          ]),
-          Some([
-            false,
-          ]),
-          None,
-        ]),
-        "[null, [], [true], [false], null": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[null, [], [true], [false], null]": Ok([
           None,
           Some([]),
@@ -410,7 +401,7 @@ fn test_option() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[null, [], [true], [false], null]": Ok([
           None,
@@ -425,8 +416,7 @@ fn test_option() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[null": Ok([
           None,
         ]),
@@ -478,7 +468,7 @@ fn test_option() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[n": Ok([
+        "[null": Ok([
           None,
         ]),
         "[null, [": Ok([
@@ -515,7 +505,7 @@ fn test_option() {
             false,
           ]),
         ]),
-        "[null, [], [true], [false], n": Ok([
+        "[null, [], [true], [false], null": Ok([
           None,
           Some([]),
           Some([
@@ -528,7 +518,8 @@ fn test_option() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[null, [], [true], [false], null]": Ok([
           None,
           Some([]),

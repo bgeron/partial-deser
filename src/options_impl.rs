@@ -205,7 +205,7 @@ pub struct UnstableCustomBehavior {
     /// In case [`Deserializer::deserialize_option`] does not do anything, then
     /// just go in and visit a None.
     pub unstable_fallback_none: bool,
-    pub unstable_fallback_none_at_root: bool,
+    pub unstable_fallback_none_at_mandatory: bool,
     /// In case [`Deserializer::deserialize_unit`] does not do anything, then
     /// just go in and visit a unit.
     ///
@@ -214,7 +214,7 @@ pub struct UnstableCustomBehavior {
     /// In combination with the JSON string trick, this can sometimes generate spurious
     /// list elements.
     pub unstable_fallback_unit: bool,
-    pub unstable_fallback_unit_at_root: bool,
+    pub unstable_fallback_unit_at_mandatory: bool,
 
     /// In case [`Deserializer::deserialize_unit_struct`] does not do anything, then
     /// just go in and visit a unit struct.
@@ -224,7 +224,7 @@ pub struct UnstableCustomBehavior {
     /// In combination with the JSON string trick, this can sometimes generate spurious
     /// list elements.
     pub unstable_fallback_unit_struct: bool,
-    pub unstable_fallback_unit_struct_at_root: bool,
+    pub unstable_fallback_unit_struct_at_mandatory: bool,
 
     // pub unstable_backtrack_unit_struct: bool,
     pub unstable_fallback_seq_empty: bool,
@@ -296,12 +296,12 @@ impl Default for UnstableCustomBehavior {
             unstable_fallback_bytes_empty: false,
             // unstable_backtrack_bytes_empty: false,
             unstable_fallback_none: true,
-            unstable_fallback_none_at_root: true,
+            unstable_fallback_none_at_mandatory: true,
             unstable_fallback_unit: false,
-            unstable_fallback_unit_at_root: true,
+            unstable_fallback_unit_at_mandatory: true,
             // unstable_backtrack_unit: true,
             unstable_fallback_unit_struct: false,
-            unstable_fallback_unit_struct_at_root: true,
+            unstable_fallback_unit_struct_at_mandatory: true,
             // unstable_backtrack_unit_struct: true,
             unstable_fallback_seq_empty: false,
             unstable_fallback_seq_empty_at_root: true,
@@ -347,11 +347,11 @@ impl UnstableCustomBehavior {
             unstable_fallback_default_str,
             unstable_fallback_bytes_empty,
             unstable_fallback_none,
-            unstable_fallback_none_at_root,
+            unstable_fallback_none_at_mandatory,
             unstable_fallback_unit,
-            unstable_fallback_unit_at_root,
+            unstable_fallback_unit_at_mandatory,
             unstable_fallback_unit_struct,
-            unstable_fallback_unit_struct_at_root,
+            unstable_fallback_unit_struct_at_mandatory,
             unstable_fallback_seq_empty,
             unstable_fallback_seq_empty_at_root,
             unstable_backtrack_seq_empty_for_value: _,
@@ -389,11 +389,11 @@ impl UnstableCustomBehavior {
         *unstable_fallback_default_str = None;
         *unstable_fallback_bytes_empty = false;
         *unstable_fallback_none = false;
-        *unstable_fallback_none_at_root = false;
+        *unstable_fallback_none_at_mandatory = false;
         *unstable_fallback_unit = false;
-        *unstable_fallback_unit_at_root = false;
+        *unstable_fallback_unit_at_mandatory = false;
         *unstable_fallback_unit_struct = false;
-        *unstable_fallback_unit_struct_at_root = false;
+        *unstable_fallback_unit_struct_at_mandatory = false;
         *unstable_fallback_seq_empty = false;
         *unstable_fallback_seq_empty_at_root = false;
         *unstable_fallback_seq_skip_item = false;
@@ -436,12 +436,12 @@ impl UnstableCustomBehavior {
             unstable_fallback_bytes_empty: false,
             // unstable_backtrack_bytes_empty: false,
             unstable_fallback_none: false,
-            unstable_fallback_none_at_root: false,
+            unstable_fallback_none_at_mandatory: false,
             unstable_fallback_unit: false,
-            unstable_fallback_unit_at_root: false,
+            unstable_fallback_unit_at_mandatory: false,
             // unstable_backtrack_unit: false,
             unstable_fallback_unit_struct: false,
-            unstable_fallback_unit_struct_at_root: false,
+            unstable_fallback_unit_struct_at_mandatory: false,
             // unstable_backtrack_unit_struct: false,
             unstable_fallback_seq_empty: false,
             unstable_fallback_seq_empty_at_root: false,
@@ -493,12 +493,12 @@ impl UnstableCustomBehavior {
             unstable_fallback_bytes_empty: true,
             // unstable_backtrack_bytes_empty: true,
             unstable_fallback_none: true,
-            unstable_fallback_none_at_root: true,
+            unstable_fallback_none_at_mandatory: true,
             unstable_fallback_unit: true,
-            unstable_fallback_unit_at_root: true,
+            unstable_fallback_unit_at_mandatory: true,
             // unstable_backtrack_unit: true,
             unstable_fallback_unit_struct: true,
-            unstable_fallback_unit_struct_at_root: true,
+            unstable_fallback_unit_struct_at_mandatory: true,
             // unstable_backtrack_unit_struct: true,
             unstable_fallback_seq_empty: true,
             unstable_fallback_seq_empty_at_root: true,

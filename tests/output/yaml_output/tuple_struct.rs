@@ -279,7 +279,7 @@ fn test_tuple_struct() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[true], [false], [true]": Ok([
           Tuple([
@@ -326,8 +326,7 @@ fn test_tuple_struct() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[true], [false], [": Ok([
           Tuple([
@@ -429,7 +428,8 @@ fn test_tuple_struct() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
           Tuple([
             true,
@@ -792,7 +792,7 @@ fn test_tuple_struct_with_default() {
         ]),
       },
       "no fallbacks, 0 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[true], [false], [true]": Ok([
           TupleWithDefault([
@@ -839,8 +839,7 @@ fn test_tuple_struct_with_default() {
         ]),
       },
       "no fallbacks, 1 backtracks": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
-        "[": Ok([]),
+        "": Ok([]),
         "[[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[[[": Ok([
           TupleWithDefault([], [], []),
@@ -1002,7 +1001,8 @@ fn test_tuple_struct_with_default() {
         ]),
       },
       "strict behavior": {
-        "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
+        "": Ok([]),
+        "[": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "[[[true], [false], [true]], [[false], [true], [false]]]": Ok([
           TupleWithDefault([
             true,

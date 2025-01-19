@@ -63,6 +63,7 @@ where
         deserializer.global.reporter.report_start_fallback();
         let context = FallbackContext {
             is_at_root: deserializer.is_at_root,
+            is_for_map_value: deserializer.is_for_map_value,
         };
         let take_visitor =
             make_fnonce(|| visitor.take().expect("a Some can be .take()n in an FnOnce"));
