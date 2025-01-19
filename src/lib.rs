@@ -51,7 +51,8 @@
 //!
 //! ## Caveats
 //!
-//! - YAML works very well too, but is a bit less exhaustively tested
+//! - YAML works very well too, but is a bit less exhaustively tested,
+//!   and contains some nonmonotonicity ("flickering").
 //!
 //! ## Criteria
 //!
