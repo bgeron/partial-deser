@@ -8,7 +8,7 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
 
-#[path = "parse/generic/mod.rs"]
+#[path = "../parse/generic/mod.rs"]
 mod generic;
 
 use generic::format::FormatAndSettings;
