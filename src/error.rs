@@ -32,9 +32,13 @@ pub(crate) enum ErrorImpl<DeserializerErr> {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum InternalError {
-    #[error("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)")]
+    #[error(
+        "the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"
+    )]
     TooManyBacktracks,
-    #[error("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after {after_backtracks} backtracks)")]
+    #[error(
+        "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after {after_backtracks} backtracks)"
+    )]
     NoPotentialBacktrackPoint { after_backtracks: usize },
     #[error("bug in {pkg} (please report): {0}", pkg = std::env!("CARGO_PKG_NAME"))]
     Bug(Bug),
@@ -210,14 +214,14 @@ where
 
 impl<DeserializerErr> Error<DeserializerErr>
 where
-    DeserializerErr: std::error::Error + 'static,
+    DeserializerErr: std::error::Error + Send + Sync + 'static,
 {
-    pub fn erase(self) -> Error<Box<dyn std::error::Error>> {
+    pub fn erase(self) -> Error<Box<dyn std::error::Error + Send + Sync>> {
         let inner = *self.err;
 
         let err = Box::new(match inner {
             ErrorImpl::Deserializer(err) => {
-                ErrorImpl::Deserializer(Box::new(err) as Box<dyn std::error::Error>)
+                ErrorImpl::Deserializer(Box::new(err) as Box<dyn std::error::Error + Send + Sync>)
             }
             ErrorImpl::Internal(err) => ErrorImpl::Internal(err),
             ErrorImpl::InconsistentDeserializer(err) => ErrorImpl::InconsistentDeserializer(err),

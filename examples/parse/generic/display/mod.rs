@@ -1,9 +1,7 @@
-use std::default;
-
 use clap::ValueEnum;
-use serde::{Deserialize, Serialize};
+use futures::future::BoxFuture;
 
-use super::format::{FormatAndSettings, ParseResult, Parsed};
+use super::format::ParseResult;
 
 mod debug;
 mod nu;
@@ -20,24 +18,23 @@ pub enum Display {
 
 impl Display {
     /// Display types need to be initialized to do some startup.
-    pub fn init(method: &Option<Self>) -> Box<dyn ActiveDisplay> {
+    pub async fn init(method: &Option<Self>) -> Box<dyn ActiveDisplay> {
         match method {
             None => {
                 // Autodetect nu. Otherwise fall back to debug.
-                match nu::Display::new_if_nu_installed() {
+                match nu::Display::new_if_nu_installed().await {
                     Some(nu) => Box::new(nu),
                     None => Box::new(debug::Display {
                         prefix: "Nushell does not seem to be present, falling back to Debug.\n\n",
                     }),
                 }
             }
-            _ => todo!(),
-            // Some(Display::Nushell) => Box::new(nu::Display),
-            // Some(Display::Debug) => Box::new(debug::Display),
+            Some(Display::Nushell) => Box::new(nu::Display::new_always()),
+            Some(Display::Debug) => Box::new(debug::Display { prefix: "" }),
         }
     }
 }
 
-pub trait ActiveDisplay {
-    fn display(&mut self, value: &ParseResult) -> String;
+pub trait ActiveDisplay: Send {
+    fn display(&mut self, value: ParseResult) -> BoxFuture<String>;
 }

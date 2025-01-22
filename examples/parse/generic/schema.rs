@@ -1,5 +1,3 @@
-use std::default;
-
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 
@@ -11,22 +9,25 @@ use super::format::{FormatAndSettings, ParseResult};
 /// adds fields) and smaller (when a partial list element isn't parseable at all).
 #[derive(Debug, Clone, ValueEnum, Default)]
 pub enum Schema {
+    /// Any JSON value.
     #[default]
     Any,
-    TravelMode,
+    /// A list of structs with mode and benefit fields, both strings.
+    TravelModes,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
+#[serde(default)]
 struct TravelMode {
     mode: String,
     benefit: Option<String>,
 }
 
 impl Schema {
-    pub fn parse(&self, format: FormatAndSettings, input: &[u8]) -> ParseResult {
+    pub fn parse(&self, format: &FormatAndSettings, input: &[u8]) -> ParseResult {
         match self {
             Schema::Any => format.parse::<serde_json::Value>(input),
-            Schema::TravelMode => format.parse::<TravelMode>(input),
+            Schema::TravelModes => format.parse::<Vec<TravelMode>>(input),
         }
     }
 }

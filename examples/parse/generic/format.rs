@@ -12,7 +12,7 @@ pub enum FormatAndSettings {
     Yaml,
 }
 
-pub type ParseResult = Result<Box<dyn Parsed>, Error<Box<dyn std::error::Error>>>;
+pub type ParseResult = Result<Box<dyn Parsed>, Error<Box<dyn std::error::Error + Send + Sync>>>;
 
 impl FormatAndSettings {
     pub fn parse<P>(&self, input: &[u8]) -> ParseResult
@@ -37,7 +37,7 @@ impl FormatAndSettings {
     }
 }
 
-pub trait Parsed: Debug + erased_serde::Serialize {}
+pub trait Parsed: Debug + erased_serde::Serialize + Send + Sync {}
 erased_serde::serialize_trait_object!(Parsed);
 
-impl<T> Parsed for T where T: Debug + serde::Serialize {}
+impl<T> Parsed for T where T: Debug + serde::Serialize + Send + Sync {}

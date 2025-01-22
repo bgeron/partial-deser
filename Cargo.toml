@@ -23,17 +23,21 @@ tracing = { version = "0.1", optional = true }
 [dev-dependencies]
 anyhow = "1.0.95"
 clap = { version = "4.5.26", features = ["derive"] }
+crossterm = { version = "0.28.1", features = ["event-stream"] }
 erased-serde = "0.4.5"
 futures = "0.3.31"
 indexmap = { version = "2.7.0", features = ["serde"] }
 interprocess = "2.2.2"
 itertools = "0.13.0"
+ratatui = { version = "0.29.0", features = ["document-features"] }
 ron = "0.7"
 serde = { version = "1", features = ["derive"]}
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1.43.0", features = ["fs", "io-std", "io-util", "macros", "process", "rt", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.17", features = ["io-util"] }
+tokio-util = { version = "0.7.13", features = ["io"] }
 tracing-subscriber = "0.3"
+tui-textarea = "0.7.0"
 
 [[test]]
 name = "output"

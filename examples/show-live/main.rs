@@ -10,13 +10,14 @@ use tracing::level_filters::LevelFilter;
 
 #[path = "../parse/generic/mod.rs"]
 mod generic;
+mod tui;
 
 use generic::format::FormatAndSettings;
 use generic::schema::Schema;
 
 /// Parse input JSON incrementally as it comes in, and show the results
 /// live in the terminal.
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about=None)]
 struct Args {
     display: Option<Display>,
@@ -39,7 +40,8 @@ struct Args {
     use_random_trailer: bool,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::fmt()
         .pretty()
         .compact()
@@ -50,11 +52,5 @@ fn main() {
 
     let args = Args::parse();
 
-    let mut display = generic::display::Display::init(&args.display);
-
-    let mut input = String::new();
-    std::io::stdin().read_to_string(&mut input).unwrap();
-
-    let result = args.schema.parse(args.format, input.as_bytes());
-    dbg!(display.display(&result));
+    tui::main(args).await
 }
