@@ -50,13 +50,13 @@ fn main() {
 
     {
         let yaml = r#"{"x": [true], "y": [false], "z":"#;
-        let parsed: Struct = partial_deser::from_yaml_str(&yaml).unwrap();
+        let parsed: Struct = partial_deser::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = r#"["#;
-        let parsed: Vec<Vec<bool>> = partial_deser::from_json_str(&json).unwrap();
+        let parsed: Vec<Vec<bool>> = partial_deser::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 

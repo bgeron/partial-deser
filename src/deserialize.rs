@@ -65,7 +65,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
                     return Err(InternalError::NoPotentialBacktrackPoint {
                         after_backtracks: state.n_backtracks,
                     }
-                    .into())
+                    .into());
                 }
             };
             state.n_backtracks += 1;

@@ -14,6 +14,7 @@
 //! #[derive(Debug, Deserialize, PartialEq)]
 //! struct TravelMode {
 //!    mode: String,
+//!    #[serde(default)]
 //!    benefit: Option<String>
 //! }
 //!
@@ -47,7 +48,11 @@
 //!
 //! Partial deserialization
 //!
-//! -
+//! - JSON: Number cannot end with floating point period
+//!
+//! - This approach lets us safely abort parsing and get a value, but
+//!   we cannot skip over invalid segments of input. (For that you need
+//!   an approach like tree-sitter.)
 //!
 //! ## Caveats
 //!

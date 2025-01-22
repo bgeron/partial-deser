@@ -120,7 +120,10 @@ impl<Extra: ExtraOptions> AttemptState<Extra> {
                 }))
             }
             None => {
-                debug!("no reason recorded for failure of deserialization attempt; please report a bug against {} if there is no bug report open", env!("CARGO_PKG_NAME"));
+                debug!(
+                    "no reason recorded for failure of deserialization attempt; please report a bug against {} if there is no bug report open",
+                    env!("CARGO_PKG_NAME")
+                );
                 Ok(None)
             }
             Some(Intervention {

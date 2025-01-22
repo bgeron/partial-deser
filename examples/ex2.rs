@@ -29,6 +29,7 @@ fn main() {
         #[derive(Debug, Deserialize, Serialize)]
         struct TravelMode {
             mode: String,
+            #[serde(default)]
             benefit: Option<String>,
         }
 
