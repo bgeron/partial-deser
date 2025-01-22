@@ -1,5 +1,5 @@
-use std::default;
 use std::fmt::Debug;
+use std::sync::Arc;
 
 use clap::ValueEnum;
 use partial_deser::Error;
@@ -12,7 +12,8 @@ pub enum FormatAndSettings {
     Yaml,
 }
 
-pub type ParseResult = Result<Box<dyn Parsed>, Error<Box<dyn std::error::Error + Send + Sync>>>;
+pub type ParseOk = Arc<dyn Parsed>;
+pub type ParseResult = Result<ParseOk, Error<Box<dyn std::error::Error + Send + Sync>>>;
 
 impl FormatAndSettings {
     pub fn parse<P>(&self, input: &[u8]) -> ParseResult
@@ -21,17 +22,19 @@ impl FormatAndSettings {
     {
         match self {
             FormatAndSettings::Json => partial_deser::from_json_slice::<P>(input)
-                .map(|ok| Box::new(ok) as Box<dyn Parsed>)
+                .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 
             #[cfg(feature = "serde_yaml")]
             FormatAndSettings::Yaml => partial_deser::from_yaml_slice::<P>(input)
-                .map(|ok| Box::new(ok) as Box<dyn Parsed>)
+                .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 
             #[cfg(not(feature = "serde_yaml"))]
             FormatAndSettings::Yaml => {
-                panic!("feature serde_yaml is not enabled (run cargo with --all-features)")
+                panic!(
+                    "Please enable --features serde_yaml to parse YAML, or run cargo with --all-features)"
+                )
             }
         }
     }

@@ -5,17 +5,17 @@ use crate::generic::format::ParseOk;
 
 use super::ActiveDisplay;
 
-pub struct Display {
-    pub prefix: &'static str,
-}
+pub struct Display;
 
 impl ActiveDisplay for Display {
     fn descriptor(&self) -> Option<&str> {
-        // It's kinda obvious that the output is debug output
-        None
+        Some("YAML")
     }
+
     fn display_ok(&mut self, value: ParseOk) -> BoxFuture<'_, String> {
-        let displayed = format!("{}{:?}", self.prefix, value);
+        let displayed = serde_yaml::to_string(&*value)
+            .unwrap_or_else(|err| format!("could not convert back to YAML: {err}"));
+
         async { displayed }.boxed()
     }
 }

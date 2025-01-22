@@ -3,7 +3,7 @@
 use std::io::Read;
 
 use clap::{Parser, ValueEnum};
-use generic::display::Display;
+use generic::display::DisplayPreference;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
@@ -20,9 +20,11 @@ use generic::schema::Schema;
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about=None)]
 struct Args {
-    display: Option<Display>,
+    /// How to display the parsed data. Default: use nushell when installed.
+    #[clap(short, long)]
+    display: Vec<DisplayPreference>,
 
-    #[clap(long, default_value_t)]
+    #[clap(short, long, default_value_t)]
     #[arg(value_enum)]
     format: FormatAndSettings,
 

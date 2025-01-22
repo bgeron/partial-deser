@@ -6,16 +6,22 @@ use crate::generic::format::ParseOk;
 use super::ActiveDisplay;
 
 pub struct Display {
-    pub prefix: &'static str,
+    pub pretty: bool,
 }
 
 impl ActiveDisplay for Display {
     fn descriptor(&self) -> Option<&str> {
-        // It's kinda obvious that the output is debug output
-        None
+        Some("JSON")
     }
+
     fn display_ok(&mut self, value: ParseOk) -> BoxFuture<'_, String> {
-        let displayed = format!("{}{:?}", self.prefix, value);
+        let displayed = (if self.pretty {
+            serde_json::to_string_pretty(&*value)
+        } else {
+            serde_json::to_string(&*value)
+        })
+        .unwrap_or_else(|err| format!("could not convert back to JSON: {err}"));
+
         async { displayed }.boxed()
     }
 }

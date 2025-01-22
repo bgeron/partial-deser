@@ -11,9 +11,9 @@ use tokio::process::Command;
 use tokio::sync::Mutex;
 use tokio_stream::wrappers::LinesStream;
 use tokio_stream::StreamExt;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
-use crate::generic::format::ParseResult;
+use crate::generic::format::ParseOk;
 
 use super::ActiveDisplay;
 
@@ -26,7 +26,6 @@ pub const NU_COMMAND: &str =
 ///
 /// This implementation may be a bit horrible, threads-wise.
 pub struct Display {
-    pub prefix: String,
     pub tableize: Tableize,
 }
 
@@ -38,27 +37,23 @@ impl Display {
             return None;
         }
 
-        let prefix = if version == KNOWN_GOOD_NU_VERSION {
-            "".to_string()
-        } else {
-            format!(
-                "Using nu version {version} (known good version = {KNOWN_GOOD_NU_VERSION}) \n\n"
-            )
+        if version != KNOWN_GOOD_NU_VERSION {
+            warn!("Using nu version {version} (known good version = {KNOWN_GOOD_NU_VERSION})")
         };
 
-        Self::new_inner(prefix)
+        Self::new_inner()
     }
 
     pub fn new_always() -> Self {
-        Self::new_inner("".to_string()).expect("could not start nushell displayer")
+        Self::new_inner().expect("could not start nushell displayer")
     }
 
-    fn new_inner(prefix: String) -> Option<Display> {
+    fn new_inner() -> Option<Display> {
         let tableize = tableize_json_with_nu()
             .tap_err(|err| error!("could not start nushell displayer: {err}"))
             .ok()?;
 
-        Some(Self { prefix, tableize })
+        Some(Self { tableize })
     }
 }
 
@@ -152,15 +147,11 @@ pub fn tableize_json_with_nu() -> anyhow::Result<Tableize> {
 }
 
 impl ActiveDisplay for Display {
-    fn display(&mut self, value: ParseResult) -> BoxFuture<String> {
-        async move {
-            let tableized = match value {
-                Ok(value) => (self.tableize)(serde_json::to_string(&value).unwrap()).await,
-                Err(err) => format!("could not parse input: {err}"),
-            };
+    fn descriptor(&self) -> Option<&str> {
+        Some("Formatting by nushell")
+    }
 
-            format!("{}{}", self.prefix, tableized)
-        }
-        .boxed()
+    fn display_ok(&mut self, value: ParseOk) -> BoxFuture<'_, String> {
+        async move { (self.tableize)(serde_json::to_string(&*value).unwrap()).await }.boxed()
     }
 }
