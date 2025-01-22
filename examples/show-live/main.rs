@@ -20,10 +20,6 @@ use generic::schema::Schema;
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about=None)]
 struct Args {
-    /// How to display the parsed data. Default: use nushell when installed.
-    #[clap(short, long)]
-    display: Vec<DisplayPreference>,
-
     #[clap(short, long, default_value_t)]
     #[arg(value_enum)]
     format: FormatAndSettings,
@@ -31,6 +27,10 @@ struct Args {
     #[clap(long, default_value_t)]
     #[arg(value_enum)]
     schema: Schema,
+
+    /// How to display the parsed data. Default: use nushell when installed.
+    #[clap(short, long)]
+    output: Vec<DisplayPreference>,
 
     /// Whether to add a random trailer to the input before parsing.
     ///

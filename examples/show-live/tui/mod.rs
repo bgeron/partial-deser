@@ -29,7 +29,7 @@ enum Event {
 }
 
 pub async fn main(args: Args) -> anyhow::Result<()> {
-    let display = DisplayPreference::init(&args.display).await;
+    let display = DisplayPreference::init(&args.output).await;
 
     let (tx, rx) = mpsc::unbounded_channel();
 
