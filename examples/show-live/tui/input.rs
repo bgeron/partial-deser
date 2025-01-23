@@ -10,6 +10,7 @@ use tokio_util::io::ReaderStream;
 use tracing::{error, warn};
 
 use crate::generic::display::ActiveDisplay;
+use crate::generic::util::{pop_parsed_from_front, MAXIMUM_SIZE_OF_CODEPOINT};
 use crate::generic::{self};
 use crate::Args;
 
@@ -64,17 +65,11 @@ pub(super) async fn handle_nonterminal_input(tx: mpsc::UnboundedSender<Event>) {
 }
 
 fn pop_codepoint_front(buf: &mut Vec<u8>) -> Option<char> {
-    // Characters in UTF-8 are at most 4 bytes.
-    for end_index in 1..=4.min(buf.len()) {
-        if let Ok(s) = std::str::from_utf8(&buf[..end_index]) {
-            let c = s.chars().next().unwrap();
-            // Remove this character from the front. Linear time in size
-            // of the buffer, so use a small buffer.
-            buf.drain(..end_index);
-            return Some(c);
-        }
-    }
-    None
+    pop_parsed_from_front(buf, MAXIMUM_SIZE_OF_CODEPOINT, |bytes| {
+        std::str::from_utf8(bytes)
+            .ok()
+            .and_then(|s| s.chars().next())
+    })
 }
 
 #[cfg(test)]
