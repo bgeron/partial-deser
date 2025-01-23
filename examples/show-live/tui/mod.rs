@@ -79,7 +79,7 @@ async fn main_loop(
                 let textarea_lines = textarea.lines().len();
 
                 let layout = Layout::vertical([
-                    Constraint::Length(u16::try_from(textarea_lines + 1).ok().unwrap_or(u16::MAX)),
+                    Constraint::Length(u16::try_from(textarea_lines + 2).ok().unwrap_or(u16::MAX)),
                     Constraint::Fill(1),
                 ])
                 .vertical_margin(1);

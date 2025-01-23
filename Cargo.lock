@@ -720,6 +720,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tui-textarea",
+ "unicode-segmentation",
 ]
 
 [[package]]

@@ -50,6 +50,7 @@ async fn main() -> anyhow::Result<()> {
         .with_file(false)
         .with_line_number(false)
         .with_target(false)
+        .with_writer(std::io::stderr)
         .init();
 
     let args = Args::parse();
