@@ -26,6 +26,8 @@ pub(super) async fn handle_terminal_input(tx: mpsc::UnboundedSender<Event>) {
 
             Ok(CrosstermEvent::Key(event)) => tx.send(Event::TextArea(event)).unwrap(),
 
+            Ok(CrosstermEvent::Resize(_, _)) => tx.send(Event::GoFullscreen).unwrap(),
+
             Ok(event) => warn!(?event, "Unrecognized event"),
 
             Err(error) => {

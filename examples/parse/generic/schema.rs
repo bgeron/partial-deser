@@ -1,7 +1,7 @@
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 
-use super::format::{FormatAndSettings, ParseResult};
+use super::format::{Format, ParseResult, ParseSettings};
 
 /// The schema that the output should conform to.
 ///
@@ -24,10 +24,10 @@ struct TravelMode {
 }
 
 impl Schema {
-    pub fn parse(&self, format: &FormatAndSettings, input: &[u8]) -> ParseResult {
+    pub fn parse(&self, format: &Format, settings: &ParseSettings, input: &[u8]) -> ParseResult {
         match self {
-            Schema::Any => format.parse::<serde_json::Value>(input),
-            Schema::TravelModes => format.parse::<Vec<TravelMode>>(input),
+            Schema::Any => format.parse::<serde_json::Value>(settings, input),
+            Schema::TravelModes => format.parse::<Vec<TravelMode>>(settings, input),
         }
     }
 }

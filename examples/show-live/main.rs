@@ -2,7 +2,7 @@
 
 use std::io::Read;
 
-use clap::{Parser, ValueEnum};
+use clap::{ArgAction, Parser, ValueEnum};
 use generic::display::DisplayPreference;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ use tracing::level_filters::LevelFilter;
 mod generic;
 mod tui;
 
-use generic::format::FormatAndSettings;
+use generic::format::Format;
 use generic::schema::Schema;
 
 /// Parse input JSON incrementally as it comes in, and show the results
@@ -22,7 +22,7 @@ use generic::schema::Schema;
 struct Args {
     #[clap(short, long, default_value_t)]
     #[arg(value_enum)]
-    format: FormatAndSettings,
+    format: Format,
 
     #[clap(long, default_value_t)]
     #[arg(value_enum)]
@@ -38,7 +38,7 @@ struct Args {
     /// does too, and is really important to prevent flickering.
     ///
     /// Random trailers are format-specific.
-    #[clap(long, default_value_t = true)]
+    #[clap(long, default_value_t = true, action = ArgAction::Set)]
     use_random_trailer: bool,
 }
 

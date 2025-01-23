@@ -5,10 +5,9 @@ dev: fmt clippy-allow-dead
 
 all: fmt clippy test doc
 
-motivating-example:
-    cargo build --target-dir target --example print-slowly --example show-live
-    cat examples/motivating-example.json-fragment | target/debug/examples/print-slowly -t 0.1 --delay-at-start 2.5 | target/debug/examples/show-live --schema travel-modes
-
+motivating-example *extra_args:
+    @cargo build --target-dir target --example print-slowly --example show-live --all-features
+    @cat examples/motivating-example.json-fragment | target/debug/examples/print-slowly -t 0.1 --delay-at-start 2.5 | target/debug/examples/show-live --schema travel-modes {{extra_args}}
 
 clippy:
     cargo clippy --all-features

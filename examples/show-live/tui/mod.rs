@@ -15,6 +15,7 @@ use tracing::error;
 use tui_textarea::TextArea;
 
 use crate::generic::display::{ActiveDisplay, DisplayPreference};
+use crate::generic::format::ParseSettings;
 use crate::generic::{self};
 use crate::Args;
 
@@ -26,6 +27,7 @@ enum Event {
     /// A character came either from terminal, or non-terminal stdin
     TextArea(crossterm::event::KeyEvent),
     Recompute,
+    GoFullscreen,
 }
 
 pub async fn main(args: Args) -> anyhow::Result<()> {
@@ -68,10 +70,15 @@ async fn main_loop(
             Event::Recompute => {
                 make_output_state(&args, &mut display, &textarea, &mut state).await;
             }
-
-            Event::Quit => {
-                break;
+            Event::GoFullscreen => {
+                terminal = ratatui::init_with_options(TerminalOptions {
+                    viewport: ratatui::Viewport::Fullscreen,
+                });
+                terminal.clear().expect("could not clear");
+                terminal.autoresize().expect("could not autoresize");
             }
+
+            Event::Quit => break,
         }
 
         terminal
@@ -105,7 +112,13 @@ async fn make_output_state(
     state: &mut Text<'_>,
 ) {
     let contents = textarea.lines().join("\n");
-    let result = args.schema.parse(&args.format, contents.as_bytes());
+    let result = args.schema.parse(
+        &args.format,
+        &ParseSettings {
+            use_random_trailer: args.use_random_trailer,
+        },
+        contents.as_bytes(),
+    );
     let displayed = display.display(Arc::new(result)).await;
 
     *state = if contents.trim().is_empty() {
