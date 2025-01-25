@@ -21,7 +21,7 @@ fn test_bools() {
           true,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[true": Ok([
           true,

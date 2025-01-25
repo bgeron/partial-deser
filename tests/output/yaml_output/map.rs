@@ -47,7 +47,7 @@ fn test_toplevel_map() {
           "ghi": "jkl",
         }),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok({}),
         "{\"abc\"": Ok({
           "abc": "",
@@ -333,7 +333,7 @@ fn test_map() {
           },
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[{": Ok([
           {},

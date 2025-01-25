@@ -24,7 +24,7 @@ fn test_top_level_struct() {
           unit: (),
         )),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "{\"": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),

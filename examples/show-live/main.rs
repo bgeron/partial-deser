@@ -32,12 +32,12 @@ struct Args {
     #[clap(short, long)]
     output: Vec<DisplayPreference>,
 
-    /// Whether to add a random trailer to the input before parsing.
+    /// Whether to add a randomized trailer to the input before parsing.
     ///
     /// For JSON, this enables incremental strings. For YAML, this
     /// does too, and is really important to prevent flickering.
     ///
-    /// Random trailers are format-specific.
+    /// Randomized trailers are format-specific.
     #[clap(long, default_value_t = true, action = ArgAction::Set)]
     use_random_trailer: bool,
 }

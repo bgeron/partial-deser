@@ -12,7 +12,7 @@ fn test_tolerate_trailing_whitespace_like_serde_yaml() {
           (),
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
@@ -68,7 +68,7 @@ fn test_tolerate_trailing_junk_unlike_serde_yaml() {
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
@@ -127,7 +127,7 @@ fn test_toplevel_unit() {
       "default behavior": {
         "": Ok(()),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(()),
       },
       "default behavior, 0 backtracks": {
@@ -171,7 +171,7 @@ fn test_unit() {
           (),
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
@@ -243,7 +243,7 @@ fn test_toplevel_none() {
         "n": Ok(Some([])),
         "null": Ok(None),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(None),
         "n": Ok(Some([])),
         "null": Ok(None),
@@ -334,7 +334,7 @@ fn test_option() {
           None,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           None,

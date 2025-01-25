@@ -23,7 +23,7 @@ fn test_unit_variant() {
           UnitVariant,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[\"UnitVariant\"": Ok([
           UnitVariant,

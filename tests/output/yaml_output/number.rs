@@ -71,7 +71,7 @@ fn test_i32() {
           -54321,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[0": Ok([
           0,
@@ -367,7 +367,7 @@ fn test_i32_overflow() {
           1234567890,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[0": Ok([
           0,
@@ -868,7 +868,7 @@ fn test_f32() {
           42.0,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[0": Ok([
           0.0,

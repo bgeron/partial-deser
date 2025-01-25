@@ -5,7 +5,7 @@ pub(crate) mod json;
 #[cfg(feature = "serde_yaml")]
 pub(crate) mod yaml;
 
-/// For some data formats, we like to append some random trailer
+/// For some data formats, we like to append some randomized trailer
 /// to the input before deserializing.
 ///
 /// - For JSON, this lets us support incomplete strings.

@@ -14,7 +14,7 @@ fn test_toplevel_unit_struct() {
       "default behavior": {
         "": Ok(UnitStruct),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(UnitStruct),
       },
       "default behavior, 0 backtracks": {
@@ -53,7 +53,7 @@ fn test_toplevel_unit_struct_fail() {
         "": Ok(UnitStruct),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(UnitStruct),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
@@ -98,7 +98,7 @@ fn test_unit_struct_fallible() {
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           UnitStruct,

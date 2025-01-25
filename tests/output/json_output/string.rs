@@ -42,7 +42,7 @@ fn test_string() {
           "de\nf",
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[\"": Ok([
           "",

@@ -12,7 +12,7 @@ fn test_tolerate_trailing_whitespace_like_serde_json() {
           (),
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
@@ -68,7 +68,7 @@ fn test_tolerate_trailing_junk_unlike_serde_json() {
         ]),
         "final output matches serde_json?": "serde_json failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
@@ -126,7 +126,7 @@ fn test_toplevel_unit() {
       "default behavior": {
         "": Ok(()),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(()),
       },
       "default behavior, 0 backtracks": {
@@ -167,7 +167,7 @@ fn test_unit() {
           (),
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[null": Ok([
           (),
@@ -238,7 +238,7 @@ fn test_toplevel_none() {
         "": Ok(Some([])),
         "n": Ok(None),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(Some([])),
         "n": Ok(None),
       },
@@ -323,7 +323,7 @@ fn test_option() {
           None,
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[n": Ok([
           None,

@@ -48,7 +48,7 @@ fn test_seq() {
           [],
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -241,7 +241,7 @@ fn test_seq_cannot_parse_after_invalid() {
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[[": Ok([
           [],
@@ -330,7 +330,7 @@ fn test_seq_cannot_parse_after_trailing_comma() {
           ],
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[[": Ok([
           [],

@@ -94,7 +94,7 @@ fn default_modes() -> Vec<(
     vec![
         ("default behavior", Options::new_json()),
         (
-            "default behavior except no random trailer",
+            "default behavior except no randomized trailer",
             deser_incomplete::Options::new_json().disable_random_tag(),
         ),
         (

@@ -45,7 +45,7 @@ fn test_toplevel_struct() {
           ],
         )),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "{\"": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
@@ -273,7 +273,7 @@ fn test_struct() {
           ),
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[{\"x\": [true], \"y\": [false], \"z\"": Ok([
           Struct(
@@ -738,7 +738,7 @@ fn test_toplevel_struct_with_defaults() {
           ],
         )),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
         "{": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 1 backtracks)"),
         "{\"": Err("could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)"),
@@ -1071,7 +1071,7 @@ fn test_struct_with_defaults() {
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[{\"x\"": Ok([
           StructWithSomeDefaults(
@@ -1772,7 +1772,7 @@ fn test_toplevel_struct_with_all_defaults() {
           ],
         )),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(NeedsNoFields(
           x: [],
         )),
@@ -1883,7 +1883,7 @@ fn test_struct_with_all_defaults() {
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[{": Ok([
           NeedsNoFields(

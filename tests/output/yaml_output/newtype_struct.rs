@@ -21,7 +21,7 @@ fn test_toplevel_newtype_struct() {
           (),
         ])),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(Newtype([])),
         "[null": Ok(Newtype([
           (),
@@ -116,7 +116,7 @@ fn test_newtype_struct() {
           Newtype([]),
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[[": Ok([
           Newtype([]),
@@ -276,7 +276,7 @@ fn test_newtype_struct_fail() {
         ]),
         "final output matches serde_yaml?": "serde_yaml failed",
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok([]),
         "[[": Ok([
           Newtype([]),

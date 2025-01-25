@@ -55,7 +55,7 @@
 //!
 //! ## How this works
 //!
-//! - todo random trailer
+//! - todo randomized trailer
 //!
 //! ## Tested support for data formats
 //!
@@ -66,7 +66,7 @@
 //!
 //! - data format should be relatively greedy/online/whatever
 //!
-//! - incomplete strings tend to require a random trailer
+//! - incomplete strings tend to require a randomized trailer
 //!
 //! - cannot distinguish eof from invalid input
 //!
@@ -79,7 +79,7 @@
 //! - JSON: Number cannot end with floating point period
 //!
 //! - YAML works very well, but is a bit less exhaustively tested than JSON.
-//!   The random trailer is really important here.
+//!   The randomized trailer is really important here.
 //!
 //! ## Criteria
 //!
@@ -267,7 +267,7 @@ impl Options {
 
     /// Basic config, suitable for any data format.
     ///
-    /// These options support adding a random trailer to the input.
+    /// These options support adding a randomized trailer to the input.
     /// However, you should probably call [`Options::set_random_trailer`]
     /// to specify how this trailer should be removed from parsed strings.
     #[cfg(feature = "rand")]
@@ -285,8 +285,8 @@ impl Options {
     }
 
     /// Basic config, suitable for any data format. However, this
-    /// config does not allow adding a random trailer to the input,
-    /// which
+    /// config does not allow adding a randomized trailer to the input,
+    /// which tends to benefit many formats.
     ///
     /// - For `serde_json`, this means you won't get incomplete strings deserialized
     ///
@@ -464,7 +464,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
 
     /// Prepare a string for borrowed deserialization with a method like [`Self::from_json_str_borrowed`].
     ///
-    /// This appends to the input, according to the random trailer method. And this returns a newtype
+    /// This appends to the input, according to the randomized trailer method. And this returns a newtype
     /// wrapper, so you can undo the effects yourself.
     #[cfg(feature = "rand")]
     pub fn prepare_str_for_borrowed_deserialization<'a>(
@@ -484,7 +484,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
 
     /// Prepare a slice for borrowed deserialization with a method like [`Self::from_json_slice_borrowed`].
     ///
-    /// This appends to the input, according to the random trailer method. And this returns a newtype
+    /// This appends to the input, according to the randomized trailer method. And this returns a newtype
     /// wrapper, so you can undo the effects yourself.
     #[cfg(feature = "rand")]
     pub fn prepare_slice_for_borrowed_deserialization<'a>(
@@ -523,7 +523,7 @@ where
     F: options_impl::MakeFallbackProvider,
     RT: options_impl::RandomTrailer,
 {
-    /// Set a different method for random trailers.
+    /// Set a different method for randomized trailers.
     pub fn set_random_trailer<RT2>(
         self,
         random_trailer: RT2,

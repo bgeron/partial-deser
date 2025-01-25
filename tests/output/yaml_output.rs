@@ -91,7 +91,7 @@ fn default_modes() -> Vec<(&'static str, Options<YamlExtraOptions>)> {
     vec![
         ("default behavior", Options::new_yaml()),
         (
-            "default behavior except no random trailer",
+            "default behavior except no randomized trailer",
             deser_incomplete::Options::new_yaml().disable_random_tag(),
         ),
         (

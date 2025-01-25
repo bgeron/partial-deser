@@ -93,7 +93,7 @@ fn test_any() {
           "abc",
         ]),
       },
-      "default behavior except no random trailer": {
+      "default behavior except no randomized trailer": {
         "": Ok(()),
         "[": Ok([]),
         "[t": Ok([
