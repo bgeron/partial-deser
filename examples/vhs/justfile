@@ -1,0 +1,8 @@
+
+_list:
+    just --list
+
+build-all: build-show-live-travel-modes
+
+build-show-live-travel-modes:
+    vhs show-live-travel-modes.tape
