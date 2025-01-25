@@ -11,8 +11,8 @@ use tap::Pipe;
 #[derive(Debug, Clone, ValueEnum, Default)]
 pub enum Format {
     #[default]
-    Json,
-    Yaml,
+    SerdeJson,
+    SerdeYaml,
 }
 
 pub type ParseOk = Arc<dyn Parsed>;
@@ -28,21 +28,21 @@ impl Format {
         P: for<'de> Deserialize<'de> + Parsed + 'static,
     {
         match self {
-            Format::Json => deser_incomplete::Options::new_json()
+            Format::SerdeJson => deser_incomplete::Options::new_json()
                 .pipe(|options| apply_settings(settings, options))
                 .from_json_slice::<P>(Cow::Borrowed(input))
                 .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 
             #[cfg(feature = "serde_yaml")]
-            Format::Yaml => deser_incomplete::Options::new_yaml()
+            Format::SerdeYaml => deser_incomplete::Options::new_yaml()
                 .pipe(|options| apply_settings(settings, options))
                 .from_yaml_slice::<P>(Cow::Borrowed(input))
                 .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 
             #[cfg(not(feature = "serde_yaml"))]
-            Format::Yaml => {
+            Format::SerdeYaml => {
                 panic!(
                     "Please enable --features serde_yaml to parse YAML, or run cargo with --all-features)"
                 )

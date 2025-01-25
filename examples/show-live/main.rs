@@ -11,6 +11,7 @@ use tracing::level_filters::LevelFilter;
 #[path = "../parse/generic/mod.rs"]
 mod generic;
 mod tui;
+mod util;
 
 use generic::format::Format;
 use generic::schema::Schema;
@@ -18,7 +19,7 @@ use generic::schema::Schema;
 /// Parse input JSON incrementally as it comes in, and show the results
 /// live in the terminal.
 #[derive(Parser, Debug, Clone)]
-#[command(version, about, long_about=None)]
+#[command(version)]
 struct Args {
     #[clap(short, long, default_value_t)]
     #[arg(value_enum)]
@@ -40,6 +41,10 @@ struct Args {
     /// Randomized trailers are format-specific.
     #[clap(long, default_value_t = true, action = ArgAction::Set)]
     use_random_trailer: bool,
+
+    /// Height of the text user interface. Zero means fullscreen.
+    #[clap(long, default_value_t = 24)]
+    tui_height: u16,
 }
 
 #[tokio::main]

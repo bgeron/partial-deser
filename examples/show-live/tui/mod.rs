@@ -51,9 +51,17 @@ async fn main_loop(
     tx: mpsc::UnboundedSender<Event>,
     mut rx: mpsc::UnboundedReceiver<Event>,
 ) {
-    let mut terminal = ratatui::init_with_options(TerminalOptions {
-        viewport: ratatui::Viewport::Inline(24),
-    });
+    let terminal_options = if args.tui_height > 0 {
+        TerminalOptions {
+            viewport: ratatui::Viewport::Inline(args.tui_height),
+        }
+    } else {
+        TerminalOptions {
+            viewport: ratatui::Viewport::Fullscreen,
+        }
+    };
+    let mut terminal = ratatui::init_with_options(terminal_options);
+    terminal.clear().expect("could not clear");
 
     let mut textarea = TextArea::default();
 

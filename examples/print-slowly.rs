@@ -7,7 +7,7 @@ use tokio::io::{stdin, AsyncReadExt, BufReader};
 use unicode_segmentation::UnicodeSegmentation as _;
 use util::{pop_parsed_from_front, MAXIMUM_SIZE_OF_CODEPOINT};
 
-#[path = "parse/generic/util.rs"]
+#[path = "show-live/util.rs"]
 mod util;
 
 const MAX_BYTES_IN_GRAPHEME_CLUSTER: usize = 128;

@@ -10,8 +10,8 @@ use tokio_util::io::ReaderStream;
 use tracing::{error, warn};
 
 use crate::generic::display::ActiveDisplay;
-use crate::generic::util::{pop_parsed_from_front, MAXIMUM_SIZE_OF_CODEPOINT};
 use crate::generic::{self};
+use crate::util::{pop_parsed_from_front, MAXIMUM_SIZE_OF_CODEPOINT};
 use crate::Args;
 
 use super::Event;
@@ -80,7 +80,7 @@ mod test {
 
     #[test]
     fn test_pop_codepoint_front() {
-        /// The emoji is a family of two men and two boys
+        // The emoji is a family of two men and two boys
         let mut buf = "¡Señores 👨‍👨‍👦‍👦 hi!".as_bytes().to_vec();
         assert_eq!(pop_codepoint_front(&mut buf), Some('¡'));
         assert_eq!(pop_codepoint_front(&mut buf), Some('S'));
