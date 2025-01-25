@@ -39,6 +39,10 @@
 //!
 //! - not reverting
 //!
+//! ## How this works
+//!
+//! - todo random trailer
+//!
 //! ## Tested support for data formats
 //!
 //! - JSON: works very well. This is what the library was tweaked for.
@@ -46,17 +50,19 @@
 //!
 //! ## Limitations
 //!
-//! Partial deserialization
+//! - data format should be relatively greedy/online/whatever
 //!
-//! - JSON: Number cannot end with floating point period
+//! - incomplete strings tend to require a random trailer
 //!
 //! - This approach lets us safely abort parsing and get a value, but
 //!   we cannot skip over invalid segments of input. (For that you need
 //!   an approach like tree-sitter.)
 //!
-//! ## Caveats
+//! ## Notes
 //!
-//! - YAML works very well too, but is a bit less exhaustively tested.
+//! - JSON: Number cannot end with floating point period
+//!
+//! - YAML works very well, but is a bit less exhaustively tested than JSON.
 //!   The random trailer is really important here.
 //!
 //! ## Criteria
