@@ -26,10 +26,12 @@ mod unit_struct;
 
 type BoxSerialize = Box<dyn erased_serde::Serialize>;
 
-/// Robustly deserialize all prefixes of the input as JSON. Reserialize the successful
-/// results to JSON for comparison with `assert_eq!`, and stringify any errors.
+/// Robustly deserialize all prefixes of the input as JSON.
 ///
 /// The output is deduplicated -- only inputs are shown where the output changes.
+///
+/// We also check if our wrapping of [`serde_json`] on the whole string matches
+/// [`serde_json`] without wrapping.
 #[allow(clippy::type_complexity)]
 pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
     'input,

@@ -26,10 +26,12 @@ mod unit_struct;
 
 type BoxSerialize = Box<dyn erased_serde::Serialize>;
 
-/// Partially deserialize all prefixes of the input as YAML. Reserialize the successful
-/// results to YAML for comparison with `assert_eq!`, and stringify any errors.
+/// Robustly deserialize all prefixes of the input as YAML.
 ///
 /// The output is deduplicated -- only inputs are shown where the output changes.
+///
+/// We also check if our wrapping of [`serde_yaml`] on the whole string matches
+/// [`serde_yaml`] without wrapping.
 #[allow(clippy::type_complexity)]
 pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
     'input,

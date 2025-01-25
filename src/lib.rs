@@ -4,9 +4,23 @@
     allow(unused_variables, unused_imports, dead_code, unused_mut)
 )]
 
-//! # Deserialize incomplete data
+//! # Deserialize incomplete data with Serde
 //!
-//! This crate reads incomplete JSON and parses it for your
+//! This wraps Serde [`Deserializer`]s (like serde_json and serde_yaml) so you
+//! can parse incomplete data and get an incomplete result.
+//!
+//! (todo video here)
+//!
+//! This crate makes parsing more robust by absorbing errors from the data format,
+//! and then bringing the parse to a safe halt.
+//!
+//! todo graphic
+//!
+//! todo techniques section?
+//!
+//! todo in practice this seems desirable?
+//!
+//! TODO This crate reads incomplete JSON and parses it for your
 //! data structures that implement [`Deserialize`]:
 //!
 //! ```
@@ -54,6 +68,8 @@
 //!
 //! - incomplete strings tend to require a random trailer
 //!
+//! - cannot distinguish eof from invalid input
+//!
 //! - This approach lets us safely abort parsing and get a value, but
 //!   we cannot skip over invalid segments of input. (For that you need
 //!   an approach like tree-sitter.)
@@ -79,7 +95,7 @@ use std::sync::Arc;
 
 use options::DefaultExtraOptions;
 #[cfg(doc)]
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 macro_rules! error {
     ($($arg:tt)*) => {
@@ -272,8 +288,11 @@ impl Options {
     /// config does not allow adding a random trailer to the input,
     /// which
     ///
-    /// This does not apply the JSON-specific string trick to parse
-    /// incomplete strings.
+    /// - For `serde_json`, this means you won't get incomplete strings deserialized
+    ///
+    /// - For `serde_yaml`, this means that your output will flicker, as it seems to
+    ///   buffer lines somehow, and if a line has an unterminated string, then the
+    ///   whole line will be missing.
     pub fn new_no_nonce() -> Options<DefaultExtraOptions> {
         Options {
             #[cfg(feature = "rand")]
@@ -337,7 +356,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// This comes at the cost that we cannot use the JSON trick that gets us the contents of
     /// incomplete strings.
     ///
-    /// If you need incomplete strings as well, then use [`Self::from_json_slice_borrowed_unstable`].
+    /// If you need incomplete strings as well, then use [`Self::from_json_slice_borrowed`].
     ///
     /// ```
     /// # use serde::Deserialize;
@@ -348,11 +367,13 @@ impl<Extra: ExtraOptions> Options<Extra> {
     ///    benefit: Option<String>
     /// }
     ///
-    /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
+    /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "incomplete"#;
     /// let modes: Vec<TravelMode> = deser_incomplete::Options::new_json().from_json_slice_plain_return_borrowed(&json).unwrap();
     /// assert_eq!(modes, [
     ///    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
-    ///    // Note: missing aeroplane
+    ///    TravelMode { mode: "".to_string(), benefit: None },
+    ///    // Note: this function fails on incomplete strings, because
+    ///    // the randomized trailer is needed for those.
     /// ]);
     /// ```
     #[cfg(feature = "serde_json")]
