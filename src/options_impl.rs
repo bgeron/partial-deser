@@ -291,7 +291,7 @@ impl Default for UnstableCustomBehavior {
             // unstable_backtrack_default_float: None,
             unstable_fallback_default_char: None,
             // unstable_backtrack_default_char: None,
-            unstable_fallback_default_str: Some(""),
+            unstable_fallback_default_str: None,
             // unstable_backtrack_default_str: None,
             unstable_fallback_bytes_empty: false,
             // unstable_backtrack_bytes_empty: false,

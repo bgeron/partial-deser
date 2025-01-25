@@ -11,7 +11,7 @@ fn test_toplevel_map() {
     {
       "default behavior": {
         "": Ok({}),
-        "{\"abc\":": Ok({
+        "{\"abc\": \"": Ok({
           "abc": "",
         }),
         "{\"abc\": \"d": Ok({
@@ -23,7 +23,7 @@ fn test_toplevel_map() {
         "{\"abc\": \"def": Ok({
           "abc": "def",
         }),
-        "{\"abc\": \"def\", \"ghi\":": Ok({
+        "{\"abc\": \"def\", \"ghi\": \"": Ok({
           "abc": "def",
           "ghi": "",
         }),
@@ -42,15 +42,8 @@ fn test_toplevel_map() {
       },
       "default behavior except no randomized trailer": {
         "": Ok({}),
-        "{\"abc\":": Ok({
-          "abc": "",
-        }),
         "{\"abc\": \"def\"": Ok({
           "abc": "def",
-        }),
-        "{\"abc\": \"def\", \"ghi\":": Ok({
-          "abc": "def",
-          "ghi": "",
         }),
         "{\"abc\": \"def\", \"ghi\": \"jkl\"": Ok({
           "abc": "def",
@@ -60,15 +53,6 @@ fn test_toplevel_map() {
       "default behavior, 0 backtracks": {
         "": Ok({}),
         "{": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "{\"abc\":": Ok({
-          "abc": "",
-        }),
-        "{\"abc\": \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "{\"abc\": \"def\", \"ghi\":": Ok({
-          "abc": "def",
-          "ghi": "",
-        }),
-        "{\"abc\": \"def\", \"ghi\": \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "{\"abc\": \"def\", \"ghi\": \"jkl\"}": Ok({
           "abc": "def",
           "ghi": "jkl",
@@ -116,7 +100,7 @@ fn test_toplevel_map() {
       },
       "default behavior, 1 backtracks": {
         "": Ok({}),
-        "{\"abc\":": Ok({
+        "{\"abc\": \"": Ok({
           "abc": "",
         }),
         "{\"abc\": \"d": Ok({
@@ -128,7 +112,7 @@ fn test_toplevel_map() {
         "{\"abc\": \"def": Ok({
           "abc": "def",
         }),
-        "{\"abc\": \"def\", \"ghi\":": Ok({
+        "{\"abc\": \"def\", \"ghi\": \"": Ok({
           "abc": "def",
           "ghi": "",
         }),
@@ -168,7 +152,7 @@ fn test_map() {
         "[{": Ok([
           {},
         ]),
-        "[{\"ab\":": Ok([
+        "[{\"ab\": \"": Ok([
           {
             "ab": "",
           },
@@ -183,7 +167,7 @@ fn test_map() {
             "ab": "cd",
           },
         ]),
-        "[{\"ab\": \"cd\", \"ef\":": Ok([
+        "[{\"ab\": \"cd\", \"ef\": \"": Ok([
           {
             "ab": "cd",
             "ef": "",
@@ -208,7 +192,7 @@ fn test_map() {
           },
           {},
         ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\":": Ok([
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"": Ok([
           {
             "ab": "cd",
             "ef": "gh",
@@ -235,7 +219,7 @@ fn test_map() {
             "AB": "CD",
           },
         ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\":": Ok([
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"": Ok([
           {
             "ab": "cd",
             "ef": "gh",
@@ -271,20 +255,9 @@ fn test_map() {
         "[{": Ok([
           {},
         ]),
-        "[{\"ab\":": Ok([
-          {
-            "ab": "",
-          },
-        ]),
         "[{\"ab\": \"cd\"": Ok([
           {
             "ab": "cd",
-          },
-        ]),
-        "[{\"ab\": \"cd\", \"ef\":": Ok([
-          {
-            "ab": "cd",
-            "ef": "",
           },
         ]),
         "[{\"ab\": \"cd\", \"ef\": \"gh\"": Ok([
@@ -300,15 +273,6 @@ fn test_map() {
           },
           {},
         ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\":": Ok([
-          {
-            "ab": "cd",
-            "ef": "gh",
-          },
-          {
-            "AB": "",
-          },
-        ]),
         "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\"": Ok([
           {
             "ab": "cd",
@@ -316,16 +280,6 @@ fn test_map() {
           },
           {
             "AB": "CD",
-          },
-        ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\":": Ok([
-          {
-            "ab": "cd",
-            "ef": "gh",
-          },
-          {
-            "AB": "CD",
-            "EF": "",
           },
         ]),
         "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"GH\"": Ok([
@@ -342,40 +296,6 @@ fn test_map() {
       "default behavior, 0 backtracks": {
         "": Ok([]),
         "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"ab\":": Ok([
-          {
-            "ab": "",
-          },
-        ]),
-        "[{\"ab\": \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"ab\": \"cd\", \"ef\":": Ok([
-          {
-            "ab": "cd",
-            "ef": "",
-          },
-        ]),
-        "[{\"ab\": \"cd\", \"ef\": \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\":": Ok([
-          {
-            "ab": "cd",
-            "ef": "gh",
-          },
-          {
-            "AB": "",
-          },
-        ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\":": Ok([
-          {
-            "ab": "cd",
-            "ef": "gh",
-          },
-          {
-            "AB": "CD",
-            "EF": "",
-          },
-        ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"GH\"}]": Ok([
           {
             "ab": "cd",
@@ -510,7 +430,7 @@ fn test_map() {
         "[{": Ok([
           {},
         ]),
-        "[{\"ab\":": Ok([
+        "[{\"ab\": \"": Ok([
           {
             "ab": "",
           },
@@ -525,7 +445,7 @@ fn test_map() {
             "ab": "cd",
           },
         ]),
-        "[{\"ab\": \"cd\", \"ef\":": Ok([
+        "[{\"ab\": \"cd\", \"ef\": \"": Ok([
           {
             "ab": "cd",
             "ef": "",
@@ -550,7 +470,7 @@ fn test_map() {
           },
           {},
         ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\":": Ok([
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"": Ok([
           {
             "ab": "cd",
             "ef": "gh",
@@ -577,7 +497,7 @@ fn test_map() {
             "AB": "CD",
           },
         ]),
-        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\":": Ok([
+        "[{\"ab\": \"cd\", \"ef\": \"gh\"}, {\"AB\": \"CD\", \"EF\": \"": Ok([
           {
             "ab": "cd",
             "ef": "gh",

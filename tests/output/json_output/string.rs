@@ -9,7 +9,7 @@ fn test_string() {
     {
       "default behavior": {
         "": Ok([]),
-        "[": Ok([
+        "[\"": Ok([
           "",
         ]),
         "[\"a": Ok([
@@ -21,7 +21,7 @@ fn test_string() {
         "[\"abc": Ok([
           "abc",
         ]),
-        "[\"abc\",": Ok([
+        "[\"abc\", \"": Ok([
           "abc",
           "",
         ]),
@@ -44,15 +44,8 @@ fn test_string() {
       },
       "default behavior except no randomized trailer": {
         "": Ok([]),
-        "[\"": Ok([
-          "",
-        ]),
         "[\"abc\"": Ok([
           "abc",
-        ]),
-        "[\"abc\", \"": Ok([
-          "abc",
-          "",
         ]),
         "[\"abc\", \"de\\nf\"": Ok([
           "abc",
@@ -61,15 +54,7 @@ fn test_string() {
       },
       "default behavior, 0 backtracks": {
         "": Ok([]),
-        "[": Ok([
-          "",
-        ]),
-        "[\"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
-        "[\"abc\",": Ok([
-          "abc",
-          "",
-        ]),
-        "[\"abc\", \"": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
+        "[": Err("the maximum number of backtracks has been exceeded (see tracing logs for pointers to avoid a high number of backtracks)"),
         "[\"abc\", \"de\\nf\"]": Ok([
           "abc",
           "de\nf",
@@ -121,7 +106,7 @@ fn test_string() {
       },
       "default behavior, 1 backtracks": {
         "": Ok([]),
-        "[": Ok([
+        "[\"": Ok([
           "",
         ]),
         "[\"a": Ok([
@@ -133,7 +118,7 @@ fn test_string() {
         "[\"abc": Ok([
           "abc",
         ]),
-        "[\"abc\",": Ok([
+        "[\"abc\", \"": Ok([
           "abc",
           "",
         ]),
