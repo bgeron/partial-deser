@@ -278,7 +278,7 @@ impl Fallbacks for DefaultFallbacks {
         _context: &FallbackContext,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        if let Some(s) = self.behavior.unstable_fallback_default_str {
+        if let Some(s) = self.behavior.fallback_default_str {
             (take_visitor)().visit_str(s).map(Some)
         } else {
             Ok(None)
@@ -290,7 +290,7 @@ impl Fallbacks for DefaultFallbacks {
         _context: &FallbackContext,
         take_visitor: impl FnOnce() -> V,
     ) -> Result<Option<V::Value>, E> {
-        if let Some(s) = self.behavior.unstable_fallback_default_str {
+        if let Some(s) = self.behavior.fallback_default_str {
             (take_visitor)().visit_string(s.to_string()).map(Some)
         } else {
             Ok(None)
@@ -304,9 +304,9 @@ impl Fallbacks for DefaultFallbacks {
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
             if context.is_at_mandatory() {
-                self.behavior.unstable_fallback_none_at_mandatory
+                self.behavior.fallback_none_at_mandatory
             } else {
-                self.behavior.unstable_fallback_none
+                self.behavior.fallback_none
             },
             move || (take_visitor)().visit_none(),
         )
@@ -319,9 +319,9 @@ impl Fallbacks for DefaultFallbacks {
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
             if context.is_at_mandatory() {
-                self.behavior.unstable_fallback_unit_at_mandatory
+                self.behavior.fallback_unit_at_mandatory
             } else {
-                self.behavior.unstable_fallback_unit
+                self.behavior.fallback_unit
             },
             move || (take_visitor)().visit_unit(),
         )
@@ -334,9 +334,9 @@ impl Fallbacks for DefaultFallbacks {
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
             if context.is_at_mandatory() {
-                self.behavior.unstable_fallback_unit_struct_at_mandatory
+                self.behavior.fallback_unit_struct_at_mandatory
             } else {
-                self.behavior.unstable_fallback_unit_struct
+                self.behavior.fallback_unit_struct
             },
             move || (take_visitor)().visit_unit(),
         )
@@ -348,9 +348,9 @@ impl Fallbacks for DefaultFallbacks {
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
             if context.is_at_root() {
-                self.behavior.unstable_fallback_seq_empty_at_root
+                self.behavior.fallback_seq_empty_at_root
             } else {
-                self.behavior.unstable_fallback_seq_empty
+                self.behavior.fallback_seq_empty
             },
             move || (take_visitor)().visit_seq(EmptyAccess::default()),
         )
@@ -362,9 +362,9 @@ impl Fallbacks for DefaultFallbacks {
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
             if context.is_at_root() {
-                self.behavior.unstable_fallback_map_empty_at_root
+                self.behavior.fallback_map_empty_at_root
             } else {
-                self.behavior.unstable_fallback_map_empty
+                self.behavior.fallback_map_empty
             },
             move || (take_visitor)().visit_map(EmptyAccess::default()),
         )
@@ -376,9 +376,9 @@ impl Fallbacks for DefaultFallbacks {
     ) -> Result<Option<V::Value>, E> {
         conditional_fallback(
             if context.is_at_root() {
-                self.behavior.unstable_fallback_struct_empty_at_root
+                self.behavior.fallback_struct_empty_at_root
             } else {
-                self.behavior.unstable_fallback_struct_empty
+                self.behavior.fallback_struct_empty
             },
             move || (take_visitor)().visit_map(EmptyAccess::default()),
         )

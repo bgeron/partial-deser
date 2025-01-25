@@ -93,8 +93,8 @@ fn main() {
     // {
     //     let json = "[";
     //     let mut behavior = UnstableCustomBehavior::default();
-    //     behavior.unstable_fallback_seq_empty = false;
-    //     behavior.unstable_fallback_seq_skip_item = false;
+    //     behavior.fallback_seq_empty = false;
+    //     behavior.fallback_seq_skip_item = false;
 
     //     let parsed: Vec<bool> = deser_incomplete::Options::new_json()
     //         .custom_behavior(behavior)

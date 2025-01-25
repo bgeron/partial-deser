@@ -142,20 +142,31 @@ pub mod options {
     pub use crate::options_impl::JsonExtraOptions;
     #[cfg(all(feature = "rand", feature = "serde_yaml"))]
     pub use crate::options_impl::YamlExtraOptions;
-    pub use crate::options_impl::{DefaultExtraOptions, MakeDefaultFallbacks, MakeDefaultReporter};
+    pub use crate::options_impl::{
+        DefaultExtraOptions, ExtraOptions, MakeDefaultFallbacks, MakeDefaultReporter,
+    };
 }
 
-/// Reexports to satisfy Rust's visibility rules. These are not stable across
-/// versions.
+/// Import from this crate in this library. That way, doc links work properly.
+#[cfg(not(feature = "unstable"))]
+mod unstable {
+    pub use crate::collection_of_unstable_stuff::*;
+}
+/// Stuff that's not polished and particularly likely to change.
 #[cfg(feature = "unstable")]
-#[allow(unused_imports)]
 pub mod unstable {
+    pub use crate::collection_of_unstable_stuff::*;
+}
+
+#[allow(unused_imports)]
+mod collection_of_unstable_stuff {
     pub use crate::fallback::Fallbacks;
     pub use crate::options_impl::{
         ExtraOptions, ExtraOptionsStruct, MakeFallbackProvider, MakeReporter,
         UnstableCustomBehavior,
     };
-    pub use crate::reporter::Reporter;
+    pub use crate::reporter::{DefaultReporter, Reporter};
+    pub trait ExtraOptionsIsUnstable {}
 }
 
 pub use error::Error;

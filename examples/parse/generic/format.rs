@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::sync::Arc;
 
 use clap::ValueEnum;
-use deser_incomplete::unstable::ExtraOptions;
+use deser_incomplete::options::ExtraOptions;
 use deser_incomplete::{Error, Options};
 use serde::Deserialize;
 use tap::Pipe;

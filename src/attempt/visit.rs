@@ -310,7 +310,7 @@ where
                     .global
                     .config
                     .behavior
-                    .unstable_allow_incomplete_string_in_key_or_variant
+                    .allow_incomplete_string_in_key_or_variant
             {
                 self.global.reporter.report_allow_incomplete_string();
             } else {
@@ -342,7 +342,7 @@ where
                     .global
                     .config
                     .behavior
-                    .unstable_allow_incomplete_string_in_key_or_variant
+                    .allow_incomplete_string_in_key_or_variant
             {
                 self.global.reporter.report_allow_incomplete_string();
             } else {
@@ -374,7 +374,7 @@ where
                     .global
                     .config
                     .behavior
-                    .unstable_allow_incomplete_string_in_key_or_variant
+                    .allow_incomplete_string_in_key_or_variant
             {
                 self.global.reporter.report_allow_incomplete_string();
             } else {
@@ -406,7 +406,7 @@ where
                     .global
                     .config
                     .behavior
-                    .unstable_allow_incomplete_string_in_key_or_variant
+                    .allow_incomplete_string_in_key_or_variant
             {
                 self.global.reporter.report_allow_incomplete_string();
             } else {
@@ -438,7 +438,7 @@ where
                     .global
                     .config
                     .behavior
-                    .unstable_allow_incomplete_string_in_key_or_variant
+                    .allow_incomplete_string_in_key_or_variant
             {
                 self.global.reporter.report_allow_incomplete_string();
             } else {
@@ -472,7 +472,7 @@ where
                     .global
                     .config
                     .behavior
-                    .unstable_allow_incomplete_string_in_key_or_variant
+                    .allow_incomplete_string_in_key_or_variant
             {
                 self.global.reporter.report_allow_incomplete_string();
             } else {

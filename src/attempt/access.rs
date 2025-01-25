@@ -85,54 +85,38 @@ where
     /// depending on what we are deserializing for (the [`Deserializer`] method)
     pub(crate) fn should_fallback_skip_item(&self) -> bool {
         match self.kind {
-            DeserializeKind::Seq => self.global.config.behavior.unstable_fallback_seq_skip_item,
+            DeserializeKind::Seq => self.global.config.behavior.fallback_seq_skip_item,
             // Tuples don't have optional elements.
             DeserializeKind::Tuple { len: _ } => false,
             // Tuple structs may have optional fields.
             DeserializeKind::TupleStruct { name: _, len: _ } => {
-                self.global.config.behavior.unstable_fallback_seq_skip_item
+                self.global.config.behavior.fallback_seq_skip_item
             }
-            DeserializeKind::Map => self.global.config.behavior.unstable_fallback_map_skip_item,
+            DeserializeKind::Map => self.global.config.behavior.fallback_map_skip_item,
             DeserializeKind::Struct { name: _, fields: _ } => {
-                self.global
-                    .config
-                    .behavior
-                    .unstable_fallback_struct_skip_field
+                self.global.config.behavior.fallback_struct_skip_field
             }
             DeserializeKind::Enum { .. } => false,
 
-            _ => {
-                self.global
-                    .config
-                    .behavior
-                    .unstable_fallback_other_skip_item
-            }
+            _ => self.global.config.behavior.fallback_other_skip_item,
         }
     }
 
     /// Determine whether it's okay to backtrack skipping an item
     pub(crate) fn should_backtrack_skip_item(&self) -> bool {
         match self.kind {
-            DeserializeKind::Seq => self.global.config.behavior.unstable_backtrack_seq_skip_item,
+            DeserializeKind::Seq => self.global.config.behavior.backtrack_seq_skip_item,
             DeserializeKind::Tuple { len: _ } => false,
             DeserializeKind::TupleStruct { name: _, len: _ } => {
-                self.global.config.behavior.unstable_backtrack_seq_skip_item
+                self.global.config.behavior.backtrack_seq_skip_item
             }
-            DeserializeKind::Map => self.global.config.behavior.unstable_backtrack_map_skip_item,
+            DeserializeKind::Map => self.global.config.behavior.backtrack_map_skip_item,
             DeserializeKind::Struct { name: _, fields: _ } => {
-                self.global
-                    .config
-                    .behavior
-                    .unstable_backtrack_struct_skip_field
+                self.global.config.behavior.backtrack_struct_skip_field
             }
             DeserializeKind::Enum { .. } => false,
 
-            _ => {
-                self.global
-                    .config
-                    .behavior
-                    .unstable_backtrack_other_skip_item
-            }
+            _ => self.global.config.behavior.backtrack_other_skip_item,
         }
     }
 }
@@ -371,7 +355,7 @@ where
         process_variant_result(&result, self.attempt, &mut self.global.reporter);
         match result {
             Ok(()) => Ok(()),
-            Err(_) if self.global.config.behavior.unstable_fallback_unit_variant => {
+            Err(_) if self.global.config.behavior.fallback_unit_variant => {
                 self.global.reporter.report_fallback(None);
                 Ok(())
             }

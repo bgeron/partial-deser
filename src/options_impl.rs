@@ -4,7 +4,7 @@ use serde::de::{Deserializer, EnumAccess, MapAccess};
 use crate::fallback::DefaultFallbacks;
 pub use crate::random_trailer::RandomTrailer;
 use crate::random_trailer::{NoopRandomTrailer, StringLike};
-use crate::reporter::DefaultReporter;
+use crate::unstable::{DefaultReporter, ExtraOptionsIsUnstable};
 use crate::Options;
 
 impl<Extra: ExtraOptions> Options<Extra> {
@@ -42,7 +42,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
 ///
 /// An alternative reporter could instead always log e.g. the display representation
 /// of the error. Then the corresponding parameter pack could implement [`ExtraOptions<'_>`].
-pub trait ExtraOptions {
+pub trait ExtraOptions: ExtraOptionsIsUnstable {
     /// Will only be called once per invocation of a public function in this crate
     fn make_reporter(&mut self) -> Self::Reporter;
     type Reporter: crate::reporter::Reporter;
@@ -139,6 +139,8 @@ where
     type RandomTrailer = RT;
 }
 
+impl<R, F, RT> ExtraOptionsIsUnstable for ExtraOptionsStruct<R, F, RT> {}
+
 /// Customize behavior.
 ///
 /// This both controls
@@ -185,27 +187,19 @@ where
 pub struct UnstableCustomBehavior {
     /// If the visitor returns Ok but the deserializer returns an error, then return
     /// the visitor's value.
-    pub unstable_tolerate_deserializer_fail_after_visit_success: bool,
-    pub unstable_fallback_any_as_none: bool,
-    // pub unstable_backtrack_any_as_none: bool,
-    pub unstable_fallback_ignored_any_as_none: bool,
-    // pub unstable_backtrack_ignored_any_as_none: bool,
-    pub unstable_fallback_default_bool: Option<bool>,
-    // pub unstable_backtrack_default_bool: Option<bool>,
-    pub unstable_fallback_int_zero: bool,
-    // pub unstable_backtrack_int_zero: bool,
-    pub unstable_fallback_default_float: Option<f32>,
-    // pub unstable_backtrack_default_float: Option<f32>,
-    pub unstable_fallback_default_char: Option<char>,
-    // pub unstable_backtrack_default_char: Option<char>,
-    pub unstable_fallback_default_str: Option<&'static str>,
-    // pub unstable_backtrack_default_str: Option<&'static str>,
-    pub unstable_fallback_bytes_empty: bool,
-    // pub unstable_backtrack_bytes_empty: bool,
+    pub tolerate_deserializer_fail_after_visit_success: bool,
+    pub fallback_any_as_none: bool,
+    pub fallback_ignored_any_as_none: bool,
+    pub fallback_default_bool: Option<bool>,
+    pub fallback_int_zero: bool,
+    pub fallback_default_float: Option<f32>,
+    pub fallback_default_char: Option<char>,
+    pub fallback_default_str: Option<&'static str>,
+    pub fallback_bytes_empty: bool,
     /// In case [`Deserializer::deserialize_option`] does not do anything, then
     /// just go in and visit a None.
-    pub unstable_fallback_none: bool,
-    pub unstable_fallback_none_at_mandatory: bool,
+    pub fallback_none: bool,
+    pub fallback_none_at_mandatory: bool,
     /// In case [`Deserializer::deserialize_unit`] does not do anything, then
     /// just go in and visit a unit.
     ///
@@ -213,8 +207,8 @@ pub struct UnstableCustomBehavior {
     ///
     /// In combination with the JSON string trick, this can sometimes generate spurious
     /// list elements.
-    pub unstable_fallback_unit: bool,
-    pub unstable_fallback_unit_at_mandatory: bool,
+    pub fallback_unit: bool,
+    pub fallback_unit_at_mandatory: bool,
 
     /// In case [`Deserializer::deserialize_unit_struct`] does not do anything, then
     /// just go in and visit a unit struct.
@@ -223,113 +217,98 @@ pub struct UnstableCustomBehavior {
     ///
     /// In combination with the JSON string trick, this can sometimes generate spurious
     /// list elements.
-    pub unstable_fallback_unit_struct: bool,
-    pub unstable_fallback_unit_struct_at_mandatory: bool,
+    pub fallback_unit_struct: bool,
+    pub fallback_unit_struct_at_mandatory: bool,
 
-    // pub unstable_backtrack_unit_struct: bool,
-    pub unstable_fallback_seq_empty: bool,
-    pub unstable_fallback_seq_empty_at_root: bool,
-    pub unstable_backtrack_seq_empty_for_value: bool,
+    pub fallback_seq_empty: bool,
+    pub fallback_seq_empty_at_root: bool,
+    pub backtrack_seq_empty_for_value: bool,
     /// `fallback_*_skip_item` are probably a bad idea, because they can mask a backtracking
     /// point that is better.
-    pub unstable_fallback_seq_skip_item: bool,
-    pub unstable_backtrack_seq_skip_item: bool,
-    pub unstable_fallback_tuple_empty: bool,
-    // pub unstable_backtrack_tuple_empty: bool,
+    pub fallback_seq_skip_item: bool,
+    pub backtrack_seq_skip_item: bool,
+    pub fallback_tuple_empty: bool,
     /// `fallback_*_skip_item` are probably a bad idea, because they can mask a backtracking
     /// point that is better.
-    pub unstable_fallback_tuple_skip_item: bool,
-    pub unstable_backtrack_tuple_skip_item: bool,
-    pub unstable_fallback_tuple_struct_empty: bool,
-    // pub unstable_backtrack_tuple_struct_empty: bool,
+    pub fallback_tuple_skip_item: bool,
+    pub backtrack_tuple_skip_item: bool,
+    pub fallback_tuple_struct_empty: bool,
     /// `fallback_*_skip_item` are probably a bad idea, because they can mask a backtracking
     /// point that is better.
-    pub unstable_fallback_tuple_struct_skip_item: bool,
-    pub unstable_backtrack_tuple_struct_skip_item: bool,
-    pub unstable_fallback_map_empty: bool,
-    pub unstable_fallback_map_empty_at_root: bool,
-    pub unstable_backtrack_map_empty_for_value: bool,
+    pub fallback_tuple_struct_skip_item: bool,
+    pub backtrack_tuple_struct_skip_item: bool,
+    pub fallback_map_empty: bool,
+    pub fallback_map_empty_at_root: bool,
+    pub backtrack_map_empty_for_value: bool,
     /// `fallback_*_skip_item` are probably a bad idea, because they can mask a backtracking
     /// point that is better.
-    pub unstable_fallback_map_skip_item: bool,
-    pub unstable_backtrack_map_skip_item: bool,
-    pub unstable_fallback_struct_empty: bool,
-    pub unstable_fallback_struct_empty_at_root: bool,
-    pub unstable_backtrack_struct_empty_for_value: bool,
+    pub fallback_map_skip_item: bool,
+    pub backtrack_map_skip_item: bool,
+    pub fallback_struct_empty: bool,
+    pub fallback_struct_empty_at_root: bool,
+    pub backtrack_struct_empty_for_value: bool,
     /// `fallback_*_skip_item` are probably a bad idea, because they can mask a backtracking
     /// point that is better.
-    pub unstable_fallback_struct_skip_field: bool,
-    pub unstable_backtrack_struct_skip_field: bool,
-    pub unstable_fallback_unit_variant: bool,
+    pub fallback_struct_skip_field: bool,
+    pub backtrack_struct_skip_field: bool,
+    pub fallback_unit_variant: bool,
 
     /// Whether it's okay to fallback to skipping an element or field in circumstances
     /// other than [`Deserializer::deserialize_seq`] or [`Deserializer::deserialize_tuple`].
     ///
     /// `fallback_*_skip_item` are probably a bad idea, because they can mask a backtracking
     /// point that is better.
-    pub unstable_fallback_other_skip_item: bool,
-    pub unstable_backtrack_other_skip_item: bool,
+    pub fallback_other_skip_item: bool,
+    pub backtrack_other_skip_item: bool,
 
     /// Whether incomplete strings should be allowed or rejected
     /// in [`MapAccess::next_key`] or [`EnumAccess::variant`].
-    pub unstable_allow_incomplete_string_in_key_or_variant: bool,
+    pub allow_incomplete_string_in_key_or_variant: bool,
 }
 
 impl Default for UnstableCustomBehavior {
     fn default() -> Self {
         Self {
-            unstable_tolerate_deserializer_fail_after_visit_success: true,
-            unstable_fallback_any_as_none: false,
-            // unstable_backtrack_any_as_none: false,
-            unstable_fallback_ignored_any_as_none: false,
-            // unstable_backtrack_ignored_any_as_none: false,
-            unstable_fallback_default_bool: None,
-            // unstable_backtrack_default_bool: None,
-            unstable_fallback_int_zero: false,
-            // unstable_backtrack_int_zero: false,
-            unstable_fallback_default_float: None,
-            // unstable_backtrack_default_float: None,
-            unstable_fallback_default_char: None,
-            // unstable_backtrack_default_char: None,
-            unstable_fallback_default_str: None,
-            // unstable_backtrack_default_str: None,
-            unstable_fallback_bytes_empty: false,
-            // unstable_backtrack_bytes_empty: false,
-            unstable_fallback_none: true,
-            unstable_fallback_none_at_mandatory: true,
-            unstable_fallback_unit: false,
-            unstable_fallback_unit_at_mandatory: true,
-            // unstable_backtrack_unit: true,
-            unstable_fallback_unit_struct: false,
-            unstable_fallback_unit_struct_at_mandatory: true,
-            // unstable_backtrack_unit_struct: true,
-            unstable_fallback_seq_empty: false,
-            unstable_fallback_seq_empty_at_root: true,
-            unstable_backtrack_seq_empty_for_value: true,
-            unstable_fallback_seq_skip_item: false,
-            unstable_backtrack_seq_skip_item: true,
-            unstable_fallback_tuple_empty: false,
-            // unstable_backtrack_tuple_empty: false,
-            unstable_fallback_tuple_skip_item: false,
-            unstable_backtrack_tuple_skip_item: true,
-            unstable_fallback_tuple_struct_empty: false,
-            // unstable_backtrack_tuple_struct_empty: false,
-            unstable_fallback_tuple_struct_skip_item: false,
-            unstable_backtrack_tuple_struct_skip_item: true,
-            unstable_fallback_map_empty: false,
-            unstable_fallback_map_empty_at_root: true,
-            unstable_backtrack_map_empty_for_value: true,
-            unstable_fallback_map_skip_item: false,
-            unstable_backtrack_map_skip_item: true,
-            unstable_fallback_struct_empty: false,
-            unstable_fallback_struct_empty_at_root: true,
-            unstable_backtrack_struct_empty_for_value: true,
-            unstable_fallback_struct_skip_field: true,
-            unstable_backtrack_struct_skip_field: true,
-            unstable_fallback_unit_variant: true,
-            unstable_fallback_other_skip_item: false,
-            unstable_backtrack_other_skip_item: true,
-            unstable_allow_incomplete_string_in_key_or_variant: false,
+            tolerate_deserializer_fail_after_visit_success: true,
+            fallback_any_as_none: false,
+            fallback_ignored_any_as_none: false,
+            fallback_default_bool: None,
+            fallback_int_zero: false,
+            fallback_default_float: None,
+            fallback_default_char: None,
+            fallback_default_str: None,
+            fallback_bytes_empty: false,
+            fallback_none: true,
+            fallback_none_at_mandatory: true,
+            fallback_unit: false,
+            fallback_unit_at_mandatory: true,
+            fallback_unit_struct: false,
+            fallback_unit_struct_at_mandatory: true,
+            fallback_seq_empty: false,
+            fallback_seq_empty_at_root: true,
+            backtrack_seq_empty_for_value: true,
+            fallback_seq_skip_item: false,
+            backtrack_seq_skip_item: true,
+            fallback_tuple_empty: false,
+            fallback_tuple_skip_item: false,
+            backtrack_tuple_skip_item: true,
+            fallback_tuple_struct_empty: false,
+            fallback_tuple_struct_skip_item: false,
+            backtrack_tuple_struct_skip_item: true,
+            fallback_map_empty: false,
+            fallback_map_empty_at_root: true,
+            backtrack_map_empty_for_value: true,
+            fallback_map_skip_item: false,
+            backtrack_map_skip_item: true,
+            fallback_struct_empty: false,
+            fallback_struct_empty_at_root: true,
+            backtrack_struct_empty_for_value: true,
+            fallback_struct_skip_field: true,
+            backtrack_struct_skip_field: true,
+            fallback_unit_variant: true,
+            fallback_other_skip_item: false,
+            backtrack_other_skip_item: true,
+            allow_incomplete_string_in_key_or_variant: false,
         }
     }
 }
@@ -337,79 +316,78 @@ impl Default for UnstableCustomBehavior {
 impl UnstableCustomBehavior {
     pub fn no_fallbacks(mut self) -> Self {
         let Self {
-            unstable_tolerate_deserializer_fail_after_visit_success: _,
-            unstable_fallback_any_as_none,
-            unstable_fallback_ignored_any_as_none,
-            unstable_fallback_default_bool,
-            unstable_fallback_int_zero,
-            unstable_fallback_default_float,
-            unstable_fallback_default_char,
-            unstable_fallback_default_str,
-            unstable_fallback_bytes_empty,
-            unstable_fallback_none,
-            unstable_fallback_none_at_mandatory,
-            unstable_fallback_unit,
-            unstable_fallback_unit_at_mandatory,
-            unstable_fallback_unit_struct,
-            unstable_fallback_unit_struct_at_mandatory,
-            unstable_fallback_seq_empty,
-            unstable_fallback_seq_empty_at_root,
-            unstable_backtrack_seq_empty_for_value: _,
-            unstable_fallback_seq_skip_item,
-            unstable_backtrack_seq_skip_item: _,
-            unstable_fallback_tuple_empty,
-            unstable_fallback_tuple_skip_item,
-            unstable_backtrack_tuple_skip_item: _,
-            unstable_fallback_tuple_struct_empty,
-            unstable_fallback_tuple_struct_skip_item: unstable_fallback_tuple_struct_skip_field,
-            unstable_backtrack_tuple_struct_skip_item: _,
-            unstable_fallback_map_empty,
-            unstable_fallback_map_empty_at_root,
-            unstable_backtrack_map_empty_for_value: _,
-            unstable_fallback_map_skip_item,
-            unstable_backtrack_map_skip_item: _,
-            unstable_fallback_struct_empty,
-            unstable_fallback_struct_empty_at_root,
-            unstable_backtrack_struct_empty_for_value: _,
-            unstable_fallback_struct_skip_field,
-            unstable_backtrack_struct_skip_field: _,
-            unstable_fallback_unit_variant,
-            unstable_fallback_other_skip_item,
-            unstable_backtrack_other_skip_item: _,
-            unstable_allow_incomplete_string_in_key_or_variant:
-                unstable_allow_incomplete_string_in_key,
+            tolerate_deserializer_fail_after_visit_success: _,
+            fallback_any_as_none,
+            fallback_ignored_any_as_none,
+            fallback_default_bool,
+            fallback_int_zero,
+            fallback_default_float,
+            fallback_default_char,
+            fallback_default_str,
+            fallback_bytes_empty,
+            fallback_none,
+            fallback_none_at_mandatory,
+            fallback_unit,
+            fallback_unit_at_mandatory,
+            fallback_unit_struct,
+            fallback_unit_struct_at_mandatory,
+            fallback_seq_empty,
+            fallback_seq_empty_at_root,
+            backtrack_seq_empty_for_value: _,
+            fallback_seq_skip_item,
+            backtrack_seq_skip_item: _,
+            fallback_tuple_empty,
+            fallback_tuple_skip_item,
+            backtrack_tuple_skip_item: _,
+            fallback_tuple_struct_empty,
+            fallback_tuple_struct_skip_item: fallback_tuple_struct_skip_field,
+            backtrack_tuple_struct_skip_item: _,
+            fallback_map_empty,
+            fallback_map_empty_at_root,
+            backtrack_map_empty_for_value: _,
+            fallback_map_skip_item,
+            backtrack_map_skip_item: _,
+            fallback_struct_empty,
+            fallback_struct_empty_at_root,
+            backtrack_struct_empty_for_value: _,
+            fallback_struct_skip_field,
+            backtrack_struct_skip_field: _,
+            fallback_unit_variant,
+            fallback_other_skip_item,
+            backtrack_other_skip_item: _,
+            allow_incomplete_string_in_key_or_variant: allow_incomplete_string_in_key,
         } = &mut self;
 
-        *unstable_fallback_any_as_none = false;
-        *unstable_fallback_ignored_any_as_none = false;
-        *unstable_fallback_default_bool = None;
-        *unstable_fallback_int_zero = false;
-        *unstable_fallback_default_float = None;
-        *unstable_fallback_default_char = None;
-        *unstable_fallback_default_str = None;
-        *unstable_fallback_bytes_empty = false;
-        *unstable_fallback_none = false;
-        *unstable_fallback_none_at_mandatory = false;
-        *unstable_fallback_unit = false;
-        *unstable_fallback_unit_at_mandatory = false;
-        *unstable_fallback_unit_struct = false;
-        *unstable_fallback_unit_struct_at_mandatory = false;
-        *unstable_fallback_seq_empty = false;
-        *unstable_fallback_seq_empty_at_root = false;
-        *unstable_fallback_seq_skip_item = false;
-        *unstable_fallback_tuple_empty = false;
-        *unstable_fallback_tuple_skip_item = false;
-        *unstable_fallback_tuple_struct_empty = false;
-        *unstable_fallback_tuple_struct_skip_field = false;
-        *unstable_fallback_map_empty = false;
-        *unstable_fallback_map_empty_at_root = false;
-        *unstable_fallback_map_skip_item = false;
-        *unstable_fallback_struct_empty = false;
-        *unstable_fallback_struct_empty_at_root = false;
-        *unstable_fallback_struct_skip_field = false;
-        *unstable_fallback_unit_variant = false;
-        *unstable_fallback_other_skip_item = false;
-        *unstable_allow_incomplete_string_in_key = false;
+        *fallback_any_as_none = false;
+        *fallback_ignored_any_as_none = false;
+        *fallback_default_bool = None;
+        *fallback_int_zero = false;
+        *fallback_default_float = None;
+        *fallback_default_char = None;
+        *fallback_default_str = None;
+        *fallback_bytes_empty = false;
+        *fallback_none = false;
+        *fallback_none_at_mandatory = false;
+        *fallback_unit = false;
+        *fallback_unit_at_mandatory = false;
+        *fallback_unit_struct = false;
+        *fallback_unit_struct_at_mandatory = false;
+        *fallback_seq_empty = false;
+        *fallback_seq_empty_at_root = false;
+        *fallback_seq_skip_item = false;
+        *fallback_tuple_empty = false;
+        *fallback_tuple_skip_item = false;
+        *fallback_tuple_struct_empty = false;
+        *fallback_tuple_struct_skip_field = false;
+        *fallback_map_empty = false;
+        *fallback_map_empty_at_root = false;
+        *fallback_map_skip_item = false;
+        *fallback_struct_empty = false;
+        *fallback_struct_empty_at_root = false;
+        *fallback_struct_skip_field = false;
+        *fallback_unit_variant = false;
+        *fallback_other_skip_item = false;
+        *allow_incomplete_string_in_key = false;
 
         self
     }
@@ -418,115 +396,91 @@ impl UnstableCustomBehavior {
     /// deserialization with this behavior.
     pub fn strict() -> Self {
         Self {
-            unstable_tolerate_deserializer_fail_after_visit_success: false,
-            unstable_fallback_any_as_none: false,
-            // unstable_backtrack_any_as_none: false,
-            unstable_fallback_ignored_any_as_none: false,
-            // unstable_backtrack_ignored_any_as_none: false,
-            unstable_fallback_default_bool: None,
-            // unstable_backtrack_default_bool: None,
-            unstable_fallback_int_zero: false,
-            // unstable_backtrack_int_zero: false,
-            unstable_fallback_default_float: None,
-            // unstable_backtrack_default_float: None,
-            unstable_fallback_default_char: None,
-            // unstable_backtrack_default_char: None,
-            unstable_fallback_default_str: None,
-            // unstable_backtrack_default_str: None,
-            unstable_fallback_bytes_empty: false,
-            // unstable_backtrack_bytes_empty: false,
-            unstable_fallback_none: false,
-            unstable_fallback_none_at_mandatory: false,
-            unstable_fallback_unit: false,
-            unstable_fallback_unit_at_mandatory: false,
-            // unstable_backtrack_unit: false,
-            unstable_fallback_unit_struct: false,
-            unstable_fallback_unit_struct_at_mandatory: false,
-            // unstable_backtrack_unit_struct: false,
-            unstable_fallback_seq_empty: false,
-            unstable_fallback_seq_empty_at_root: false,
-            unstable_backtrack_seq_empty_for_value: false,
-            unstable_fallback_seq_skip_item: false,
-            unstable_backtrack_seq_skip_item: false,
-            unstable_fallback_tuple_empty: false,
-            // unstable_backtrack_tuple_empty: false,
-            unstable_fallback_tuple_skip_item: false,
-            unstable_backtrack_tuple_skip_item: false,
-            unstable_fallback_tuple_struct_skip_item: false,
-            unstable_backtrack_tuple_struct_skip_item: false,
-            unstable_fallback_tuple_struct_empty: false,
-            // unstable_backtrack_tuple_struct_empty: false,
-            unstable_fallback_map_empty: false,
-            unstable_fallback_map_empty_at_root: false,
-            unstable_backtrack_map_empty_for_value: false,
-            unstable_fallback_map_skip_item: false,
-            unstable_backtrack_map_skip_item: false,
-            unstable_fallback_struct_empty: false,
-            unstable_fallback_struct_empty_at_root: false,
-            unstable_backtrack_struct_empty_for_value: false,
-            unstable_fallback_struct_skip_field: false,
-            unstable_backtrack_struct_skip_field: false,
-            unstable_fallback_unit_variant: false,
-            unstable_fallback_other_skip_item: false,
-            unstable_backtrack_other_skip_item: false,
-            unstable_allow_incomplete_string_in_key_or_variant: false,
+            tolerate_deserializer_fail_after_visit_success: false,
+            fallback_any_as_none: false,
+            fallback_ignored_any_as_none: false,
+            fallback_default_bool: None,
+            fallback_int_zero: false,
+            fallback_default_float: None,
+            fallback_default_char: None,
+            fallback_default_str: None,
+            fallback_bytes_empty: false,
+            fallback_none: false,
+            fallback_none_at_mandatory: false,
+            fallback_unit: false,
+            fallback_unit_at_mandatory: false,
+            fallback_unit_struct: false,
+            fallback_unit_struct_at_mandatory: false,
+            fallback_seq_empty: false,
+            fallback_seq_empty_at_root: false,
+            backtrack_seq_empty_for_value: false,
+            fallback_seq_skip_item: false,
+            backtrack_seq_skip_item: false,
+            fallback_tuple_empty: false,
+            fallback_tuple_skip_item: false,
+            backtrack_tuple_skip_item: false,
+            fallback_tuple_struct_skip_item: false,
+            backtrack_tuple_struct_skip_item: false,
+            fallback_tuple_struct_empty: false,
+            fallback_map_empty: false,
+            fallback_map_empty_at_root: false,
+            backtrack_map_empty_for_value: false,
+            fallback_map_skip_item: false,
+            backtrack_map_skip_item: false,
+            fallback_struct_empty: false,
+            fallback_struct_empty_at_root: false,
+            backtrack_struct_empty_for_value: false,
+            fallback_struct_skip_field: false,
+            backtrack_struct_skip_field: false,
+            fallback_unit_variant: false,
+            fallback_other_skip_item: false,
+            backtrack_other_skip_item: false,
+            allow_incomplete_string_in_key_or_variant: false,
         }
     }
 
     pub fn lenient() -> Self {
         Self {
-            unstable_tolerate_deserializer_fail_after_visit_success: true,
-            unstable_fallback_any_as_none: true,
-            // unstable_backtrack_any_as_none: true,
-            unstable_fallback_ignored_any_as_none: true,
-            // unstable_backtrack_ignored_any_as_none: true,
-            unstable_fallback_default_bool: Some(false),
-            // unstable_backtrack_default_bool: Some(false),
-            unstable_fallback_int_zero: true,
-            // unstable_backtrack_int_zero: true,
-            unstable_fallback_default_float: Some(0.0),
-            // unstable_backtrack_default_float: Some(0.0),
-            unstable_fallback_default_char: Some('\0'),
-            // unstable_backtrack_default_char: Some('\0'),
-            unstable_fallback_default_str: Some(""),
-            // unstable_backtrack_default_str: Some(""),
-            unstable_fallback_bytes_empty: true,
-            // unstable_backtrack_bytes_empty: true,
-            unstable_fallback_none: true,
-            unstable_fallback_none_at_mandatory: true,
-            unstable_fallback_unit: true,
-            unstable_fallback_unit_at_mandatory: true,
-            // unstable_backtrack_unit: true,
-            unstable_fallback_unit_struct: true,
-            unstable_fallback_unit_struct_at_mandatory: true,
-            // unstable_backtrack_unit_struct: true,
-            unstable_fallback_seq_empty: true,
-            unstable_fallback_seq_empty_at_root: true,
-            unstable_backtrack_seq_empty_for_value: true,
-            unstable_fallback_seq_skip_item: true,
-            unstable_backtrack_seq_skip_item: true,
-            unstable_fallback_tuple_empty: true,
-            // unstable_backtrack_tuple_empty: true,
-            unstable_fallback_tuple_skip_item: true,
-            unstable_backtrack_tuple_skip_item: true,
-            unstable_fallback_tuple_struct_empty: true,
-            // unstable_backtrack_tuple_struct_empty: true,
-            unstable_fallback_tuple_struct_skip_item: true,
-            unstable_backtrack_tuple_struct_skip_item: true,
-            unstable_fallback_map_empty: true,
-            unstable_fallback_map_empty_at_root: true,
-            unstable_backtrack_map_empty_for_value: true,
-            unstable_fallback_map_skip_item: true,
-            unstable_backtrack_map_skip_item: true,
-            unstable_fallback_struct_empty: true,
-            unstable_fallback_struct_empty_at_root: true,
-            unstable_backtrack_struct_empty_for_value: true,
-            unstable_fallback_struct_skip_field: true,
-            unstable_backtrack_struct_skip_field: true,
-            unstable_fallback_unit_variant: true,
-            unstable_fallback_other_skip_item: true,
-            unstable_backtrack_other_skip_item: true,
-            unstable_allow_incomplete_string_in_key_or_variant: true,
+            tolerate_deserializer_fail_after_visit_success: true,
+            fallback_any_as_none: true,
+            fallback_ignored_any_as_none: true,
+            fallback_default_bool: Some(false),
+            fallback_int_zero: true,
+            fallback_default_float: Some(0.0),
+            fallback_default_char: Some('\0'),
+            fallback_default_str: Some(""),
+            fallback_bytes_empty: true,
+            fallback_none: true,
+            fallback_none_at_mandatory: true,
+            fallback_unit: true,
+            fallback_unit_at_mandatory: true,
+            fallback_unit_struct: true,
+            fallback_unit_struct_at_mandatory: true,
+            fallback_seq_empty: true,
+            fallback_seq_empty_at_root: true,
+            backtrack_seq_empty_for_value: true,
+            fallback_seq_skip_item: true,
+            backtrack_seq_skip_item: true,
+            fallback_tuple_empty: true,
+            fallback_tuple_skip_item: true,
+            backtrack_tuple_skip_item: true,
+            fallback_tuple_struct_empty: true,
+            fallback_tuple_struct_skip_item: true,
+            backtrack_tuple_struct_skip_item: true,
+            fallback_map_empty: true,
+            fallback_map_empty_at_root: true,
+            backtrack_map_empty_for_value: true,
+            fallback_map_skip_item: true,
+            backtrack_map_skip_item: true,
+            fallback_struct_empty: true,
+            fallback_struct_empty_at_root: true,
+            backtrack_struct_empty_for_value: true,
+            fallback_struct_skip_field: true,
+            backtrack_struct_skip_field: true,
+            fallback_unit_variant: true,
+            fallback_other_skip_item: true,
+            backtrack_other_skip_item: true,
+            allow_incomplete_string_in_key_or_variant: true,
         }
     }
 }

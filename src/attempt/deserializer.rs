@@ -104,7 +104,7 @@ where
                 .global
                 .config
                 .behavior
-                .unstable_tolerate_deserializer_fail_after_visit_success =>
+                .tolerate_deserializer_fail_after_visit_success =>
         {
             deserializer
                 .attempt
@@ -423,13 +423,7 @@ where
             return inner_visitor.visit_seq(EmptyAccess::default());
         };
 
-        if self.is_for_map_value
-            && self
-                .global
-                .config
-                .behavior
-                .unstable_backtrack_seq_empty_for_value
-        {
+        if self.is_for_map_value && self.global.config.behavior.backtrack_seq_empty_for_value {
             self.attempt.halting_point_stack.push(this_halting_point);
         }
 
@@ -483,13 +477,7 @@ where
             return inner_visitor.visit_map(EmptyAccess::default());
         };
 
-        if self.is_for_map_value
-            && self
-                .global
-                .config
-                .behavior
-                .unstable_backtrack_map_empty_for_value
-        {
+        if self.is_for_map_value && self.global.config.behavior.backtrack_map_empty_for_value {
             self.attempt.halting_point_stack.push(this_halting_point);
         }
 
@@ -519,13 +507,7 @@ where
             return inner_visitor.visit_map(EmptyAccess::default());
         };
 
-        if self.is_for_map_value
-            && self
-                .global
-                .config
-                .behavior
-                .unstable_backtrack_struct_empty_for_value
-        {
+        if self.is_for_map_value && self.global.config.behavior.backtrack_struct_empty_for_value {
             self.attempt.halting_point_stack.push(this_halting_point);
         }
 
