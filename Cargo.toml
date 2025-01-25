@@ -21,6 +21,7 @@ thiserror = "2.0.3"
 tracing = { version = "0.1", optional = true }
 
 [dev-dependencies]
+ansi-to-tui = { version = "7.0.0", default-features = true }
 anyhow = "1.0.95"
 clap = { version = "4.5.26", features = ["derive"] }
 crossterm = { version = "0.28.1", features = ["event-stream"] }

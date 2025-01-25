@@ -19,8 +19,46 @@ use super::ActiveDisplay;
 
 pub const KNOWN_GOOD_NU_VERSION: &str = "0.101.0";
 
-pub const NU_COMMAND: &str =
-    "open -r /dev/stdin | lines | each { from json | table -e | ansi strip | to json } | to text ";
+#[derive(Copy, Clone, Debug)]
+pub struct Prefs {
+    enable_color: bool,
+    theme_name: &'static str,
+}
+
+impl Prefs {
+    pub(crate) fn bare() -> Self {
+        Self {
+            enable_color: false,
+            theme_name: "light-theme",
+        }
+    }
+
+    pub(crate) fn light() -> Self {
+        Self {
+            enable_color: true,
+            theme_name: "light-theme",
+        }
+    }
+
+    pub(crate) fn dark() -> Self {
+        Self {
+            enable_color: true,
+            theme_name: "dark-theme",
+        }
+    }
+}
+
+fn nu_command(prefs: Prefs) -> String {
+    format!(
+        // Double {{ to escape for format!() .
+        //
+        // We have to connect stdout to a terminal and let nushell write to stderr. This
+        // way, we trigger `table`'s behavior to print nice colors.
+        "use std/config {theme_name}; $env.config.color_config = ({theme_name}); open -r /dev/stdin | lines | each {{ from json | table -e -t default {strip_ansi} | to json -r }} | to text o> /dev/stderr",
+        strip_ansi = if prefs.enable_color { "" } else { " | ansi strip" },
+        theme_name = prefs.theme_name
+    )
+}
 
 /// Format values using nushell.
 ///
@@ -30,7 +68,7 @@ pub struct Display {
 }
 
 impl Display {
-    pub async fn new_if_nu_installed() -> Option<Self> {
+    pub async fn new_if_nu_installed(prefs: Prefs) -> Option<Self> {
         let version = nu_version()?;
 
         if check_nu_support().await != Some(true) {
@@ -41,15 +79,15 @@ impl Display {
             warn!("Using nu version {version} (known good version = {KNOWN_GOOD_NU_VERSION})")
         };
 
-        Self::new_inner()
+        Self::new_inner(prefs)
     }
 
-    pub fn new_always() -> Self {
-        Self::new_inner().expect("could not start nushell displayer")
+    pub fn new_always(prefs: Prefs) -> Self {
+        Self::new_inner(prefs).expect("could not start nushell displayer")
     }
 
-    fn new_inner() -> Option<Display> {
-        let tableize = tableize_json_with_nu()
+    fn new_inner(prefs: Prefs) -> Option<Display> {
+        let tableize = tableize_json_with_nu(prefs)
             .tap_err(|err| error!("could not start nushell displayer: {err}"))
             .ok()?;
 
@@ -82,7 +120,7 @@ pub fn nu_version() -> Option<String> {
 ///
 /// This may leak a process.
 pub async fn check_nu_support() -> Option<bool> {
-    let tableized = tableize_json_with_nu().ok()?("'hello\"world'".to_string()).await;
+    let tableized = tableize_json_with_nu(Prefs::bare()).ok()?("'hello\"world'".to_string()).await;
     Some(tableized == r#"'hello"world'"#)
 }
 
@@ -91,22 +129,23 @@ pub type Tableize = Box<dyn FnMut(String) -> BoxFuture<'static, String> + Send>;
 /// Use nushell to convert JSONs into tables.
 ///
 /// May leak a process.
-pub fn tableize_json_with_nu() -> anyhow::Result<Tableize> {
+pub fn tableize_json_with_nu(prefs: Prefs) -> anyhow::Result<Tableize> {
     let (out_tx, out_rx) =
         interprocess::unnamed_pipe::pipe().context("could not construct pipe for output")?;
 
     let cmd = Command::new("nu")
-        .args(["-c", NU_COMMAND])
+        .args(["-c", &nu_command(prefs)])
         .stdin(Stdio::piped())
-        .stdout(OwnedFd::from(out_tx))
+        .stdout(Stdio::inherit())
+        .stderr(OwnedFd::from(out_tx))
         .spawn()
-        .context("could not spawn nushell to see if we have a compatible version: {err}")?;
+        .context("could not spawn nushell to see if we have a compatible version")?;
 
     let outputs = out_rx
         .conv::<OwnedFd>()
-        .conv::<std::process::ChildStdout>()
-        .pipe(tokio::process::ChildStdout::from_std)
-        .context("could not wrap nu stdout")?
+        .conv::<std::process::ChildStderr>()
+        .pipe(tokio::process::ChildStderr::from_std)
+        .context("could not wrap nu stderr")?
         .pipe(Some)
         .unwrap()
         .pipe(BufReader::new)

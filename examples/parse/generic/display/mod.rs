@@ -4,6 +4,7 @@ use std::sync::Arc;
 use clap::ValueEnum;
 use futures::future::{join_all, BoxFuture};
 use futures::FutureExt as _;
+use nu::Prefs;
 
 use super::format::{ParseOk, ParseResult};
 
@@ -19,7 +20,8 @@ mod yaml;
 #[derive(Debug, Clone, ValueEnum)]
 
 pub enum DisplayPreference {
-    Nushell,
+    NushellLight,
+    NushellDark,
     Debug,
     Json,
     JsonRaw,
@@ -33,7 +35,7 @@ impl DisplayPreference {
             // Default.
 
             // Autodetect nu. Otherwise fall back to debug.
-            match nu::Display::new_if_nu_installed().await {
+            match nu::Display::new_if_nu_installed(nu::Prefs::light()).await {
                 Some(nu) => Box::new(vec![
                     Box::new(nu) as Box<dyn ActiveDisplay>,
                     Box::new(debug::Display { prefix: "" }),
@@ -47,7 +49,14 @@ impl DisplayPreference {
                 methods
                     .iter()
                     .map(|method| match method {
-                        DisplayPreference::Nushell => Box::new(nu::Display::new_always()) as _,
+                        DisplayPreference::NushellLight => {
+                            let prefs=Prefs::light();
+                            Box::new(nu::Display::new_always(prefs)) as _
+                    },
+                        DisplayPreference::NushellDark => {
+                            let prefs=Prefs::dark();
+                            Box::new(nu::Display::new_always(prefs)) as _
+                    },
                         DisplayPreference::Debug => Box::new(debug::Display { prefix: "" }) as _,
                         DisplayPreference::Json => Box::new(json::Display { pretty: true }) as _,
                         DisplayPreference::JsonRaw => {

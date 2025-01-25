@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Context;
 use crossterm::event::{Event as CrosstermEvent, EventStream, KeyCode, KeyModifiers};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Style, Stylize};
@@ -135,6 +136,7 @@ async fn make_output_state(
             Style::default().gray().bold().italic(),
         )
     } else {
-        Text::from(displayed)
+        ansi_to_tui::IntoText::into_text(&displayed)
+            .unwrap_or_else(|_| "could not interpret terminal output".into())
     };
 }
