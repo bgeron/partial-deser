@@ -17,8 +17,8 @@ pub enum Schema {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq)]
-#[serde(default)]
 struct TravelMode {
+    #[serde(default)]
     mode: String,
     benefit: Option<String>,
 }

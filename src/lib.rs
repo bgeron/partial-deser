@@ -13,9 +13,9 @@
 //! # use serde::Deserialize;
 //! #[derive(Debug, Deserialize, PartialEq)]
 //! struct TravelMode {
-//!    mode: String,
-//!    #[serde(default)]
-//!    benefit: Option<String>
+//!   #[serde(default)]
+//!   mode: String,
+//!   benefit: Option<String>
 //! }
 //!
 //! let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
@@ -337,6 +337,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// # use serde::Deserialize;
     /// #[derive(Debug, Deserialize, PartialEq)]
     /// struct TravelMode {
+    ///    #[serde(default)]
     ///    mode: String,
     ///    benefit: Option<String>
     /// }
