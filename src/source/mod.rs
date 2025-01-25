@@ -29,7 +29,7 @@ pub trait Source<'de> {
     /// same.
     ///
     /// If end of file happens in a map in between the key and the value, then
-    /// the first go at partially deserializing will fail, and we have to recreate
+    /// our first go at deserializing will fail, and we have to recreate
     /// a new deserializer for the same source.
     fn recreate_deserializer_storage(&mut self) -> Self::DeserializerStorage;
 

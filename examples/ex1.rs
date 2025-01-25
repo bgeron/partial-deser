@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
+use deser_incomplete::unstable::UnstableCustomBehavior;
 use indexmap::IndexMap;
-use partial_deser::unstable::UnstableCustomBehavior;
 use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
 
@@ -24,13 +24,13 @@ fn main() {
 
     {
         let json = "true";
-        let parsed: bool = partial_deser::from_json_str(json).unwrap();
+        let parsed: bool = deser_incomplete::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = "[true] x";
-        let parsed: Vec<bool> = partial_deser::from_json_str(json).unwrap();
+        let parsed: Vec<bool> = deser_incomplete::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 
@@ -38,25 +38,25 @@ fn main() {
         let yaml = r#"[["abc", "def"], ["abc", "de\
         
 # '"#;
-        let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
+        let parsed: Vec<Vec<String>> = deser_incomplete::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     {
         let yaml = "{\"abc\":";
-        let parsed: IndexMap<String, String> = partial_deser::from_yaml_str(yaml).unwrap();
+        let parsed: IndexMap<String, String> = deser_incomplete::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     {
         let yaml = r#"{"x": [true], "y": [false], "z":"#;
-        let parsed: Struct = partial_deser::from_yaml_str(yaml).unwrap();
+        let parsed: Struct = deser_incomplete::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     {
         let json = r#"["#;
-        let parsed: Vec<Vec<bool>> = partial_deser::from_json_str(json).unwrap();
+        let parsed: Vec<Vec<bool>> = deser_incomplete::from_json_str(json).unwrap();
         dbg!(parsed);
     }
 
@@ -66,7 +66,7 @@ fn main() {
 - ["abc", "de
         
 # '"#;
-        let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
+        let parsed: Vec<Vec<String>> = deser_incomplete::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
@@ -77,14 +77,14 @@ fn main() {
 
 #'"#
         );
-        let parsed: Vec<Vec<String>> = partial_deser::from_yaml_str(yaml).unwrap();
+        let parsed: Vec<Vec<String>> = deser_incomplete::from_yaml_str(yaml).unwrap();
         dbg!(parsed);
     }
 
     // {
     //     let json = "[";
 
-    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //     let parsed: Vec<bool> = deser_incomplete::Options::new_json()
     //         .from_json_str(json.into())
     //         .unwrap();
     //     dbg!(parsed);
@@ -96,7 +96,7 @@ fn main() {
     //     behavior.unstable_fallback_seq_empty = false;
     //     behavior.unstable_fallback_seq_skip_item = false;
 
-    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //     let parsed: Vec<bool> = deser_incomplete::Options::new_json()
     //         .custom_behavior(behavior)
     //         .from_json_str(json.into())
     //         .unwrap();
@@ -105,7 +105,7 @@ fn main() {
 
     // {
     //     let json = "[true, false, tru";
-    //     let parsed: Vec<bool> = partial_deser::Options::new_json()
+    //     let parsed: Vec<bool> = deser_incomplete::Options::new_json()
     //         .custom_behavior(UnstableCustomBehavior::default().no_fallbacks())
     //         .with_max_n_backtracks(Some(1))
     //         .from_json_str(json.into())
@@ -115,7 +115,7 @@ fn main() {
 
     // {
     //     let json = "[true, false, 3, 4.5, \"hello";
-    //     let parsed: serde_json::Value = partial_deser::Options::new_json()
+    //     let parsed: serde_json::Value = deser_incomplete::Options::new_json()
     //         .from_json_str(json.into())
     //         .unwrap();
     //     dbg!(parsed);
@@ -123,7 +123,7 @@ fn main() {
 
     // {
     //     let json = r#"[{"ab""#;
-    //     let parsed: Vec<indexmap::IndexMap<String, String>> = partial_deser::Options::new_json()
+    //     let parsed: Vec<indexmap::IndexMap<String, String>> = deser_incomplete::Options::new_json()
     //         .from_json_str(json.into())
     //         .unwrap();
     //     dbg!(parsed);

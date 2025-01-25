@@ -3,8 +3,8 @@ use std::fmt::Debug;
 use std::sync::Arc;
 
 use clap::ValueEnum;
-use partial_deser::unstable::ExtraOptions;
-use partial_deser::{Error, Options};
+use deser_incomplete::unstable::ExtraOptions;
+use deser_incomplete::{Error, Options};
 use serde::Deserialize;
 use tap::Pipe;
 
@@ -28,14 +28,14 @@ impl Format {
         P: for<'de> Deserialize<'de> + Parsed + 'static,
     {
         match self {
-            Format::Json => partial_deser::Options::new_json()
+            Format::Json => deser_incomplete::Options::new_json()
                 .pipe(|options| apply_settings(settings, options))
                 .from_json_slice::<P>(Cow::Borrowed(input))
                 .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 
             #[cfg(feature = "serde_yaml")]
-            Format::Yaml => partial_deser::Options::new_yaml()
+            Format::Yaml => deser_incomplete::Options::new_yaml()
                 .pipe(|options| apply_settings(settings, options))
                 .from_yaml_slice::<P>(Cow::Borrowed(input))
                 .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)

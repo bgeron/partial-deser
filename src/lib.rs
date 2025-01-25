@@ -4,7 +4,7 @@
     allow(unused_variables, unused_imports, dead_code, unused_mut)
 )]
 
-//! Deserialize with Serde from partial JSON and more
+//! # Deserialize incomplete data
 //!
 //! This crate reads incomplete JSON and parses it for your
 //! data structures that implement [`Deserialize`]:
@@ -19,7 +19,7 @@
 //! }
 //!
 //! let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-//! let modes: Vec<TravelMode> = partial_deser::from_json_str(json).unwrap();
+//! let modes: Vec<TravelMode> = deser_incomplete::from_json_str(json).unwrap();
 //! assert_eq!(modes, [
 //!    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
 //!    TravelMode { mode: "aeropl".to_string(), benefit: None }
@@ -177,7 +177,7 @@ pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     extra: Extra,
 }
 
-/// Main function. Partially deserialize the input with [`serde_json`].
+/// Main function. Robustly deserialize incomplete input with [`serde_json`].
 ///
 /// See methods on [`Options`] for more generic APIs.
 #[cfg(all(feature = "rand", feature = "serde_json"))]
@@ -199,7 +199,7 @@ where
     Options::new_json().from_json_slice(Cow::Borrowed(json))
 }
 
-/// Partially deserialize the input with [`serde_yaml`].
+/// Robustly deserialize incomplete input with [`serde_yaml`].
 ///
 /// See methods on [`Options`] for more generic APIs.
 #[cfg(all(feature = "rand", feature = "serde_yaml"))]
@@ -225,7 +225,7 @@ impl Options {
     /// Default config for JSON.
     ///
     /// This will currently generate a short extra trailer on inputs
-    /// for improved deserialization of partial strings.
+    /// for improved deserialization of incomplete JSON.
     #[cfg(all(feature = "rand", feature = "serde_json"))]
     pub fn new_json() -> Options<options_impl::JsonExtraOptions> {
         let base = Options {
@@ -237,7 +237,7 @@ impl Options {
     /// Default config for YAML.
     ///
     /// This will currently generate a short extra trailer on inputs
-    /// for improved deserialization of partial strings.
+    /// for improved deserialization of incomplete YAML.
     ///
     /// For YAML in particular, this suffix is important to get
     /// good behavior.
@@ -273,7 +273,7 @@ impl Options {
     /// which
     ///
     /// This does not apply the JSON-specific string trick to parse
-    /// partial strings.
+    /// incomplete strings.
     pub fn new_no_nonce() -> Options<DefaultExtraOptions> {
         Options {
             #[cfg(feature = "rand")]
@@ -349,7 +349,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// }
     ///
     /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-    /// let modes: Vec<TravelMode> = partial_deser::Options::new_json().from_json_slice_plain_return_borrowed(&json).unwrap();
+    /// let modes: Vec<TravelMode> = deser_incomplete::Options::new_json().from_json_slice_plain_return_borrowed(&json).unwrap();
     /// assert_eq!(modes, [
     ///    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
     ///    // Note: missing aeroplane
@@ -386,7 +386,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// }
     ///
     /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-    /// let options = partial_deser::Options::new_json();
+    /// let options = deser_incomplete::Options::new_json();
     /// let prepared = options.prepare_str_for_borrowed_deserialization(json.into());
     /// let modes: Vec<TravelMode> = options.from_json_str_borrowed(&prepared).unwrap();
     /// assert_eq!(modes, [

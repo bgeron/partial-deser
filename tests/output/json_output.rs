@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 use std::fmt::Debug;
 
+use deser_incomplete::options::JsonExtraOptions;
+use deser_incomplete::unstable::UnstableCustomBehavior;
+use deser_incomplete::Options;
 use indexmap::IndexMap;
-use partial_deser::options::JsonExtraOptions;
-use partial_deser::unstable::UnstableCustomBehavior;
-use partial_deser::Options;
 use serde::{Deserialize, Serialize};
 
 use crate::common::run_on_prefixes_and_format_outputs;
@@ -26,7 +26,7 @@ mod unit_struct;
 
 type BoxSerialize = Box<dyn erased_serde::Serialize>;
 
-/// Partially deserialize all prefixes of the input as JSON. Reserialize the successful
+/// Robustly deserialize all prefixes of the input as JSON. Reserialize the successful
 /// results to JSON for comparison with `assert_eq!`, and stringify any errors.
 ///
 /// The output is deduplicated -- only inputs are shown where the output changes.
@@ -87,13 +87,13 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
 
 fn default_modes() -> Vec<(
     &'static str,
-    Options<partial_deser::options::JsonExtraOptions>,
+    Options<deser_incomplete::options::JsonExtraOptions>,
 )> {
     vec![
         ("default behavior", Options::new_json()),
         (
             "default behavior except no random trailer",
-            partial_deser::Options::new_json().disable_random_tag(),
+            deser_incomplete::Options::new_json().disable_random_tag(),
         ),
         (
             "default behavior, 0 backtracks",

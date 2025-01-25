@@ -11,7 +11,7 @@ pub struct Error<DeserializerErr> {
     // We always wrap in Box, mimicing serde_json. This is supposed to
     // make the return types of lots of intermediate functions smaller
     // and therefore faster. I don't know if this also matters for
-    // partial-deser.
+    // deser-incomplete.
     err: Box<ErrorImpl<DeserializerErr>>,
 }
 

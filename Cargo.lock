@@ -285,6 +285,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "deser-incomplete"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "crossterm",
+ "erased-serde",
+ "futures",
+ "indexmap",
+ "insta",
+ "interprocess",
+ "itertools",
+ "rand",
+ "ratatui",
+ "ron",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "static_assertions",
+ "tap",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "tui-textarea",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "doctest-file"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -690,37 +721,6 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-targets",
-]
-
-[[package]]
-name = "partial-deser"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "crossterm",
- "erased-serde",
- "futures",
- "indexmap",
- "insta",
- "interprocess",
- "itertools",
- "rand",
- "ratatui",
- "ron",
- "serde",
- "serde_json",
- "serde_yaml",
- "static_assertions",
- "tap",
- "thiserror",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "tui-textarea",
- "unicode-segmentation",
 ]
 
 [[package]]

@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 use std::fmt::Debug;
 
+use deser_incomplete::options::YamlExtraOptions;
+use deser_incomplete::unstable::UnstableCustomBehavior;
+use deser_incomplete::Options;
 use indexmap::IndexMap;
-use partial_deser::options::YamlExtraOptions;
-use partial_deser::unstable::UnstableCustomBehavior;
-use partial_deser::Options;
 use serde::{Deserialize, Serialize};
 
 use crate::common::run_on_prefixes_and_format_outputs;
@@ -90,7 +90,7 @@ fn default_modes() -> Vec<(&'static str, Options<YamlExtraOptions>)> {
         ("default behavior", Options::new_yaml()),
         (
             "default behavior except no random trailer",
-            partial_deser::Options::new_yaml().disable_random_tag(),
+            deser_incomplete::Options::new_yaml().disable_random_tag(),
         ),
         (
             "default behavior, 0 backtracks",

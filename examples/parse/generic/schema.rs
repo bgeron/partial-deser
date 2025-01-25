@@ -6,7 +6,7 @@ use super::format::{Format, ParseResult, ParseSettings};
 /// The schema that the output should conform to.
 ///
 /// This can significantly change the result, both larger (because `#[serde(default)]`
-/// adds fields) and smaller (when a partial list element isn't parseable at all).
+/// adds fields) and smaller (when an incomplete list element isn't parseable at all).
 #[derive(Debug, Clone, ValueEnum, Default)]
 pub enum Schema {
     /// Any JSON value.

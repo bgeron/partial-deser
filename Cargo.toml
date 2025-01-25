@@ -1,8 +1,8 @@
 [package]
-name = "partial-deser"
+name = "deser-incomplete"
 version = "0.1.0"
 edition = "2021"
-description = "Deserialize with Serde from partial JSON and more"
+description = "Wrap a Serde Deserializer to robustly deserialize incomplete data"
 
 [features]
 default = ["rand", "serde_json", "tracing"]
