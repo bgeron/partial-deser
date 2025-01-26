@@ -9,16 +9,26 @@
 //! This wraps Serde [`Deserializer`]s (like serde_json and serde_yaml) so you
 //! can parse incomplete data and get an incomplete result.
 //!
-//! (todo video here)
+//! (todo insert video here)
 //!
-//! This crate makes parsing more robust by absorbing errors from the data format,
-//! and then bringing the parse to a safe halt.
+//! Stream JSON from one program, and pipe it to a frontend:
 //!
-//! todo graphic
+//! (todo demo: ping, df)
+//!
+//! ## How this works
+//!
+//! This crate sits between `#[serde(Deserialize)]` and the data format, and
+//! turns errors into successes.
+//!
+//! (todo insert graphic)
+//!
+//!
 //!
 //! todo techniques section?
 //!
 //! todo in practice this seems desirable?
+//!
+//! ## TODO obsolete?
 //!
 //! TODO This crate reads incomplete JSON and parses it for your
 //! data structures that implement [`Deserialize`]:
