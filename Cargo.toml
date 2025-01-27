@@ -35,7 +35,7 @@ ron = "0.7"
 serde = { version = "1", features = ["derive"]}
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1.43.0", features = ["fs", "io-std", "io-util", "macros", "process", "rt", "rt-multi-thread", "signal"] }
-tokio-stream = { version = "0.1.17", features = ["io-util"] }
+tokio-stream = { version = "0.1.17", features = ["io-util", "sync"] }
 tokio-util = { version = "0.7.13", features = ["io"] }
 tracing-subscriber = "0.3"
 tui-textarea = "0.7.0"
@@ -51,4 +51,8 @@ required-features = ["serde_json", "tracing"]
 
 [[example]]
 name = "parse" # dummy
+required-features = ["serde_json", "tracing"]
+
+[[example]]
+name = "du" # dummy
 required-features = ["serde_json", "tracing"]

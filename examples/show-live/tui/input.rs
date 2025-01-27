@@ -9,8 +9,7 @@ use tokio_util::bytes::{self, BytesMut};
 use tokio_util::io::ReaderStream;
 use tracing::{error, warn};
 
-use crate::generic::display::ActiveDisplay;
-use crate::generic::{self};
+use crate::shared::display::ActiveDisplay;
 use crate::util::{pop_parsed_from_front, MAXIMUM_SIZE_OF_CODEPOINT};
 use crate::Args;
 
@@ -20,7 +19,7 @@ pub(super) async fn handle_terminal_input(tx: mpsc::UnboundedSender<Event>) {
     while let Some(event) = EventStream::new().next().await {
         match event {
             Ok(CrosstermEvent::Key(event)) if is_quit_key(event) => {
-                tx.send(Event::Quit).unwrap();
+                tx.send(Event::EndOfInput).unwrap();
                 continue;
             }
 
@@ -63,7 +62,7 @@ pub(super) async fn handle_nonterminal_input(tx: mpsc::UnboundedSender<Event>) {
         }
     }
 
-    tx.send(Event::Quit).unwrap();
+    tx.send(Event::EndOfInput).unwrap();
 }
 
 fn pop_codepoint_front(buf: &mut Vec<u8>) -> Option<char> {

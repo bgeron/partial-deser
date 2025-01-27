@@ -2,4 +2,5 @@
 
 pub mod display;
 pub mod format;
+pub mod nu;
 pub mod schema;

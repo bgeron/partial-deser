@@ -5,15 +5,16 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use clap::{ArgAction, Parser, ValueEnum};
-use generic::display::DisplayPreference;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use shared::display::DisplayPreference;
 use tracing::level_filters::LevelFilter;
 
-mod generic;
+#[path = "../shared/mod.rs"]
+mod shared;
 
-use generic::format::{Format, ParseSettings};
-use generic::schema::Schema;
+use shared::format::{Format, ParseSettings};
+use shared::schema::Schema;
 
 /// Robustly parse incomplete input (e.g. JSON), and reserialize in some format
 #[derive(Parser, Debug, Clone)]

@@ -6,3 +6,6 @@ build-all: build-show-live-travel-modes
 
 build-show-live-travel-modes:
     vhs show-live-travel-modes.tape
+
+build-du-show-live:
+    vhs du-show-live.tape

@@ -1,33 +1,39 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::Context;
 use crossterm::event::{Event as CrosstermEvent, EventStream, KeyCode, KeyModifiers};
+use futures::{FutureExt, Stream};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::Text;
 use ratatui::widgets::{Block, Borders, Padding, Paragraph, Widget as _, Wrap};
 use ratatui::TerminalOptions;
 use tokio::io::AsyncReadExt;
-use tokio::sync::mpsc;
-use tokio_stream::StreamExt as _;
+use tokio::pin;
+use tokio::sync::{mpsc, watch};
+use tokio::time::sleep;
+use tokio_stream::wrappers::{ReceiverStream, UnboundedReceiverStream, WatchStream};
+use tokio_stream::{once, StreamExt as _};
 use tokio_util::bytes;
 use tokio_util::io::ReaderStream;
 use tracing::error;
 use tui_textarea::TextArea;
 
-use crate::generic::display::{ActiveDisplay, DisplayPreference};
-use crate::generic::format::ParseSettings;
-use crate::generic::{self};
+use crate::shared::display::{ActiveDisplay, DisplayPreference};
+use crate::shared::format::ParseSettings;
 use crate::Args;
 
 mod input;
+mod process;
 
 #[derive(Debug)]
 enum Event {
-    Quit,
+    EndOfInput,
     /// A character came either from terminal, or non-terminal stdin
     TextArea(crossterm::event::KeyEvent),
-    Recompute,
+    RecomputedDisplay(Text<'static>),
+    AfterLastDisplay,
     GoFullscreen,
 }
 
@@ -35,11 +41,20 @@ pub async fn main(args: Args) -> anyhow::Result<()> {
     let display = DisplayPreference::init(&args.output).await;
 
     let (tx, rx) = mpsc::unbounded_channel();
+    let (input_tx, input_rx) = watch::channel::<Option<String>>(None);
+    let displayed_rx = process::compute_displays_from_inputs(args.clone(), input_rx, display);
 
     tokio::spawn(input::handle_terminal_input(tx.clone()));
     tokio::spawn(input::handle_nonterminal_input(tx.clone()));
 
-    main_loop(args, display, tx, rx).await;
+    let rx = futures::stream_select!(
+        UnboundedReceiverStream::new(rx),
+        WatchStream::new(displayed_rx)
+            .map(Event::RecomputedDisplay)
+            .chain(once(Event::AfterLastDisplay)),
+    );
+
+    main_loop(args, input_tx, rx).await;
 
     ratatui::restore();
 
@@ -48,10 +63,10 @@ pub async fn main(args: Args) -> anyhow::Result<()> {
 
 async fn main_loop(
     args: Args,
-    mut display: Box<dyn ActiveDisplay>,
-    tx: mpsc::UnboundedSender<Event>,
-    mut rx: mpsc::UnboundedReceiver<Event>,
+    input_tx: watch::Sender<Option<String>>,
+    rx: impl Stream<Item = Event>,
 ) {
+    let mut input_tx = Some(input_tx); // so we can close the input
     let terminal_options = if args.tui_height > 0 {
         TerminalOptions {
             viewport: ratatui::Viewport::Inline(args.tui_height),
@@ -66,28 +81,48 @@ async fn main_loop(
 
     let mut textarea = TextArea::default();
 
-    let mut state = Text::default();
+    let mut displayed = Text::default();
 
-    tx.send(Event::Recompute).unwrap();
+    pin!(rx);
+    while let Some(mut event) = rx.next().await {
+        let mut last_iteration = false;
+        loop {
+            match event {
+                Event::TextArea(event) => {
+                    textarea.input(event);
+                    if let Some(input_tx) = &input_tx {
+                        let _old_value = input_tx.send_replace(Some(textarea.lines().join("\n")));
+                    }
+                }
+                Event::RecomputedDisplay(text) => {
+                    displayed = text;
+                }
+                Event::GoFullscreen => {
+                    terminal = ratatui::init_with_options(TerminalOptions {
+                        viewport: ratatui::Viewport::Fullscreen,
+                    });
+                    terminal.clear().expect("could not clear");
+                    terminal.autoresize().expect("could not autoresize");
+                }
 
-    while let Some(event) = rx.recv().await {
-        match event {
-            Event::TextArea(event) => {
-                textarea.input(event);
-                tx.send(Event::Recompute).unwrap();
-            }
-            Event::Recompute => {
-                make_output_state(&args, &mut display, &textarea, &mut state).await;
-            }
-            Event::GoFullscreen => {
-                terminal = ratatui::init_with_options(TerminalOptions {
-                    viewport: ratatui::Viewport::Fullscreen,
-                });
-                terminal.clear().expect("could not clear");
-                terminal.autoresize().expect("could not autoresize");
-            }
+                Event::EndOfInput => {
+                    // Close input.
+                    input_tx = None;
+                    tokio::spawn(async {
+                        sleep(Duration::from_secs(3)).await;
+                        error!("Quit has been requested but program still has not exited");
+                    });
+                }
 
-            Event::Quit => break,
+                Event::AfterLastDisplay => {
+                    last_iteration = true;
+                }
+            }
+            if let Some(additional_event) = rx.next().now_or_never() {
+                event = additional_event.unwrap();
+            } else {
+                break;
+            }
         }
 
         terminal
@@ -103,40 +138,16 @@ async fn main_loop(
                 f.render_widget(&textarea, textarea_area);
 
                 f.render_widget(
-                    Paragraph::new(state.clone())
+                    Paragraph::new(displayed.clone())
                         .block(Block::bordered().title("Output"))
-                        // .gray()
                         .wrap(Wrap { trim: false }),
                     result_area,
                 );
             })
             .expect("could not render");
+
+        if last_iteration {
+            break;
+        }
     }
-}
-
-async fn make_output_state(
-    args: &Args,
-    display: &mut Box<dyn ActiveDisplay>,
-    textarea: &TextArea<'_>,
-    state: &mut Text<'_>,
-) {
-    let contents = textarea.lines().join("\n");
-    let result = args.schema.parse(
-        &args.format,
-        &ParseSettings {
-            use_random_trailer: args.use_random_trailer,
-        },
-        contents.as_bytes(),
-    );
-    let displayed = display.display(Arc::new(result)).await;
-
-    *state = if contents.trim().is_empty() {
-        Text::styled(
-            "No input yet. Start typing to get a deserialization.\n\n",
-            Style::default().gray().bold().italic(),
-        )
-    } else {
-        ansi_to_tui::IntoText::into_text(&displayed)
-            .unwrap_or_else(|_| "could not interpret terminal output".into())
-    };
 }

@@ -1,7 +1,7 @@
 use futures::future::BoxFuture;
 use futures::FutureExt;
 
-use crate::generic::format::ParseOk;
+use super::super::format::ParseOk;
 
 use super::ActiveDisplay;
 
