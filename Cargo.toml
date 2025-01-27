@@ -52,11 +52,3 @@ required-features = ["serde_json", "tracing"]
 [[example]]
 name = "parse" # dummy
 required-features = ["serde_json", "tracing"]
-
-[[example]]
-name = "ex1"
-required-features = ["serde_json", "serde_yaml", "tracing", "unstable"]
-
-[[example]]
-name = "ex2"
-required-features = ["serde_json", "tracing"]
