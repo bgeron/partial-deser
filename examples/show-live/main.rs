@@ -45,6 +45,11 @@ struct Args {
     /// Height of the text user interface. Zero means fullscreen.
     #[clap(long, default_value_t = 24)]
     tui_height: u16,
+
+    /// Wrap text automatically. This is very heuristic, will be wrong on some inputs,
+    /// and will mess with the editor state.
+    #[clap(long)]
+    wrap: bool,
 }
 
 #[tokio::main]

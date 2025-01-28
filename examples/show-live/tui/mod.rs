@@ -1,9 +1,11 @@
+use std::collections::VecDeque;
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Context;
 use crossterm::event::{Event as CrosstermEvent, EventStream, KeyCode, KeyModifiers};
 use futures::{FutureExt, Stream};
+use itertools::Itertools;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::Text;
@@ -18,7 +20,7 @@ use tokio_stream::{once, StreamExt as _};
 use tokio_util::bytes;
 use tokio_util::io::ReaderStream;
 use tracing::error;
-use tui_textarea::TextArea;
+use tui_textarea::{CursorMove, TextArea};
 
 use crate::shared::display::{ActiveDisplay, DisplayPreference};
 use crate::shared::format::ParseSettings;
@@ -82,6 +84,7 @@ async fn main_loop(
     let mut textarea = TextArea::default();
 
     let mut displayed = Text::default();
+    let mut last_textarea_width = None;
 
     pin!(rx);
     while let Some(mut event) = rx.next().await {
@@ -90,6 +93,10 @@ async fn main_loop(
             match event {
                 Event::TextArea(event) => {
                     textarea.input(event);
+                    if args.wrap {
+                        wrap_textarea(&mut textarea, last_textarea_width);
+                    }
+
                     if let Some(input_tx) = &input_tx {
                         let _old_value = input_tx.send_replace(Some(textarea.lines().join("\n")));
                     }
@@ -135,6 +142,7 @@ async fn main_loop(
                 ])
                 .vertical_margin(1);
                 let [textarea_area, result_area] = layout.areas(f.area());
+                last_textarea_width = Some(textarea_area.width);
                 f.render_widget(&textarea, textarea_area);
 
                 f.render_widget(
@@ -150,4 +158,63 @@ async fn main_loop(
             break;
         }
     }
+}
+
+/// Use a consistent notion of characters throughout.
+///
+/// Probably a good terminal will display grapheme clusters, but I
+/// guess most terminals would show codepoints instead?
+fn nchars(s: &str) -> usize {
+    s.chars().count() // # codepoints
+}
+
+fn wrap_textarea(textarea: &mut TextArea<'_>, last_textarea_width: Option<u16>) {
+    let Some(last_textarea_width) = last_textarea_width else {
+        // we skip wrapping in race conditions at the start
+        return;
+    };
+    let line_needs_breaking = |line: &str| nchars(line) > (last_textarea_width as usize);
+
+    // Early return / don't destroy editor state when no wrapping is needed.
+    if textarea
+        .lines()
+        .iter()
+        .all(|line| !line_needs_breaking(line))
+    {
+        return;
+    }
+
+    // Break each line as needed, on a COMMA.
+    // It's kinda tricky actually to do something like word wrapping.
+    const COMMA: &str = ",";
+
+    let mut lines_out: Vec<String> = vec![];
+    let mut lines_todo: VecDeque<String> = std::mem::take(textarea).into_lines().into();
+
+    while let Some(line) = lines_todo.pop_front() {
+        // ends up O(line_length * terminal_width) ...
+        match line
+            .match_indices(COMMA)
+            // break after comma
+            .map(|(idx, separator)| idx + separator.len())
+            .take_while(|idx| *idx <= last_textarea_width as usize)
+            .last()
+        {
+            None => {
+                // no comma found inside the screen, give up
+                lines_out.push(line);
+            }
+            Some(split_idx) => {
+                let (line, rest) = line.split_at(split_idx);
+                lines_out.push(line.to_string());
+                if !rest.trim().is_empty() {
+                    lines_todo.push_front(rest.to_string());
+                }
+            }
+        }
+    }
+
+    *textarea = lines_out.into();
+    textarea.move_cursor(CursorMove::Bottom);
+    textarea.move_cursor(CursorMove::End);
 }
