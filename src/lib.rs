@@ -7,97 +7,190 @@
 //! # Deserialize incomplete data with Serde
 //!
 //! This wraps Serde [`Deserializer`]s (like serde_json and serde_yaml) so you
-//! can parse incomplete data and get an incomplete result.
+//! can parse incomplete data for showing to the user:
 //!
-//! (todo insert video here)
+//! <img src="https://bgeron.github.io/partial-deser/assets/show-live-travel-modes.gif" alt='Someone is slowly
+//! typing JSON into a terminal program. The JSON is an array of objects.
+//! The program gradually renders the JSON input as Rust debug output, and as a table.
+//! The fields of the Rust struct are printed even though they are missing in the JSON input.
+//! The program is called "show-live".' title="Demo that shows parsing JSON as it is typed by the user"
+//! style="max-height: 300px; height: auto; width: auto;">
 //!
-//! Stream JSON from one program, and pipe it to a frontend:
+//! Here, we printed the Rust debug representation. We also reserialized to JSON and
+//! let nushell do its beautiful table formatting.
 //!
-//! (todo demo: ping, df)
+//! The JSON can also come from an external program. Here is a demo program that
+//! computes disk usage of directories, and outputs the results as JSON.
+//! In true Unix style,  displaying for the user is a separate concern,
+//! implemented by a separate program.
 //!
-//! ## How this works
+//! <img src="https://bgeron.github.io/partial-deser/assets/du-show-live.gif" alt='A Unix pipeline with
+//! two programs is shown. The source program computes the disk size
+//! of a bunch of directories, and outputs a JSON array of objects. The sink program
+//! pretty-prints the JSON table. Computing the disk size takes a while, and you can
+//! see which directory is being analyzed because the result for that directory is empty
+//! while it is computing.' title='Demo that shows parsing JSON as it is generated live from another program that mimics du'
+//! style="max-height: 350px; height: auto; width: auto;">
 //!
-//! This crate sits between `#[serde(Deserialize)]` and the data format, and
+//! `deser-incomplete` sits between `#[serde(Deserialize)]` and the data format, and
 //! turns errors into successes.
 //!
-//! (todo insert graphic)
+//! <img src="https://bgeron.github.io/partial-deser/assets/deser-incomplete-blocks-errors.png" alt='This library sits
+//! in between Deserialize and Deserializer. Information about the parsed data is successfully
+//! sent from Deserializer through deser-incomplete to Deserialize. But errors from Deserializer are
+//! blocked.' style="max-height: 250px; height: auto; width: auto;">
+//!
+//! ## How to use
+//!
+//! - JSON: call [`from_json_str`].
+//!
+//! - YAML: call [`from_yaml_str`].
+//!
+//! Other data formats work too:
+//!
+//! - You need to explain how to create the [`Deserializer`] by implementing [`Source`].
+//!
+//!   - If your format has `&mut T: Deserializer` then mimic [`source::JsonStr`].
+//!   - If your format has `T: Deserializer` then mimic [`source::YamlStr`].
+//!
+//! - Some formats need a trailer for best results. For example, [`from_json_str`] appends
+//!   a double-quote to the input before parsing, this lets `serde_json` strings that weren't
+//!   actually complete.
+//!
+//!   We also preprocess the input in [`from_yaml_str`], actually there it is even more important
+//!   for good results.
+//!
+//!   _Add preprocessing with [`Options::set_random_trailer`], or turn it off such preprocessing
+//!   with [`Options::disable_random_tag`]. You can see the effect of it with
+//!   `cargo run --example show-live -- --use-random-trailer false`._
+//!
+//!   I expect that binary formats don't need this preprocessing.
 //!
 //!
+//! ## How this works under the hood
 //!
-//! todo techniques section?
+//! The implementation sits in between [`Deserialize`], [`Deserializer`], and [`Visitor`],
+//! gathers metadata during the parse, saves successful sub-parses. It also "backtracks":
+//! if a parse fails, then we retry, but just before the failure point we swap out the real
+//! [`Deserializer`] for a decoy which can brings deserialization to a safe end.
 //!
-//! todo in practice this seems desirable?
 //!
-//! ## TODO obsolete?
+//! We apply a bunch of tricks. Here are some examples, in the context of parsing a `Vec<u32>`
+//! with [`serde_json`].
 //!
-//! TODO This crate reads incomplete JSON and parses it for your
-//! data structures that implement [`Deserialize`]:
+//! 1. **(Example: parse empty JSON as `[]` .)** — On the top level, if parsing fails immediately (e.g.
+//!    empty input) but a sequence is expected, then return `[]`.
 //!
-//! ```
-//! # use serde::Deserialize;
-//! #[derive(Debug, Deserialize, PartialEq)]
-//! struct TravelMode {
-//!   #[serde(default)]
-//!   mode: String,
-//!   benefit: Option<String>
-//! }
+//!    _\[setting: fallback_seq_empty_at_root]_
 //!
-//! let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
-//! let modes: Vec<TravelMode> = deser_incomplete::from_json_str(json).unwrap();
-//! assert_eq!(modes, [
-//!    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
-//!    TravelMode { mode: "aeropl".to_string(), benefit: None }
-//! ]);
-//! ```
+//! 2. **(Example: parse JSON `"[3"` as `[3]` .)** — When there are no more elements in a sequence,
+//!    let the [`Visitor`] construct the `Vec<u32>` and put it somewhere safe. Now
+//!    `serde_json::Deserializer::deserialize_seq` notices the missing close bracket and
+//!    returns `Err` to us. We ignore `Err`, retrieve the saved value again, and return `Ok`
+//!    of it.
 //!
-//! This crate is generic for many or all data formats, not just JSON. There is merely
-//! a tweak specific to JSON to be able to parse unfinished strings.
+//!    This happens for every `deserialize_*` method, not just sequences.
 //!
-//! <!-- todo: list other data formats that work -->
+//!    _\[setting: tolerate_deserializer_fail_after_visit_success]_
 //!
-//! ## How this works
+//! 3. **(Example: parse JSON `"[3,"` as `[3]` .)** — Inside a sequence, if parsing the next element will
+//!    fail, then don't even try.
 //!
-//! todo
+//!    This works using backtracking.
 //!
-//! ## Goal
+//!    _\[setting: backtrack_seq_skip_item]_
 //!
-//! - not reverting
+//! 4. Before deserializing, we append a random trailer:
 //!
-//! ## How this works
 //!
-//! - todo randomized trailer
+//! #### Random trailer
 //!
-//! ## Tested support for data formats
+//! Additionally we have a "random trailer" trick to get incomplete strings to parse.
+//! Unfortunately this trick is specific to the data format. This library implements
+//! it for JSON and YAML.
 //!
-//! - JSON: works very well. This is what the library was tweaked for.
-//! - YAML: ...
+//! This trick is not applied by default for other data formats. Even with JSON/YAML, this
+//! trick can be turned off with [`Options::disable_random_tag`].
 //!
-//! ## Limitations
+//! #### Random trailer for JSON
 //!
-//! - data format should be relatively greedy/online/whatever
+//! We actually [append][append-impl] `tRANDOM"` to every JSON input, where `RANDOM` are some randomly chosen
+//! letters. It turns out that [`serde_json`] can parse any prefix of valid JSON, as long
+//! as we concatenate `tRANDOM"` to it. Some examples.
 //!
-//! - incomplete strings tend to require a randomized trailer
+//! 1. **(Example: `"hello` .)** The concatenation is `"hellotRANDOM"`, and we actually get
+//!     this back from [`serde_json`] through `fn visit_borrowed_str` --- after [`serde_json`]
+//!     removed the double-quotes.
 //!
-//! - cannot distinguish eof from invalid input
+//!     In `fn visit_borrowed_str`, we notice that the string ends in `RANDOM`. Because this
+//!     is a random string of letters, it cannot have been part of the incomplete JSON input,
+//!     so we know to remove the `tRANDOM` suffix, and we
+//!
+//! 2. **(Example: `"hello\` --- perhaps breaking in the middle of `\n` .)** The concatenation
+//!     is `"hello\tRANDOM"`; the `\t` parses to a tab character. We strip off `<TAB>random`
+//!     and again return `"hello"`.
+//!
+//! 3. **(Example: `"hello"` .)** The concatenation is `"hello"tRANDOM"`. Now [`serde_json`]
+//!     visits the `hello` string as it would normally do, and if there should be any error
+//!     after the visit, we can recover from it anyway as
+//!     per _tolerate_deserializer_fail_after_visit_success_.
+//!
+//! [append-impl]: https://github.com/bgeron/partial-deser/blob/raw-unreleased/src/random_trailer/json.rs
+//!
+//! #### Inspecting at runtime
+//!
+//! There is extensive logging through the [`tracing`] library, which becomes visible if you
+//! initialize the library.
+//!
+//! #### Guiding principles
+//!
+//! The logic was hand-tweaked to the following criteria:
+//!
+//! 1. ("soundness") For any complete and valid JSON/YAML, if you call `deser-incomplete`
+//!    on a prefix, then its output should not contain data that doesn't exist in the
+//!    complete JSON/YAML.
+//!
+//! 2. ("monotone") A larger prefix should not parse to a shorter output.
+//!
+//! 3. ("prompt") Ideally, each prefix contains as much data as we can be certain of.
+//!
+//! How well we do depends on the data format that you use (the implementation of
+//! [`Deserializer`]), but the default ruleset does generally very well with [`serde_json`]
+//! and [`serde_yaml`].
+//!
+//! There are [extensive snapshot tests][snapshot-tests] that validate how well we do on these
+//! criteria.
+//!
+//! If you are curious, then it is possible to tweak the ruleset
+//! with `unstable::UnstableCustomBehavior`. We also have snapshot tests for some alternative
+//! parsing configurations.
+//!
+//! [snapshot-tests]: https://github.com/bgeron/partial-deser/blob/raw-unreleased/tests/output/json_output/seq.rs
+//!
+//! ## Notes and limitations
+//!
+//! - Ideally, your data format should be relatively greedy, in the sense that it
+//!   generates information quickly and does not need to look ahead in the serialized
+//!   stream too much.
 //!
 //! - This approach lets us safely abort parsing and get a value, but
 //!   we cannot skip over invalid segments of input. (For that you need
 //!   an approach like tree-sitter.)
 //!
-//! ## Notes
+//! - We also cannot distinguish eof from invalid input.
 //!
-//! - JSON: Number cannot end with floating point period
-//!
-//! - YAML works very well, but is a bit less exhaustively tested than JSON.
+//! - YAML works well in general, but is a bit less exhaustively tested than JSON.
 //!   The randomized trailer is really important here.
 //!
-//! ## Criteria
+//! - JSON: When parsing a floating-point number, if the end of input happens to fall
+//!   just after the decimal point, then the number is missing from the output.
 //!
-//! - I tried that the empty string always parses as something
+//! - For YAML, the randomized trailer uses a heuristic to see if we're currently in
+//!   an escape sequence in a string, but this heuristic can fail. In this case,
+//!   the incomplete string will be missing from the output.
 //!
-//!   .. but for enums this is not possible
 //!
-//! - I tried that with more input, it never takes something away
+//! Have fun!
 
 use std::borrow::Cow;
 #[cfg(feature = "rand")]
@@ -105,7 +198,7 @@ use std::sync::Arc;
 
 use options::DefaultExtraOptions;
 #[cfg(doc)]
-use serde::{Deserialize, Deserializer};
+use serde::{de::Visitor, Deserialize, Deserializer};
 
 macro_rules! error {
     ($($arg:tt)*) => {
@@ -146,7 +239,9 @@ pub mod source;
 mod state;
 mod util;
 
-/// Relatively stable parts to specify options.
+/// Types and traits that have to be public to satisfy rustc/rustdoc.
+///
+/// Instead of looking here, look at the methods of [`crate::Options`].
 pub mod options {
     #[cfg(all(feature = "rand", feature = "serde_json"))]
     pub use crate::options_impl::JsonExtraOptions;

@@ -12,6 +12,9 @@ pub use yaml::{YamlBytes, YamlStr};
 
 /// Represents the source of a data value that can be repeatedly deserialized.
 /// For instance, serde_json on a borrowed string.
+///
+/// See the implementations of [`JsonStr`] and [`YamlStr`] for two different ways
+/// that this is implemented, depending on how your [`Deserializer`] works.
 pub trait Source<'de> {
     /// Stack storage for the deserializer.
     type DeserializerStorage;

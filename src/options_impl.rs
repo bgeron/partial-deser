@@ -29,19 +29,9 @@ impl<Extra: ExtraOptions> Options<Extra> {
 
 /// Monomorphized options.
 ///
-/// This is a type parameter pack.
+/// This is a parameter pack for type parameters.
 ///
 /// All of this is unstable.
-///
-/// ## Parameters
-///
-/// The `'error` lifetime parameter is the lifetime of deserializer errors.
-/// This matters for the default reporter, which logs errors with [`tracing`],
-/// and [`tracing`] only seems to accept `&(dyn std::error::Error + 'static)`. So
-/// [`DefaultExtraOptions`] only implements [`ExtraOptions`].
-///
-/// An alternative reporter could instead always log e.g. the display representation
-/// of the error. Then the corresponding parameter pack could implement [`ExtraOptions<'_>`].
 pub trait ExtraOptions: ExtraOptionsIsUnstable {
     /// Will only be called once per invocation of a public function in this crate
     fn make_reporter(&mut self) -> Self::Reporter;

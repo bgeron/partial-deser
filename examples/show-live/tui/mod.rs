@@ -189,9 +189,9 @@ fn wrap_textarea(textarea: &mut TextArea<'_>, last_textarea_width: Option<u16>) 
     const COMMA: &str = ",";
 
     let mut lines_out: Vec<String> = vec![];
-    let mut lines_todo: VecDeque<String> = std::mem::take(textarea).into_lines().into();
+    let mut lines_in: VecDeque<String> = std::mem::take(textarea).into_lines().into();
 
-    while let Some(line) = lines_todo.pop_front() {
+    while let Some(line) = lines_in.pop_front() {
         // ends up O(line_length * terminal_width) ...
         match line
             .match_indices(COMMA)
@@ -208,7 +208,7 @@ fn wrap_textarea(textarea: &mut TextArea<'_>, last_textarea_width: Option<u16>) 
                 let (line, rest) = line.split_at(split_idx);
                 lines_out.push(line.to_string());
                 if !rest.trim().is_empty() {
-                    lines_todo.push_front(rest.to_string());
+                    lines_in.push_front(rest.to_string());
                 }
             }
         }

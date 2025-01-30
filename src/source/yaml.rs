@@ -1,7 +1,9 @@
 use super::Source;
 
+/// Essentially [`serde_yaml::from_str`].
 pub struct YamlStr<'de, T: std::borrow::Borrow<str> + ?Sized>(pub &'de T);
 
+/// Essentially [`serde_yaml::from_slice`].
 pub struct YamlBytes<'de, T: std::borrow::Borrow<[u8]> + ?Sized>(pub &'de T);
 
 impl<'de, T: std::borrow::Borrow<str> + ?Sized> Source<'de> for YamlStr<'de, T> {

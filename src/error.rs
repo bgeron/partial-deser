@@ -18,8 +18,6 @@ pub struct Error<DeserializerErr> {
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum ErrorImpl<DeserializerErr> {
     /// The wrapped deserializer returned an error.
-    ///
-    /// (todo: keep? I guess most deserializer errors in practice are sort of equivalent to EOF?)
     #[error(transparent)]
     Deserializer(DeserializerErr),
     #[error(transparent)]
@@ -48,7 +46,6 @@ pub enum InternalError {
 #[error(transparent)]
 pub struct Bug(BugEnum);
 
-// todo: remove?
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum BugEnum {
     #[error("our visitor should store the obtained value on the stack, but it's missing")]
