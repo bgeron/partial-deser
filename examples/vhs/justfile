@@ -2,7 +2,7 @@
 _list:
     just --list
 
-build-all: build-show-live-travel-modes
+build-all: build-show-live-travel-modes build-du-show-live
 
 build-show-live-travel-modes:
     vhs show-live-travel-modes.tape
