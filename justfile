@@ -1,9 +1,14 @@
 
+msrv := "1.75"
+
 _default: all
 
 dev: fmt clippy-allow-dead
 
-all: fmt clippy test doc
+all: fmt clippy test doc check-msrv
+
+clean:
+    rm -rf target target-*
 
 motivating-example *extra_args:
     @cargo build --target-dir target --example print-slowly --example show-live
@@ -19,6 +24,18 @@ clippy:
     cargo clippy --no-default-features
     cargo clippy --no-default-features --features tracing
     cargo clippy --all-targets --all-features
+
+check-msrv:
+    rustup install {{msrv}} --profile minimal
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --all-features
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --no-default-features --features serde_json --features rand
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --no-default-features --features serde_yaml --features rand
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --no-default-features --features serde_yaml
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --no-default-features --features serde_json
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --no-default-features
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --no-default-features --features tracing
+    CARGO_TARGET_DIR=target-msrv cargo +{{msrv}} check --all-targets --all-features
 
 clippy-allow-dead:
     cargo clippy --all-targets --all-features -- --allow dead_code

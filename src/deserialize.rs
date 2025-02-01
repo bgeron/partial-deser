@@ -37,7 +37,9 @@ impl<Extra: ExtraOptions> Options<Extra> {
 
         while {
             let max_n_backtracks = state.config.max_n_backtracks;
-            max_n_backtracks.is_none_or(|max| state.n_backtracks <= max)
+            max_n_backtracks
+                .map(|max| state.n_backtracks <= max)
+                .unwrap_or(true)
         } {
             let mut inner_deserializer_storage = Some(source.recreate_deserializer_storage());
             let inner_deserializer =
