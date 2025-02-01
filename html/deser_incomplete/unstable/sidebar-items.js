@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DefaultReporter","UnstableCustomBehavior"],"trait":["Fallbacks","Reporter"]};

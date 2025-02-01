@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Deserialize incomplete or broken data with Serde"><title>deser_incomplete - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-c579a84d.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="deser_incomplete" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0-nightly (6067b3631 2025-01-17)" data-channel="nightly" data-search-js="search-ccb196c1.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../deser_incomplete/index.html">deser_<wbr>incomplete</a><span class="version">0.0.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#deserialize-incomplete-or-broken-data-with-serde" title="Deserialize incomplete or broken data with Serde">Deserialize incomplete or broken data with Serde</a><ul><li><a href="#how-to-use-json-and-yaml" title="How to use: JSON and YAML">How to use: JSON and YAML</a></li><li><a href="#how-to-use-other-data-formats" title="How to use: other data formats">How to use: other data formats</a></li><li><a href="#how-this-works-internally" title="How this works internally">How this works internally</a></li><li><a href="#notes-and-limitations" title="Notes and limitations">Notes and limitations</a></li><li><a href="#acknowledgements" title="Acknowledgements">Acknowledgements</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>deser_incomplete</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/deser_incomplete/lib.rs.html#1-336">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="deserialize-incomplete-or-broken-data-with-serde"><a class="doc-anchor" href="#deserialize-incomplete-or-broken-data-with-serde">§</a>Deserialize incomplete or broken data with Serde</h2>
+<p>Parse incomplete or broken data with existing Serde data formats.</p>
+<p>This is nice for ingesting streaming JSON, which is technically invalid until
+the stream is done. By tolerating premature end of input, we can immediately make use
+of the streaming input.</p>
+<p><img src="https://bgeron.github.io/partial-deser/assets/live-travel-modes.gif" alt='Someone is slowly
+typing JSON into a terminal program. The JSON is an array of objects.
+The program gradually renders the JSON input as Rust debug output, and as a table.
+The fields of the Rust struct are printed even though they are missing in the JSON input.
+The example program is called "live".' title="Demo that shows parsing JSON as it is typed by the user"
+style="max-height: 300px; height: auto; width: auto;"></p>
+<p>Here, we wrapped <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a> with <code>deser-incomplete</code>, and printed the Rust
+debug representation of the result. We also reserialized to JSON and
+let nushell do its beautiful table formatting.</p>
+<p>The JSON can also come from an external program. Here is a demo program that
+computes disk usage of directories and outputs the results as JSON.
+In true Unix style,  displaying for the user is a separate concern,
+implemented by a separate program.</p>
+<p><img src="https://bgeron.github.io/partial-deser/assets/du-live.gif" alt='A Unix pipeline with
+two programs is shown. The source program computes the disk size
+of a bunch of directories and outputs a JSON array of objects. The sink program
+pretty-prints the JSON table. Computing the disk size takes a while, and you can
+see which directory is being analyzed because the result for that directory is empty
+while it is computing.' title='Demo that shows parsing JSON as it is generated live from another program that mimics du'
+style="max-height: 350px; height: auto; width: auto;"></p>
+<p><code>deser-incomplete</code> sits between <code>#[serde(Deserialize)]</code> and the data format. When a parse
+error is detected (presumably because the input ended), it safely halts parsing.</p>
+<p><img src="https://bgeron.github.io/partial-deser/assets/deser-incomplete-blocks-errors.png" alt='This library sits
+in between Deserialize and Deserializer. Information about the parsed data is successfully
+sent from Deserializer through deser-incomplete to Deserialize. But errors from Deserializer are
+blocked.' style="max-height: 250px; height: auto; width: auto;"></p>
+<h3 id="how-to-use-json-and-yaml"><a class="doc-anchor" href="#how-to-use-json-and-yaml">§</a>How to use: JSON and YAML</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;Vec&lt;u32&gt;, deser_incomplete::Error&lt;serde_json::Error&gt;&gt;
+    = deser_incomplete::from_json_str(<span class="string">"[3, 4, "</span>);
+
+<span class="macro">assert_eq!</span>(result.unwrap(), <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">4</span>]);
+
+<span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;Vec&lt;bool&gt;, deser_incomplete::Error&lt;serde_yaml::Error&gt;&gt;
+   = deser_incomplete::from_yaml_str(<span class="string">"- true\n- false\n- "</span>);
+
+<span class="macro">assert_eq!</span>(result.unwrap(), <span class="macro">vec!</span>[<span class="bool-val">true</span>, <span class="bool-val">false</span>]);</code></pre></div>
+<p>Command line:</p>
+<div class="example-wrap"><pre class="language-sh"><code>$ cargo install deser-incomplete --example repair-deser
+
+$ echo &#39;[3, 4&#39; | repair-deser    # JSON by default
+[3,4]</code></pre></div><h3 id="how-to-use-other-data-formats"><a class="doc-anchor" href="#how-to-use-other-data-formats">§</a>How to use: other data formats</h3>
+<ul>
+<li>
+<p>You need to explain how to create the <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Deserializer.html" title="trait serde::de::Deserializer"><code>Deserializer</code></a> by implementing <a href="source/trait.Source.html" title="trait deser_incomplete::source::Source"><code>Source</code></a>.</p>
+<ul>
+<li>If your format has <code>&amp;mut T: Deserializer</code> then mimic <a href="source/struct.JsonStr.html" title="struct deser_incomplete::source::JsonStr"><code>source::JsonStr</code></a>.</li>
+<li>If your format has <code>T: Deserializer</code> then mimic <a href="source/struct.YamlStr.html" title="struct deser_incomplete::source::YamlStr"><code>source::YamlStr</code></a>.</li>
+</ul>
+</li>
+<li>
+<p>Some formats need a trailer for best results. For example, <a href="fn.from_json_str.html" title="fn deser_incomplete::from_json_str"><code>from_json_str</code></a> appends
+a double-quote to the input before parsing, this lets <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a> see strings that weren’t
+actually complete.</p>
+<p>We also preprocess the input in <a href="fn.from_yaml_str.html" title="fn deser_incomplete::from_yaml_str"><code>from_yaml_str</code></a>, actually there it is even more important
+for good results.</p>
+<p><em>Add preprocessing with <a href="struct.Options.html#method.set_random_trailer" title="method deser_incomplete::Options::set_random_trailer"><code>Options::set_random_trailer</code></a>, or turn it off such preprocessing
+with <a href="struct.Options.html#method.disable_random_tag" title="method deser_incomplete::Options::disable_random_tag"><code>Options::disable_random_tag</code></a>. You can see the effect of it with
+<code>cargo run --example live -- --use-random-trailer false</code>.</em></p>
+<p>I expect that binary formats don’t need this preprocessing.</p>
+</li>
+</ul>
+<h3 id="how-this-works-internally"><a class="doc-anchor" href="#how-this-works-internally">§</a>How this works internally</h3>
+<p>The implementation sits in between <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Deserialize.html" title="trait serde::de::Deserialize"><code>Deserialize</code></a>, <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Deserializer.html" title="trait serde::de::Deserializer"><code>Deserializer</code></a>, and <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Visitor.html" title="trait serde::de::Visitor"><code>Visitor</code></a>,
+gathers metadata during the parse, and saves successful sub-parses. It also “backtracks”:
+if a parse fails, then we retry, but just before the failure point we swap out the real
+<a href="https://docs.rs/serde/1.0.215/serde/de/trait.Deserializer.html" title="trait serde::de::Deserializer"><code>Deserializer</code></a> for a decoy which can brings deserialization to a safe end.</p>
+<p>We apply multiple techniques. Suppose we want to parse <code>Vec&lt;u32&gt;</code> with <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a>.
+Here are the main techniques.</p>
+<ol>
+<li>
+<p><strong>(Example: parse empty JSON as <code>[]</code> .)</strong> — On the top level, if parsing fails immediately (e.g.
+empty input) but a sequence is expected, then return <code>[]</code>.</p>
+<p><em>[setting name: fallback_seq_empty_at_root]</em></p>
+</li>
+<li>
+<p><strong>(Example: parse JSON <code>"[3"</code> as <code>[3]</code> .)</strong> — When there are no more elements in a sequence,
+let the <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Visitor.html" title="trait serde::de::Visitor"><code>Visitor</code></a> construct the <code>Vec&lt;u32&gt;</code> and put it somewhere safe. Now
+<code>serde_json::Deserializer::deserialize_seq</code> notices the missing close bracket and
+returns <code>Err</code> to us. We ignore <code>Err</code>, retrieve the saved value again, and return <code>Ok</code>
+of it.</p>
+<p>This happens for every <code>deserialize_*</code> method, not just sequences.</p>
+<p><em>[setting name: tolerate_deserializer_fail_after_visit_success]</em></p>
+</li>
+<li>
+<p><strong>(Example: parse JSON <code>"[3,"</code> as <code>[3]</code> .)</strong> — Inside a sequence, if parsing the next element will
+fail, then don’t even try.</p>
+<p>This works using backtracking.</p>
+<p><em>[setting name: backtrack_seq_skip_item]</em></p>
+</li>
+<li>
+<p>Before deserializing, we append a random trailer.</p>
+</li>
+</ol>
+<h5 id="random-trailer"><a class="doc-anchor" href="#random-trailer">§</a>Random trailer</h5>
+<p>Additionally we have a “random trailer” technique to get incomplete strings to parse.
+Unfortunately this technique is specific to the data format. This library implements
+it for JSON and YAML.</p>
+<p>This technique is not applied by default for other data formats. Even with JSON/YAML, this
+technique can be turned off with <a href="struct.Options.html#method.disable_random_tag" title="method deser_incomplete::Options::disable_random_tag"><code>Options::disable_random_tag</code></a>.</p>
+<h5 id="random-trailer-for-json"><a class="doc-anchor" href="#random-trailer-for-json">§</a>Random trailer for JSON</h5>
+<p>We actually <a href="https://github.com/bgeron/partial-deser/blob/raw-unreleased/src/random_trailer/json.rs">append</a> <code>tRANDOM"</code> to every JSON input, where <code>RANDOM</code> are some randomly chosen
+letters. It turns out that <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a> can parse any prefix of valid JSON, as long
+as we concatenate <code>tRANDOM"</code> to it. Some examples:</p>
+<ol>
+<li>
+<p><strong>(Example: <code>"hello</code> .)</strong> The concatenation is <code>"hellotRANDOM"</code> and we actually get
+this back from <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a> through <code>fn visit_borrowed_str</code> — after <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a>
+removed the double-quotes.</p>
+<p>In <code>fn visit_borrowed_str</code>, we notice that the string ends in <code>RANDOM</code>. Because this
+is a random string of letters, it cannot have been part of the incomplete JSON input.
+We remove the <code>tRANDOM</code> suffix and get back just <code>"hello"</code>.</p>
+</li>
+<li>
+<p><strong>(Example: <code>"hello\</code> — perhaps breaking in the middle of <code>\n</code> .)</strong> The concatenation
+is <code>"hello\tRANDOM"</code>; the <code>\t</code> parses to a tab character. We strip off <code>&lt;TAB&gt;random</code>
+and again return <code>"hello"</code>.</p>
+</li>
+<li>
+<p><strong>(Example: <code>"hello"</code> .)</strong> The concatenation is <code>"hello"tRANDOM"</code>. Now <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a>
+visits the <code>hello</code> string as it would normally do, and if there should be any error
+after the visit, we can recover from it anyway as
+per <em>tolerate_deserializer_fail_after_visit_success</em>.</p>
+</li>
+</ol>
+<h5 id="inspecting-at-runtime"><a class="doc-anchor" href="#inspecting-at-runtime">§</a>Inspecting at runtime</h5>
+<p>There is extensive logging through the [<code>tracing</code>] library, which becomes visible if you
+initialize the library.</p>
+<h5 id="guiding-principles"><a class="doc-anchor" href="#guiding-principles">§</a>Guiding principles</h5>
+<p>The logic was hand-tweaked to the following criteria:</p>
+<ol>
+<li>
+<p>(“soundness”) For any complete and valid JSON/YAML, if you call <code>deser-incomplete</code>
+on a prefix, then its output should not contain data that doesn’t exist in the
+complete JSON/YAML.</p>
+</li>
+<li>
+<p>(“monotone”) A larger prefix should not parse to a shorter output.</p>
+</li>
+<li>
+<p>(“prompt”) Ideally, each prefix contains as much data as we can be certain of.</p>
+</li>
+</ol>
+<p>The implementation of <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Deserializer.html" title="trait serde::de::Deserializer"><code>Deserializer</code></a> (data format) may influence the quality of the output,
+but the default ruleset does generally very well with <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a> and <a href="https://docs.rs/serde_yaml/0.9.34+deprecated/serde_yaml/index.html" title="mod serde_yaml"><code>serde_yaml</code></a>.</p>
+<p>There are <a href="https://github.com/bgeron/partial-deser/blob/raw-unreleased/tests/output/json_output/seq.rs">extensive snapshot tests</a> that validate the quality of the output
+on these criteria.</p>
+<p>If you are curious, then it is possible to tweak the ruleset
+with <code>unstable::UnstableCustomBehavior</code>. We also have snapshot tests for some alternative
+parsing configurations.</p>
+<h3 id="notes-and-limitations"><a class="doc-anchor" href="#notes-and-limitations">§</a>Notes and limitations</h3>
+<ul>
+<li>
+<p>Ideally, your data format should be relatively greedy, in the sense that it
+generates information quickly and does not need to look ahead in the serialized
+stream too much.</p>
+</li>
+<li>
+<p>This approach lets us safely abort parsing and get a value, but
+we cannot skip over invalid segments of input. (For that you need
+an approach like <a href="https://tree-sitter.github.io/">tree-sitter</a>.)</p>
+</li>
+<li>
+<p>We cannot distinguish eof from invalid input.</p>
+</li>
+<li>
+<p>YAML works well in general, but it is a bit less exhaustively tested than JSON.
+The randomized trailer is really important for YAML.</p>
+</li>
+<li>
+<p>JSON: when parsing a floating-point number, if the end of input happens to fall
+directly after the decimal point, then the number is missing from the output.</p>
+</li>
+<li>
+<p>For YAML, the randomized trailer uses a heuristic to see if we are currently in
+an escape sequence in a string — but this heuristic can fail. In this case,
+the incomplete string will be missing from the output.</p>
+</li>
+</ul>
+<p>Have fun!</p>
+<h3 id="acknowledgements"><a class="doc-anchor" href="#acknowledgements">§</a>Acknowledgements</h3>
+<p>Thanks to Annisa Chand and @XAMPPRocky for useful feedback.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.Error"><code>pub use error::<a class="struct" href="error/struct.Error.html" title="struct deser_incomplete::error::Error">Error</a>;</code></div></li><li><div class="item-name" id="reexport.Source"><code>pub use source::<a class="trait" href="source/trait.Source.html" title="trait deser_incomplete::source::Source">Source</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="error/index.html" title="mod deser_incomplete::error">error</a></div></li><li><div class="item-name"><a class="mod" href="options/index.html" title="mod deser_incomplete::options">options</a></div><div class="desc docblock-short">Types and traits that have to be public to satisfy rustc/rustdoc.</div></li><li><div class="item-name"><a class="mod" href="random_trailer/index.html" title="mod deser_incomplete::random_trailer">random_<wbr>trailer</a><wbr><span class="stab portability" title="Available on crate feature `rand` only"><code>rand</code></span></div></li><li><div class="item-name"><a class="mod" href="source/index.html" title="mod deser_incomplete::source">source</a></div><div class="desc docblock-short">Trait <a href="source/trait.Source.html" title="trait deser_incomplete::source::Source"><code>Source</code></a> describes a resource that can be deserialized multiple times:
+a <a href="https://docs.rs/serde/1.0.215/serde/de/trait.Deserializer.html" title="trait serde::de::Deserializer"><code>Deserializer</code></a> together with the data it works on, such as a string
+reference or byte slice.</div></li><li><div class="item-name"><a class="mod" href="unstable/index.html" title="mod deser_incomplete::unstable">unstable</a><wbr><span class="stab portability" title="Available on crate feature `unstable` only"><code>unstable</code></span></div><div class="desc docblock-short">Stuff that is not polished or likely to change.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Options.html" title="struct deser_incomplete::Options">Options</a></div><div class="desc docblock-short">Options for deserialization.</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.from_json_slice.html" title="fn deser_incomplete::from_json_slice">from_<wbr>json_<wbr>slice</a><wbr><span class="stab portability" title="Available on crate features `rand` and `serde_json` only"><code>rand</code> and <code>serde_json</code></span></div><div class="desc docblock-short">Like <a href="fn.from_json_str.html" title="fn deser_incomplete::from_json_str"><code>from_json_str</code></a>, but for bytes.</div></li><li><div class="item-name"><a class="fn" href="fn.from_json_str.html" title="fn deser_incomplete::from_json_str">from_<wbr>json_<wbr>str</a><wbr><span class="stab portability" title="Available on crate features `rand` and `serde_json` only"><code>rand</code> and <code>serde_json</code></span></div><div class="desc docblock-short">Main function. Robustly deserialize incomplete input with <a href="https://docs.rs/serde_json/1.0.133/serde_json/index.html" title="mod serde_json"><code>serde_json</code></a>.</div></li><li><div class="item-name"><a class="fn" href="fn.from_yaml_slice.html" title="fn deser_incomplete::from_yaml_slice">from_<wbr>yaml_<wbr>slice</a><wbr><span class="stab portability" title="Available on crate features `rand` and `serde_yaml` only"><code>rand</code> and <code>serde_yaml</code></span></div><div class="desc docblock-short">Like <a href="fn.from_yaml_str.html" title="fn deser_incomplete::from_yaml_str"><code>from_yaml_str</code></a>, but for bytes.</div></li><li><div class="item-name"><a class="fn" href="fn.from_yaml_str.html" title="fn deser_incomplete::from_yaml_str">from_<wbr>yaml_<wbr>str</a><wbr><span class="stab portability" title="Available on crate features `rand` and `serde_yaml` only"><code>rand</code> and <code>serde_yaml</code></span></div><div class="desc docblock-short">Robustly deserialize incomplete input with <a href="https://docs.rs/serde_yaml/0.9.34+deprecated/serde_yaml/index.html" title="mod serde_yaml"><code>serde_yaml</code></a>.</div></li></ul></section></div></main></body></html>

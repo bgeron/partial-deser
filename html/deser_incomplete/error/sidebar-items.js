@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["FallbackError","InconsistentDeserializerError","InternalError"],"struct":["BugError","Error"]};
