@@ -9,6 +9,7 @@ all: fmt clippy test doc check-msrv generate-readme
 
 clean:
     rm -rf target target-*
+    just -f examples/vhs/justfile clean
 
 motivating-example *extra_args:
     @cargo build --target-dir target --example print-slowly --example show-live

@@ -9,3 +9,6 @@ build-show-live-travel-modes:
 
 build-du-show-live:
     vhs du-show-live.tape
+
+clean:
+    rm -rf target
