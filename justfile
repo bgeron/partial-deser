@@ -5,7 +5,7 @@ _default: all
 
 dev: fmt clippy-allow-dead
 
-all: fmt clippy test doc check-msrv
+all: fmt clippy test doc check-msrv generate-readme
 
 clean:
     rm -rf target target-*
@@ -74,5 +74,12 @@ doc-deps:
 doc-deps-open:
     CARGO_TARGET_DIR=target-nightly-deps cargo +nightly doc --lib --bins --examples --all-features --open
 
+generate-readme:
+    # Remove markdown code links
+    cargo readme \
+        | rg --passthru '\[(`[:\w]+`)\]' -r '$1' > README.md.generated
+    if diff -q README.md.generated README.md; then rm README.md.generated; fi
+
 tokei:
     tokei --exclude json_output --exclude yaml_output
+
