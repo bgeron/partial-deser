@@ -31,7 +31,7 @@ struct Args {
     schema: Schema,
 
     /// How to display the parsed data.
-    #[clap(short, long, default_value = "json")]
+    #[clap(short, long, default_value = "json-raw")]
     output: Vec<DisplayPreference>,
 
     /// Whether to add a randomized trailer to the input before parsing.

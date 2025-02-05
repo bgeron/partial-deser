@@ -1,9 +1,12 @@
 # deser-incomplete
 
-## Deserialize incomplete data with Serde
+## Deserialize incomplete or broken data with Serde
 
 This wraps Serde `Deserializer`s (like serde_json and serde_yaml) so you
-can parse incomplete data for showing to the user:
+can parse incomplete or tolerate broken data for showing to the user.
+
+For this library, incomplete data is simply just another form of broken data.
+But streaming JSON is useful, and incomplete data is realistic there.
 
 <img src="https://bgeron.github.io/partial-deser/assets/live-travel-modes.gif" alt='Someone is slowly
 typing JSON into a terminal program. The JSON is an array of objects.
@@ -41,6 +44,9 @@ blocked.' style="max-height: 250px; height: auto; width: auto;">
 - JSON: call `from_json_str`.
 
 - YAML: call `from_yaml_str`.
+
+- Command line: `cargo install deser-incomplete --example repair-deser`, then pipe broken data
+  through `repair-deser`. By default, it inputs and outputs JSON.
 
 Other data formats work too:
 

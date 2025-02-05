@@ -54,9 +54,9 @@ name = "live"
 required-features = ["serde_json", "tracing"]
 
 [[example]]
-name = "parse" # dummy
+name = "repair-deser"
 required-features = ["serde_json", "tracing"]
 
 [[example]]
-name = "du" # dummy
+name = "du"
 required-features = ["serde_json", "tracing"]
