@@ -2,13 +2,13 @@
 _list:
     just --list
 
-build-all: build-show-live-travel-modes build-du-show-live
+build-all: build-live-travel-modes build-du-live
 
-build-show-live-travel-modes:
-    vhs show-live-travel-modes.tape
+build-live-travel-modes:
+    vhs live-travel-modes.tape
 
-build-du-show-live:
-    vhs du-show-live.tape
+build-du-live:
+    vhs du-live.tape
 
 clean:
     rm -rf target

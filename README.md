@@ -5,11 +5,11 @@
 This wraps Serde `Deserializer`s (like serde_json and serde_yaml) so you
 can parse incomplete data for showing to the user:
 
-<img src="https://bgeron.github.io/partial-deser/assets/show-live-travel-modes.gif" alt='Someone is slowly
+<img src="https://bgeron.github.io/partial-deser/assets/live-travel-modes.gif" alt='Someone is slowly
 typing JSON into a terminal program. The JSON is an array of objects.
 The program gradually renders the JSON input as Rust debug output, and as a table.
 The fields of the Rust struct are printed even though they are missing in the JSON input.
-The program is called "show-live".' title="Demo that shows parsing JSON as it is typed by the user"
+The example program is called "live".' title="Demo that shows parsing JSON as it is typed by the user"
 style="max-height: 300px; height: auto; width: auto;">
 
 Here, we printed the Rust debug representation. We also reserialized to JSON and
@@ -20,7 +20,7 @@ computes disk usage of directories, and outputs the results as JSON.
 In true Unix style,  displaying for the user is a separate concern,
 implemented by a separate program.
 
-<img src="https://bgeron.github.io/partial-deser/assets/du-show-live.gif" alt='A Unix pipeline with
+<img src="https://bgeron.github.io/partial-deser/assets/du-live.gif" alt='A Unix pipeline with
 two programs is shown. The source program computes the disk size
 of a bunch of directories, and outputs a JSON array of objects. The sink program
 pretty-prints the JSON table. Computing the disk size takes a while, and you can
@@ -58,7 +58,7 @@ Other data formats work too:
 
   _Add preprocessing with `Options::set_random_trailer`, or turn it off such preprocessing
   with `Options::disable_random_tag`. You can see the effect of it with
-  `cargo run --example show-live -- --use-random-trailer false`._
+  `cargo run --example live -- --use-random-trailer false`._
 
   I expect that binary formats don't need this preprocessing.
 

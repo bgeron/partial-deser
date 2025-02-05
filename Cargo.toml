@@ -50,7 +50,7 @@ name = "output"
 required-features = ["serde_json", "unstable"]
 
 [[example]]
-name = "show-live"
+name = "live"
 required-features = ["serde_json", "tracing"]
 
 [[example]]
