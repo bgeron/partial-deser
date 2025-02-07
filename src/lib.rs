@@ -6,11 +6,12 @@
 
 //! # Deserialize incomplete or broken data with Serde
 //!
-//! This wraps Serde [`Deserializer`]s (like serde_json and serde_yaml) so you
-//! can parse incomplete or tolerate broken data for showing to the user.
+//! Wrap Serde [`Deserializer`]s (like serde_json and serde_yaml) so you
+//! can parse incomplete or tolerate broken data.
 //!
-//! For this library, incomplete data is simply just another form of broken data.
-//! But streaming JSON is useful, and incomplete data is realistic there.
+//! Streaming JSON for instance is technically invalid until the stream is done.
+//! But by tolerating premature end of input, we can do something useful while
+//! the stream is in progress.
 //!
 //! <img src="https://bgeron.github.io/partial-deser/assets/live-travel-modes.gif" alt='Someone is slowly
 //! typing JSON into a terminal program. The JSON is an array of objects.
@@ -23,20 +24,20 @@
 //! let nushell do its beautiful table formatting.
 //!
 //! The JSON can also come from an external program. Here is a demo program that
-//! computes disk usage of directories, and outputs the results as JSON.
+//! computes disk usage of directories and outputs the results as JSON.
 //! In true Unix style,  displaying for the user is a separate concern,
 //! implemented by a separate program.
 //!
 //! <img src="https://bgeron.github.io/partial-deser/assets/du-live.gif" alt='A Unix pipeline with
 //! two programs is shown. The source program computes the disk size
-//! of a bunch of directories, and outputs a JSON array of objects. The sink program
+//! of a bunch of directories and outputs a JSON array of objects. The sink program
 //! pretty-prints the JSON table. Computing the disk size takes a while, and you can
 //! see which directory is being analyzed because the result for that directory is empty
 //! while it is computing.' title='Demo that shows parsing JSON as it is generated live from another program that mimics du'
 //! style="max-height: 350px; height: auto; width: auto;">
 //!
 //! `deser-incomplete` sits between `#[serde(Deserialize)]` and the data format, and
-//! turns errors into successes.
+//! safely halts parsing on parse errors or other errors.
 //!
 //! <img src="https://bgeron.github.io/partial-deser/assets/deser-incomplete-blocks-errors.png" alt='This library sits
 //! in between Deserialize and Deserializer. Information about the parsed data is successfully
@@ -73,21 +74,21 @@
 //!   I expect that binary formats don't need this preprocessing.
 //!
 //!
-//! ## How this works under the hood
+//! ## How this works internally
 //!
 //! The implementation sits in between [`Deserialize`], [`Deserializer`], and [`Visitor`],
-//! gathers metadata during the parse, saves successful sub-parses. It also "backtracks":
+//! gathers metadata during the parse, and saves successful sub-parses. It also "backtracks":
 //! if a parse fails, then we retry, but just before the failure point we swap out the real
 //! [`Deserializer`] for a decoy which can brings deserialization to a safe end.
 //!
 //!
-//! We apply a bunch of tricks. Here are some examples, in the context of parsing a `Vec<u32>`
-//! with [`serde_json`].
+//! We apply multiple techniques. Suppose we want to parse `Vec<u32>` with [`serde_json`].
+//! Here are the main techniques.
 //!
 //! 1. **(Example: parse empty JSON as `[]` .)** — On the top level, if parsing fails immediately (e.g.
 //!    empty input) but a sequence is expected, then return `[]`.
 //!
-//!    _\[setting: fallback_seq_empty_at_root]_
+//!    _\[setting name: fallback_seq_empty_at_root]_
 //!
 //! 2. **(Example: parse JSON `"[3"` as `[3]` .)** — When there are no more elements in a sequence,
 //!    let the [`Visitor`] construct the `Vec<u32>` and put it somewhere safe. Now
@@ -97,40 +98,40 @@
 //!
 //!    This happens for every `deserialize_*` method, not just sequences.
 //!
-//!    _\[setting: tolerate_deserializer_fail_after_visit_success]_
+//!    _\[setting name: tolerate_deserializer_fail_after_visit_success]_
 //!
 //! 3. **(Example: parse JSON `"[3,"` as `[3]` .)** — Inside a sequence, if parsing the next element will
 //!    fail, then don't even try.
 //!
 //!    This works using backtracking.
 //!
-//!    _\[setting: backtrack_seq_skip_item]_
+//!    _\[setting name: backtrack_seq_skip_item]_
 //!
 //! 4. Before deserializing, we append a random trailer:
 //!
 //!
 //! #### Random trailer
 //!
-//! Additionally we have a "random trailer" trick to get incomplete strings to parse.
-//! Unfortunately this trick is specific to the data format. This library implements
+//! Additionally we have a "random trailer" technique to get incomplete strings to parse.
+//! Unfortunately this technique is specific to the data format. This library implements
 //! it for JSON and YAML.
 //!
-//! This trick is not applied by default for other data formats. Even with JSON/YAML, this
-//! trick can be turned off with [`Options::disable_random_tag`].
+//! This technique is not applied by default for other data formats. Even with JSON/YAML, this
+//! technique can be turned off with [`Options::disable_random_tag`].
 //!
 //! #### Random trailer for JSON
 //!
 //! We actually [append][append-impl] `tRANDOM"` to every JSON input, where `RANDOM` are some randomly chosen
 //! letters. It turns out that [`serde_json`] can parse any prefix of valid JSON, as long
-//! as we concatenate `tRANDOM"` to it. Some examples.
+//! as we concatenate `tRANDOM"` to it. Some examples:
 //!
-//! 1. **(Example: `"hello` .)** The concatenation is `"hellotRANDOM"`, and we actually get
+//! 1. **(Example: `"hello` .)** The concatenation is `"hellotRANDOM"` and we actually get
 //!     this back from [`serde_json`] through `fn visit_borrowed_str` --- after [`serde_json`]
 //!     removed the double-quotes.
 //!
 //!     In `fn visit_borrowed_str`, we notice that the string ends in `RANDOM`. Because this
-//!     is a random string of letters, it cannot have been part of the incomplete JSON input,
-//!     so we know to remove the `tRANDOM` suffix, and we
+//!     is a random string of letters, it cannot have been part of the incomplete JSON input.
+//!     We remove the `tRANDOM` suffix and get back just `"hello"`.
 //!
 //! 2. **(Example: `"hello\` --- perhaps breaking in the middle of `\n` .)** The concatenation
 //!     is `"hello\tRANDOM"`; the `\t` parses to a tab character. We strip off `<TAB>random`
@@ -160,12 +161,11 @@
 //!
 //! 3. ("prompt") Ideally, each prefix contains as much data as we can be certain of.
 //!
-//! How well we do depends on the data format that you use (the implementation of
-//! [`Deserializer`]), but the default ruleset does generally very well with [`serde_json`]
-//! and [`serde_yaml`].
+//! The implementation of [`Deserializer`] (data format) may influence the quality of the output,
+//! but the default ruleset does generally very well with [`serde_json`] and [`serde_yaml`].
 //!
-//! There are [extensive snapshot tests][snapshot-tests] that validate how well we do on these
-//! criteria.
+//! There are [extensive snapshot tests][snapshot-tests] that validate the quality of the output
+//! on these criteria.
 //!
 //! If you are curious, then it is possible to tweak the ruleset
 //! with `unstable::UnstableCustomBehavior`. We also have snapshot tests for some alternative
@@ -181,18 +181,18 @@
 //!
 //! - This approach lets us safely abort parsing and get a value, but
 //!   we cannot skip over invalid segments of input. (For that you need
-//!   an approach like tree-sitter.)
+//!   an approach like [tree-sitter](https://tree-sitter.github.io/).)
 //!
-//! - We also cannot distinguish eof from invalid input.
+//! - We cannot distinguish eof from invalid input.
 //!
-//! - YAML works well in general, but is a bit less exhaustively tested than JSON.
-//!   The randomized trailer is really important here.
+//! - YAML works well in general, but it is a bit less exhaustively tested than JSON.
+//!   The randomized trailer is really important for YAML.
 //!
-//! - JSON: When parsing a floating-point number, if the end of input happens to fall
-//!   just after the decimal point, then the number is missing from the output.
+//! - JSON: when parsing a floating-point number, if the end of input happens to fall
+//!   directly after the decimal point, then the number is missing from the output.
 //!
-//! - For YAML, the randomized trailer uses a heuristic to see if we're currently in
-//!   an escape sequence in a string, but this heuristic can fail. In this case,
+//! - For YAML, the randomized trailer uses a heuristic to see if we are currently in
+//!   an escape sequence in a string --- but this heuristic can fail. In this case,
 //!   the incomplete string will be missing from the output.
 //!
 //!
@@ -263,7 +263,7 @@ pub mod options {
 mod unstable {
     pub use crate::collection_of_unstable_stuff::*;
 }
-/// Stuff that's not polished and particularly likely to change.
+/// Stuff that is not polished or likely to change.
 #[cfg(feature = "unstable")]
 pub mod unstable {
     pub use crate::collection_of_unstable_stuff::*;
@@ -475,8 +475,8 @@ impl<Extra: ExtraOptions> Options<Extra> {
     /// Like [`Self::from_json_slice`], but can deserialize borrowed strings and return them
     /// directly.
     ///
-    /// This comes at the cost that we cannot use the JSON trick that gets us the contents of
-    /// incomplete strings.
+    /// This comes at the cost that we cannot use the random trailer technique that gives
+    /// us access to the contents of incomplete strings.
     ///
     /// If you need incomplete strings as well, then use [`Self::from_json_slice_borrowed`].
     ///
@@ -510,7 +510,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
     }
 
     /// Advanced API. Lets you deserialize into borrowed types like `&str`, while supporting
-    /// the JSON trick that gets us the contents of incomplete strings.
+    /// the random trailer that gives us access to the contents of incomplete strings.
     ///
     /// (The difference is that this only needs `T: serde::de::Deserialize<'de>`, which is weaker.)
     ///

@@ -51,7 +51,7 @@ impl RandomTrailer for NoopRandomTrailer {
     }
 }
 
-/// A prepared input for deserialization with the JSON string trick.
+/// A prepared input for deserialization with a random trailer.
 pub struct InputPlusTrailer<SliceType>(pub SliceType);
 
 /// Bytes and string types, which for serde_json may suffer from trailing data

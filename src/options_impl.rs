@@ -9,7 +9,7 @@ use crate::Options;
 
 impl<Extra: ExtraOptions> Options<Extra> {
     /// Do our best to take off any potential junk that was only added by us,
-    /// such as the JSON-specific trick stuff.
+    /// caused by the random trailer.
     ///
     /// Return true if the input was modified and this value seems to be incomplete.
     #[must_use]
@@ -195,7 +195,7 @@ pub struct UnstableCustomBehavior {
     ///
     /// ## Caveat
     ///
-    /// In combination with the JSON string trick, this can sometimes generate spurious
+    /// Especially with a random trailer, this can sometimes generate spurious
     /// list elements.
     pub fallback_unit: bool,
     pub fallback_unit_at_mandatory: bool,
@@ -205,7 +205,7 @@ pub struct UnstableCustomBehavior {
     ///
     /// ## Caveat
     ///
-    /// In combination with the JSON string trick, this can sometimes generate spurious
+    /// Especially with a random trailer, this can sometimes generate spurious
     /// list elements.
     pub fallback_unit_struct: bool,
     pub fallback_unit_struct_at_mandatory: bool,
