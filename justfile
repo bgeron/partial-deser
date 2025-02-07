@@ -81,6 +81,9 @@ generate-readme:
         | rg --passthru '\[(`[:\w]+`)\]' -r '$1' > README.md.generated
     if diff -q README.md.generated README.md; then rm README.md.generated; fi
 
+replace-readme: generate-readme
+    if [ -f README.md.generated ] ; then mv README.md.generated README.md; fi
+
 tokei:
     tokei --exclude json_output --exclude yaml_output
 
