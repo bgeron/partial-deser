@@ -208,8 +208,11 @@
 //!   an escape sequence in a string --- but this heuristic can fail. In this case,
 //!   the incomplete string will be missing from the output.
 //!
-//!
 //! Have fun!
+//!
+//! ## Acknowledgements
+//!
+//! Thanks to Annisa Chand and @XAMPPRocky for useful feedback.
 
 macro_rules! error {
     ($($arg:tt)*) => {

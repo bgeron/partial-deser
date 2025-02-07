@@ -204,7 +204,10 @@ parsing configurations.
   an escape sequence in a string --- but this heuristic can fail. In this case,
   the incomplete string will be missing from the output.
 
-
 Have fun!
+
+### Acknowledgements
+
+Thanks to Annisa Chand and @XAMPPRocky for useful feedback.
 
 License: MIT OR Apache-2.0
