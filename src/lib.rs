@@ -246,7 +246,7 @@ macro_rules! trace {
 
 mod attempt;
 mod deserialize;
-mod error;
+pub mod error;
 mod fallback;
 mod options_impl;
 #[cfg(feature = "rand")]
@@ -312,22 +312,6 @@ const RANDOM_TAG_LEN: usize = 8;
 /// the end-of-file, or omitting a field of an enclosing struct.
 const DEFAULT_MAX_BACKTRACKS: Option<usize> = Some(10);
 
-#[derive(Clone, Debug)]
-pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
-    /// This is a random string that forms part of a suffix we add to
-    /// the input, for some data types.
-    ///
-    /// As of Dec 2024, we don't stabilize the specific string format.
-    #[cfg(feature = "rand")]
-    random_tag: Option<Arc<str>>,
-
-    max_n_backtracks: Option<usize>,
-
-    behavior: UnstableCustomBehavior,
-
-    extra: Extra,
-}
-
 /// Main function. Robustly deserialize incomplete input with [`serde_json`].
 ///
 /// See methods on [`Options`] for more generic APIs.
@@ -370,6 +354,22 @@ where
     T: for<'de> serde::Deserialize<'de>,
 {
     Options::new_yaml().from_yaml_slice(Cow::Borrowed(yaml))
+}
+
+#[derive(Clone, Debug)]
+pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
+    /// This is a random string that forms part of a suffix we add to
+    /// the input, for some data types.
+    ///
+    /// As of Dec 2024, we don't stabilize the specific string format.
+    #[cfg(feature = "rand")]
+    random_tag: Option<Arc<str>>,
+
+    max_n_backtracks: Option<usize>,
+
+    behavior: UnstableCustomBehavior,
+
+    extra: Extra,
 }
 
 impl Options {

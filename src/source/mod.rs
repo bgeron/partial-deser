@@ -1,3 +1,7 @@
+//! Trait [`Source`] describes a resource that can be deserialized multiple times:
+//! a [`Deserializer`] together with the data it works on, such as a string
+//! reference or byte slice.
+
 use serde::Deserializer;
 
 #[cfg(feature = "serde_json")]
@@ -10,11 +14,18 @@ pub use json::{JsonBytes, JsonStr};
 #[cfg(feature = "serde_yaml")]
 pub use yaml::{YamlBytes, YamlStr};
 
-/// Represents the source of a data value that can be repeatedly deserialized.
-/// For instance, serde_json on a borrowed string.
+/// Describes a resource that can be deserialized multiple times:
+/// a [`Deserializer`] together with the data it works on, such as a string
+/// reference or byte slice.
 ///
-/// See the implementations of [`JsonStr`] and [`YamlStr`] for two different ways
-/// that this is implemented, depending on how your [`Deserializer`] works.
+/// For instance, [`crate::source::JsonStr`] is a borrowed string that we should use [`serde_json`] on.
+///
+/// For your own data format, take a look at the implementation of either [`JsonStr`]
+/// and [`YamlStr`] --- depending on whether your data format implements [`Deserializer`]
+/// like [`serde_json`] or like [`serde_yaml`]:
+///
+/// - [`serde_yaml`] has `serde_yaml::Deserializer: serde::Deserializer`
+/// - [`serde_json`] has `&mut serde_json::Deserializer: serde::Deserializer`
 pub trait Source<'de> {
     /// Stack storage for the deserializer.
     type DeserializerStorage;

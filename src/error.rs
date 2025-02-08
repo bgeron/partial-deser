@@ -5,6 +5,9 @@ use serde::de::{Expected, Unexpected};
 #[cfg(doc)]
 use serde::de::{DeserializeSeed, Deserializer};
 
+/// Either `DeserializerErr` or [`InternalError`] or [`InconsistentDeserializerError`].
+///
+/// Additional variants may be added in the future.
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 pub struct Error<DeserializerErr> {
@@ -24,7 +27,7 @@ pub(crate) enum ErrorImpl<DeserializerErr> {
     Internal(InternalError),
     /// The deserializer behaved in an inconsistent / nondeterministic way.
     #[error(transparent)]
-    InconsistentDeserializer(InconsistentDeserializerErr),
+    InconsistentDeserializer(InconsistentDeserializerError),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -39,12 +42,12 @@ pub enum InternalError {
     )]
     NoPotentialBacktrackPoint { after_backtracks: usize },
     #[error("bug in {pkg} (please report): {0}", pkg = std::env!("CARGO_PKG_NAME"))]
-    Bug(Bug),
+    Bug(BugError),
 }
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-pub struct Bug(BugEnum);
+pub struct BugError(BugEnum);
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum BugEnum {
@@ -53,7 +56,8 @@ pub(crate) enum BugEnum {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum InconsistentDeserializerErr {}
+#[non_exhaustive]
+pub enum InconsistentDeserializerError {}
 
 #[derive(Debug, thiserror::Error)]
 pub enum FallbackError {
@@ -100,14 +104,14 @@ impl<DeserializerErr> Error<DeserializerErr> {
     }
 
     /// Was the deserializer being inconsistent?
-    pub fn as_inconsistent_deserializer_error(&self) -> Option<&InconsistentDeserializerErr> {
+    pub fn as_inconsistent_deserializer_error(&self) -> Option<&InconsistentDeserializerError> {
         match &*self.err {
             ErrorImpl::InconsistentDeserializer(err) => Some(err),
             _ => None,
         }
     }
 
-    pub fn into_inconsistent_deserializer_error(self) -> Option<InconsistentDeserializerErr> {
+    pub fn into_inconsistent_deserializer_error(self) -> Option<InconsistentDeserializerError> {
         match *self.err {
             ErrorImpl::InconsistentDeserializer(err) => Some(err),
             _ => None,
@@ -142,7 +146,7 @@ impl<DeserializerErr> From<InternalError> for Error<DeserializerErr> {
 
 impl From<BugEnum> for InternalError {
     fn from(err: BugEnum) -> Self {
-        InternalError::Bug(Bug(err))
+        InternalError::Bug(BugError(err))
     }
 }
 
@@ -154,8 +158,8 @@ impl<DeserializerErr> From<BugEnum> for Error<DeserializerErr> {
     }
 }
 
-impl<DeserializerErr> From<InconsistentDeserializerErr> for Error<DeserializerErr> {
-    fn from(err: InconsistentDeserializerErr) -> Self {
+impl<DeserializerErr> From<InconsistentDeserializerError> for Error<DeserializerErr> {
+    fn from(err: InconsistentDeserializerError) -> Self {
         Self {
             err: Box::new(ErrorImpl::InconsistentDeserializer(err)),
         }
