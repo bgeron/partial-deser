@@ -35,9 +35,9 @@ const RANDOM_TAG_LEN: usize = 8;
 ///
 /// The most important methods are:
 ///
-/// - [`Options::deserialize_source`] for a generic source,
 /// - [`Options::from_json_str`] for JSON,
-/// - [`Options::from_yaml_str`] for YAML.
+/// - [`Options::from_yaml_str`] for YAML,
+/// - [`Options::deserialize_source`] for a generic source.
 #[derive(Clone, Debug)]
 pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
     /// This is a random string that forms part of a suffix we add to
@@ -127,7 +127,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self
     }
 
-    /// Like [`crate::from_json_str`], but with options.
+    /// Like [`crate::from_json_str`], but with options. This applies the random trailer.
     #[cfg(all(feature = "rand", feature = "serde_json"))]
     pub fn from_json_str<T>(self, json: Cow<str>) -> Result<T, Error<serde_json::Error>>
     where
@@ -137,7 +137,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.from_json_str_borrowed(&prepared)
     }
 
-    /// Like [`crate::from_json_slice`], but with options.
+    /// Like [`crate::from_json_slice`], but with options. This applies the random trailer.
     #[cfg(all(feature = "rand", feature = "serde_json"))]
     pub fn from_json_slice<T>(self, json: Cow<[u8]>) -> Result<T, Error<serde_json::Error>>
     where
@@ -147,7 +147,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.from_json_slice_borrowed(&prepared)
     }
 
-    /// Like [`crate::from_yaml_str`], but with options.
+    /// Like [`crate::from_yaml_str`], but with options. This applies the random trailer.
     #[cfg(all(feature = "rand", feature = "serde_yaml"))]
     pub fn from_yaml_str<T>(self, yaml: Cow<str>) -> Result<T, Error<serde_yaml::Error>>
     where
@@ -157,7 +157,7 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.from_yaml_str_borrowed(&prepared)
     }
 
-    /// Like [`crate::from_yaml_slice`], but with options.
+    /// Like [`crate::from_yaml_slice`], but with options. This applies the random trailer.
     #[cfg(all(feature = "rand", feature = "serde_yaml"))]
     pub fn from_yaml_slice<T>(self, yaml: Cow<[u8]>) -> Result<T, Error<serde_yaml::Error>>
     where
@@ -243,7 +243,8 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.deserialize_source(crate::source::JsonStr(prepared_json.as_ref()))
     }
 
-    /// See [`Self::from_json_str_borrowed`].
+    /// Advanced API. See [`Self::from_json_str_borrowed`], or
+    /// use [`Self::from_json_slice`] for a simpler API.
     ///
     /// **Note: This API is relatively likely to change (more unstable) compared to [`Self::from_json_slice`].**
     #[cfg(feature = "serde_json")]
@@ -257,6 +258,8 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.deserialize_source(crate::source::JsonBytes(prepared_json.as_ref()))
     }
 
+    /// Advanced API. See [`Self::from_json_str_borrowed`], or
+    /// use [`Self::from_yaml_str`] for a simpler API.
     #[cfg(feature = "serde_yaml")]
     pub fn from_yaml_str_borrowed<'de, T>(
         self,
@@ -268,6 +271,8 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.deserialize_source(crate::source::YamlStr(prepared_yaml.as_ref()))
     }
 
+    /// Advanced API. See [`Self::from_json_str_borrowed`], or
+    /// use [`Self::from_yaml_slice`] for a simpler API.
     #[cfg(feature = "serde_yaml")]
     pub fn from_yaml_slice_borrowed<'de, T>(
         self,
@@ -279,10 +284,10 @@ impl<Extra: ExtraOptions> Options<Extra> {
         self.deserialize_source(crate::source::YamlBytes(prepared_yaml.as_ref()))
     }
 
-    /// Prepare a string for borrowed deserialization with a method like [`Self::from_json_str_borrowed`].
+    /// Prepare a string for borrowed deserialization with a method
+    /// like [`Self::from_json_str_borrowed`], by appending the random trailer.
     ///
-    /// This appends to the input, according to the randomized trailer method. And this returns a newtype
-    /// wrapper, so you can undo the effects yourself.
+    /// This returns a newtype wrapper, so you can undo the effects yourself.
     #[cfg(feature = "rand")]
     pub fn prepare_str_for_borrowed_deserialization<'a>(
         &self,
@@ -299,10 +304,10 @@ impl<Extra: ExtraOptions> Options<Extra> {
         InputPlusTrailer(input)
     }
 
-    /// Prepare a slice for borrowed deserialization with a method like [`Self::from_json_slice_borrowed`].
+    /// Prepare a slice for borrowed deserialization with a method
+    /// like [`Self::from_json_slice_borrowed`], by appending the random trailer.
     ///
-    /// This appends to the input, according to the randomized trailer method. And this returns a newtype
-    /// wrapper, so you can undo the effects yourself.
+    /// This returns a newtype wrapper, so you can undo the effects yourself.
     #[cfg(feature = "rand")]
     pub fn prepare_slice_for_borrowed_deserialization<'a>(
         &self,
@@ -839,8 +844,9 @@ impl UnstableCustomBehavior {
 impl<Extra: ExtraOptions> Options<Extra> {
     /// Deserialize from a generic [`Source`].
     ///
-    /// With all `deserialize_*` methods, if backtracking is needed, then
-    /// execute backtracking accordingly.
+    /// Unlike [`Self::from_json_str`] etc, this method does not automatically append
+    /// a random trailer. If you want that, then you can use
+    /// [`Self::prepare_str_for_borrowed_deserialization`].
     ///
     /// You can use [`Options::deserialize_seed`] instead if you need to pass a seed.
     pub fn deserialize_source<'de, T, S>(self, source: S) -> Result<T, Error<S::Error>>
@@ -852,6 +858,10 @@ impl<Extra: ExtraOptions> Options<Extra> {
     }
 
     /// Deserialize from a seed.
+    ///
+    /// Unlike [`Self::from_json_str`] etc, this method does not automatically append
+    /// a random trailer. If you want that, then you can use
+    /// [`Self::prepare_str_for_borrowed_deserialization`].
     ///
     /// If you don't need a seed, then you can use [`Options::deserialize_source`].
     pub fn deserialize_seed<'de, T, S>(
