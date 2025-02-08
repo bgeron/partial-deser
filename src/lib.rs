@@ -44,16 +44,30 @@
 //! sent from Deserializer through deser-incomplete to Deserialize. But errors from Deserializer are
 //! blocked.' style="max-height: 250px; height: auto; width: auto;">
 //!
-//! ## How to use
+//! ## How to use: JSON and YAML
 //!
-//! - JSON: call [`from_json_str`].
+//! ```
+//! let result: Result<Vec<u32>, deser_incomplete::Error<serde_json::Error>>
+//!     = deser_incomplete::from_json_str("[3, 4, ");
 //!
-//! - YAML: call [`from_yaml_str`].
+//! assert_eq!(result.unwrap(), vec![3, 4]);
 //!
-//! - Command line: `cargo install deser-incomplete --example repair-deser`, then pipe broken data
-//!   through `repair-deser`. By default, it inputs and outputs JSON.
+//! let result: Result<Vec<bool>, deser_incomplete::Error<serde_yaml::Error>>
+//!    = deser_incomplete::from_yaml_str("- true\n- false\n- ");
 //!
-//! Other data formats work too:
+//! assert_eq!(result.unwrap(), vec![true, false]);
+//! ```
+//!
+//! Command line:
+//!
+//! ```sh
+//! $ cargo install deser-incomplete --example repair-deser
+//!
+//! $ echo '[3, 4' | repair-deser    # JSON by default
+//! [3,4]
+//! ```
+//!
+//! ## How to use: other data formats
 //!
 //! - You need to explain how to create the [`Deserializer`] by implementing [`Source`].
 //!
@@ -61,7 +75,7 @@
 //!   - If your format has `T: Deserializer` then mimic [`source::YamlStr`].
 //!
 //! - Some formats need a trailer for best results. For example, [`from_json_str`] appends
-//!   a double-quote to the input before parsing, this lets `serde_json` strings that weren't
+//!   a double-quote to the input before parsing, this lets [`serde_json`] see strings that weren't
 //!   actually complete.
 //!
 //!   We also preprocess the input in [`from_yaml_str`], actually there it is even more important
@@ -107,8 +121,7 @@
 //!
 //!    _\[setting name: backtrack_seq_skip_item]_
 //!
-//! 4. Before deserializing, we append a random trailer:
-//!
+//! 4. Before deserializing, we append a random trailer.
 //!
 //! #### Random trailer
 //!
