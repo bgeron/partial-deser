@@ -296,7 +296,7 @@ pub fn from_json_str<T>(json: &str) -> Result<T, Error<serde_json::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_json().from_json_str(Cow::Borrowed(json))
+    Options::new_json().deserialize_from_json_str(Cow::Borrowed(json))
 }
 
 /// Like [`from_json_str`], but for bytes.
@@ -307,7 +307,7 @@ pub fn from_json_slice<T>(json: &[u8]) -> Result<T, Error<serde_json::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_json().from_json_slice(Cow::Borrowed(json))
+    Options::new_json().deserialize_from_json_slice(Cow::Borrowed(json))
 }
 
 /// Robustly deserialize incomplete input with [`serde_yaml`].
@@ -318,7 +318,7 @@ pub fn from_yaml_str<T>(yaml: &str) -> Result<T, Error<serde_yaml::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_yaml().from_yaml_str(Cow::Borrowed(yaml))
+    Options::new_yaml().deserialize_from_yaml_str(Cow::Borrowed(yaml))
 }
 
 /// Like [`from_yaml_str`], but for bytes.
@@ -329,5 +329,5 @@ pub fn from_yaml_slice<T>(yaml: &[u8]) -> Result<T, Error<serde_yaml::Error>>
 where
     T: for<'de> serde::Deserialize<'de>,
 {
-    Options::new_yaml().from_yaml_slice(Cow::Borrowed(yaml))
+    Options::new_yaml().deserialize_from_yaml_slice(Cow::Borrowed(yaml))
 }

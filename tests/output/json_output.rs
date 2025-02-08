@@ -50,7 +50,7 @@ pub(crate) fn run_json_modes_on_prefixes_and_format_outputs<
             let inputs_outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
                 options
                     .clone()
-                    .from_json_slice::<T>(Cow::Borrowed(inp))
+                    .deserialize_from_json_slice::<T>(Cow::Borrowed(inp))
                     .map_err(|err| err.to_string())
             });
 

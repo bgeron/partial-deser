@@ -50,7 +50,7 @@ pub(crate) fn run_yaml_modes_on_prefixes_and_format_outputs<
             let inputs_outputs = run_on_prefixes_and_format_outputs(full_input, |inp| {
                 options
                     .clone()
-                    .from_yaml_slice::<T>(Cow::Borrowed(inp))
+                    .deserialize_from_yaml_slice::<T>(Cow::Borrowed(inp))
                     .map_err(|err| err.to_string())
             });
 

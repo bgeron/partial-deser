@@ -30,14 +30,14 @@ impl Format {
         match self {
             Format::SerdeJson => deser_incomplete::Options::new_json()
                 .pipe(|options| apply_settings(settings, options))
-                .from_json_slice::<P>(Cow::Borrowed(input))
+                .deserialize_from_json_slice::<P>(Cow::Borrowed(input))
                 .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 
             #[cfg(feature = "serde_yaml")]
             Format::SerdeYaml => deser_incomplete::Options::new_yaml()
                 .pipe(|options| apply_settings(settings, options))
-                .from_yaml_slice::<P>(Cow::Borrowed(input))
+                .deserialize_from_yaml_slice::<P>(Cow::Borrowed(input))
                 .map(|ok| Arc::new(ok) as Arc<dyn Parsed>)
                 .map_err(Error::erase),
 

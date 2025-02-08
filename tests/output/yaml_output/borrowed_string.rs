@@ -12,7 +12,9 @@ fn test_borrowed_string_advanced_api() {
     let options = deser_incomplete::Options::new_yaml();
     let prepared = options.prepare_str_for_borrowed_deserialization(Cow::Borrowed(incomplete_yaml));
 
-    let value: Vec<CowString> = options.from_yaml_str_borrowed(&prepared).unwrap();
+    let value: Vec<CowString> = options
+        .deserialize_from_yaml_str_borrowed(&prepared)
+        .unwrap();
 
     insta::assert_ron_snapshot!(value, @r###"
     [
