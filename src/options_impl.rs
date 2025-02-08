@@ -1,11 +1,372 @@
-#[cfg(doc)]
-use serde::de::{Deserializer, EnumAccess, MapAccess};
+use std::borrow::Cow;
+use std::marker::PhantomData;
+#[cfg(feature = "rand")]
+use std::sync::Arc;
 
+use serde::de::DeserializeSeed;
+#[cfg(doc)]
+use serde::de::{Deserializer, EnumAccess, MapAccess, Visitor};
+use serde::Deserialize;
+
+pub use crate::error::Error;
+use crate::error::InternalError;
 use crate::fallback::DefaultFallbacks;
 pub use crate::random_trailer::RandomTrailer;
-use crate::random_trailer::{NoopRandomTrailer, StringLike};
+use crate::random_trailer::{InputPlusTrailer, NoopRandomTrailer, StringLike};
+use crate::state::AttemptState;
 use crate::unstable::{DefaultReporter, ExtraOptionsIsUnstable};
-use crate::Options;
+use crate::Source;
+
+/// Number of times that we may backtrack.
+///
+/// For good results, you should allow at least one backtracking for when the input
+/// stops in the middle of a map/struct value or enum.
+///
+/// A higher limit on backtracks is useful when not all struct fields
+/// are declared `#[serde(default)]`. In this case, the algorithm will attempt to
+/// incrementally prune on higher levels, e.g. omitting the list item that contains
+/// the end-of-file, or omitting a field of an enclosing struct.
+const DEFAULT_MAX_BACKTRACKS: Option<usize> = Some(10);
+
+#[cfg(feature = "rand")]
+const RANDOM_TAG_LEN: usize = 8;
+
+/// Options for deserialization.
+///
+/// The most important methods are:
+///
+/// - [`Options::deserialize_source`] for a generic source,
+/// - [`Options::from_json_str`] for JSON,
+/// - [`Options::from_yaml_str`] for YAML.
+#[derive(Clone, Debug)]
+pub struct Options<Extra: ExtraOptions = DefaultExtraOptions> {
+    /// This is a random string that forms part of a suffix we add to
+    /// the input, for some data types.
+    ///
+    /// As of Dec 2024, we don't stabilize the specific string format.
+    #[cfg(feature = "rand")]
+    random_tag: Option<Arc<str>>,
+
+    pub(crate) max_n_backtracks: Option<usize>,
+
+    pub(crate) behavior: UnstableCustomBehavior,
+
+    pub(crate) extra: Extra,
+}
+
+impl Options {
+    /// Default config for JSON.
+    ///
+    /// This will currently generate a short extra trailer on inputs
+    /// for improved deserialization of incomplete JSON.
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
+    pub fn new_json() -> Options<JsonExtraOptions> {
+        let base = Options {
+            ..Options::new_nonce()
+        };
+        base.set_random_trailer(crate::random_trailer::json::JsonRandomTrailer)
+    }
+
+    /// Default config for YAML.
+    ///
+    /// This will currently generate a short extra trailer on inputs
+    /// for improved deserialization of incomplete YAML.
+    ///
+    /// For YAML in particular, this suffix is important to get
+    /// good behavior.
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
+    pub fn new_yaml() -> Options<YamlExtraOptions> {
+        let base = Options {
+            ..Options::new_nonce()
+        };
+        base.set_random_trailer(crate::random_trailer::yaml::YamlRandomTrailer)
+    }
+
+    /// Basic config, suitable for any data format.
+    ///
+    /// These options support adding a randomized trailer to the input.
+    /// However, you should probably call [`Options::set_random_trailer`]
+    /// to specify how this trailer should be removed from parsed strings.
+    #[cfg(feature = "rand")]
+    pub fn new_nonce() -> Options<DefaultExtraOptions> {
+        use rand::distributions::{Alphanumeric, DistString};
+        use rand::thread_rng;
+
+        // In the future, this may change to only generate a single random
+        // tag for the lifetime of the application.
+        let tag = Alphanumeric.sample_string(&mut thread_rng(), RANDOM_TAG_LEN);
+        Options {
+            random_tag: Some(tag.into()),
+            ..Options::new_no_nonce()
+        }
+    }
+
+    /// Basic config, suitable for any data format. However, this
+    /// config does not allow adding a randomized trailer to the input,
+    /// which tends to benefit many formats.
+    ///
+    /// - For `serde_json`, this means you won't get incomplete strings deserialized
+    ///
+    /// - For `serde_yaml`, this means that your output will flicker, as it seems to
+    ///   buffer lines somehow, and if a line has an unterminated string, then the
+    ///   whole line will be missing.
+    pub fn new_no_nonce() -> Options<DefaultExtraOptions> {
+        Options {
+            #[cfg(feature = "rand")]
+            random_tag: None,
+            max_n_backtracks: DEFAULT_MAX_BACKTRACKS,
+            behavior: UnstableCustomBehavior::default(),
+            extra: DefaultExtraOptions::default(),
+        }
+    }
+}
+
+impl<Extra: ExtraOptions> Options<Extra> {
+    pub fn with_max_n_backtracks(mut self, max_n_backtracks: Option<usize>) -> Self {
+        self.max_n_backtracks = max_n_backtracks;
+        self
+    }
+
+    /// Like [`crate::from_json_str`], but with options.
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
+    pub fn from_json_str<T>(self, json: Cow<str>) -> Result<T, Error<serde_json::Error>>
+    where
+        T: for<'de> serde::de::Deserialize<'de>,
+    {
+        let prepared = self.prepare_str_for_borrowed_deserialization(json);
+        self.from_json_str_borrowed(&prepared)
+    }
+
+    /// Like [`crate::from_json_slice`], but with options.
+    #[cfg(all(feature = "rand", feature = "serde_json"))]
+    pub fn from_json_slice<T>(self, json: Cow<[u8]>) -> Result<T, Error<serde_json::Error>>
+    where
+        T: for<'de> serde::de::Deserialize<'de>,
+    {
+        let prepared = self.prepare_slice_for_borrowed_deserialization(json);
+        self.from_json_slice_borrowed(&prepared)
+    }
+
+    /// Like [`crate::from_yaml_str`], but with options.
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
+    pub fn from_yaml_str<T>(self, yaml: Cow<str>) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: for<'de> serde::de::Deserialize<'de>,
+    {
+        let prepared = self.prepare_str_for_borrowed_deserialization(yaml);
+        self.from_yaml_str_borrowed(&prepared)
+    }
+
+    /// Like [`crate::from_yaml_slice`], but with options.
+    #[cfg(all(feature = "rand", feature = "serde_yaml"))]
+    pub fn from_yaml_slice<T>(self, yaml: Cow<[u8]>) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: for<'de> serde::de::Deserialize<'de>,
+    {
+        let prepared = self.prepare_slice_for_borrowed_deserialization(yaml);
+        self.from_yaml_slice_borrowed(&prepared)
+    }
+
+    /// Like [`Self::from_json_slice`], but can deserialize borrowed strings and return them
+    /// directly.
+    ///
+    /// This comes at the cost that we cannot use the random trailer technique that gives
+    /// us access to the contents of incomplete strings.
+    ///
+    /// If you need incomplete strings as well, then use [`Self::from_json_slice_borrowed`].
+    ///
+    /// ```
+    /// # use serde::Deserialize;
+    /// #[derive(Debug, Deserialize, PartialEq)]
+    /// struct TravelMode {
+    ///    #[serde(default)]
+    ///    mode: String,
+    ///    benefit: Option<String>
+    /// }
+    ///
+    /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "incomplete"#;
+    /// let modes: Vec<TravelMode> = deser_incomplete::Options::new_json().from_json_slice_plain_return_borrowed(&json).unwrap();
+    /// assert_eq!(modes, [
+    ///    TravelMode { mode: "foot".to_string(), benefit: Some("healthy".to_string()) },
+    ///    TravelMode { mode: "".to_string(), benefit: None },
+    ///    // Note: this function fails on incomplete strings, because
+    ///    // the randomized trailer is needed for those.
+    /// ]);
+    /// ```
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_slice_plain_return_borrowed<'de, T>(
+        self,
+        json: &'de impl AsRef<[u8]>,
+    ) -> Result<T, Error<serde_json::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(crate::source::JsonBytes(json.as_ref()))
+    }
+
+    /// Advanced API. Lets you deserialize into borrowed types like `&str`, while supporting
+    /// the random trailer that gives us access to the contents of incomplete strings.
+    ///
+    /// (The difference is that this only needs `T: serde::de::Deserialize<'de>`, which is weaker.)
+    ///
+    /// **Note: This API is relatively likely to change (more unstable) compared to [`Self::from_json_str`].**
+    ///
+    /// ```
+    /// # use serde::Deserialize;
+    /// /// Note: `&'a str` instead of `String`.
+    /// ///
+    /// /// Like with serde_json, deserializing to &str can fail. Instead, you should probably
+    /// /// use `Cow<str>`, or just `String`.
+    /// #[derive(Debug, Deserialize, PartialEq)]
+    /// struct TravelMode<'a> {
+    ///    mode: &'a str,
+    ///    benefit: Option<&'a str>
+    /// }
+    ///
+    /// let json = r#"[{"mode": "foot", "benefit": "healthy"}, {"mode": "aeropl"#;
+    /// let options = deser_incomplete::Options::new_json();
+    /// let prepared = options.prepare_str_for_borrowed_deserialization(json.into());
+    /// let modes: Vec<TravelMode> = options.from_json_str_borrowed(&prepared).unwrap();
+    /// assert_eq!(modes, [
+    ///    TravelMode { mode: "foot", benefit: Some("healthy") },
+    ///    TravelMode { mode: "aeropl", benefit: None }
+    /// ]);
+    /// ```
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_str_borrowed<'de, T>(
+        self,
+        InputPlusTrailer(prepared_json): &'de InputPlusTrailer<impl AsRef<str>>,
+    ) -> Result<T, Error<serde_json::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(crate::source::JsonStr(prepared_json.as_ref()))
+    }
+
+    /// See [`Self::from_json_str_borrowed`].
+    ///
+    /// **Note: This API is relatively likely to change (more unstable) compared to [`Self::from_json_slice`].**
+    #[cfg(feature = "serde_json")]
+    pub fn from_json_slice_borrowed<'de, T>(
+        self,
+        InputPlusTrailer(prepared_json): &'de InputPlusTrailer<impl AsRef<[u8]>>,
+    ) -> Result<T, Error<serde_json::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(crate::source::JsonBytes(prepared_json.as_ref()))
+    }
+
+    #[cfg(feature = "serde_yaml")]
+    pub fn from_yaml_str_borrowed<'de, T>(
+        self,
+        InputPlusTrailer(prepared_yaml): &'de InputPlusTrailer<impl AsRef<str>>,
+    ) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(crate::source::YamlStr(prepared_yaml.as_ref()))
+    }
+
+    #[cfg(feature = "serde_yaml")]
+    pub fn from_yaml_slice_borrowed<'de, T>(
+        self,
+        InputPlusTrailer(prepared_yaml): &'de InputPlusTrailer<impl AsRef<[u8]>>,
+    ) -> Result<T, Error<serde_yaml::Error>>
+    where
+        T: serde::de::Deserialize<'de>,
+    {
+        self.deserialize_source(crate::source::YamlBytes(prepared_yaml.as_ref()))
+    }
+
+    /// Prepare a string for borrowed deserialization with a method like [`Self::from_json_str_borrowed`].
+    ///
+    /// This appends to the input, according to the randomized trailer method. And this returns a newtype
+    /// wrapper, so you can undo the effects yourself.
+    #[cfg(feature = "rand")]
+    pub fn prepare_str_for_borrowed_deserialization<'a>(
+        &self,
+        mut input: Cow<'a, str>,
+    ) -> InputPlusTrailer<Cow<'a, str>> {
+        use RandomTrailer as _;
+
+        #[cfg(feature = "rand")]
+        if let Some(tag) = self.random_tag.as_ref() {
+            self.extra
+                .get_random_trailer()
+                .prepare_string_with_tag(Cow::to_mut(&mut input), tag);
+        }
+        InputPlusTrailer(input)
+    }
+
+    /// Prepare a slice for borrowed deserialization with a method like [`Self::from_json_slice_borrowed`].
+    ///
+    /// This appends to the input, according to the randomized trailer method. And this returns a newtype
+    /// wrapper, so you can undo the effects yourself.
+    #[cfg(feature = "rand")]
+    pub fn prepare_slice_for_borrowed_deserialization<'a>(
+        &self,
+        mut input: Cow<'a, [u8]>,
+    ) -> InputPlusTrailer<Cow<'a, [u8]>> {
+        use RandomTrailer as _;
+
+        #[cfg(feature = "rand")]
+        if let Some(tag) = self.random_tag.as_ref() {
+            self.extra
+                .get_random_trailer()
+                .prepare_vec_with_tag(Cow::to_mut(&mut input), tag);
+        }
+        InputPlusTrailer(input)
+    }
+
+    #[cfg(feature = "unstable")]
+    pub fn custom_behavior(self, behavior: UnstableCustomBehavior) -> Self {
+        Options { behavior, ..self }
+    }
+
+    /// Don't use a random tag. This can make deserialization a tiny bit cheaper,
+    /// because the input does not have to be reallocated.
+    #[cfg(feature = "rand")]
+    pub fn disable_random_tag(mut self) -> Self {
+        self.random_tag = None;
+        self
+    }
+}
+
+#[cfg(feature = "rand")]
+impl<R, F, RT> Options<ExtraOptionsStruct<R, F, RT>>
+where
+    R: MakeReporter,
+    F: MakeFallbackProvider,
+    RT: RandomTrailer,
+{
+    /// Set a different method for randomized trailers.
+    pub fn set_random_trailer<RT2>(
+        self,
+        random_trailer: RT2,
+    ) -> Options<ExtraOptionsStruct<R, F, RT2>>
+    where
+        RT2: RandomTrailer,
+    {
+        let Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra,
+        } = self;
+
+        Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra: ExtraOptionsStruct {
+                make_reporter: extra.make_reporter,
+                make_fallback_provider: extra.make_fallback_provider,
+                random_trailer,
+            },
+        }
+    }
+}
 
 impl<Extra: ExtraOptions> Options<Extra> {
     /// Do our best to take off any potential junk that was only added by us,
@@ -138,7 +499,7 @@ impl<R, F, RT> ExtraOptionsIsUnstable for ExtraOptionsStruct<R, F, RT> {}
 ///   - when deserializer encounters end-of-input, but we still have
 ///     a chance to fill in the value and succeed deserialization, then
 ///     we can make an educated guess based on what the data type expected
-///     (which method of [`Deserializer`] was called).
+///     (which method of [`crate::Deserializer`] was called).
 ///
 ///     For instance, when deserializing an option, JSON `fa` will choose the
 ///     `Some` case, the deserializer will error, but can save deserialization
@@ -472,5 +833,77 @@ impl UnstableCustomBehavior {
             backtrack_other_skip_item: true,
             allow_incomplete_string_in_key_or_variant: true,
         }
+    }
+}
+
+impl<Extra: ExtraOptions> Options<Extra> {
+    /// Deserialize from a generic [`Source`].
+    ///
+    /// With all `deserialize_*` methods, if backtracking is needed, then
+    /// execute backtracking accordingly.
+    ///
+    /// You can use [`Options::deserialize_seed`] instead if you need to pass a seed.
+    pub fn deserialize_source<'de, T, S>(self, source: S) -> Result<T, Error<S::Error>>
+    where
+        T: Deserialize<'de>,
+        S: Source<'de>,
+    {
+        self.deserialize_seed(PhantomData, source)
+    }
+
+    /// Deserialize from a seed.
+    ///
+    /// If you don't need a seed, then you can use [`Options::deserialize_source`].
+    pub fn deserialize_seed<'de, T, S>(
+        self,
+        seed: T,
+        mut source: S,
+    ) -> Result<T::Value, Error<S::Error>>
+    where
+        T: DeserializeSeed<'de> + Clone,
+        S: Source<'de>,
+    {
+        let mut state = self.build();
+        let mut attempt = AttemptState::initial(&state);
+
+        while {
+            let max_n_backtracks = state.config.max_n_backtracks;
+            max_n_backtracks
+                .map(|max| state.n_backtracks <= max)
+                .unwrap_or(true)
+        } {
+            let mut inner_deserializer_storage = Some(source.recreate_deserializer_storage());
+            let inner_deserializer =
+                S::use_deserializer_from_storage(&mut inner_deserializer_storage);
+
+            let deserializer = crate::attempt::Deserializer {
+                global: &mut state,
+                attempt: &mut attempt,
+                is_at_root: true,
+                is_for_key_or_variant: false,
+                is_for_map_value: false,
+                inner: inner_deserializer,
+            };
+
+            match seed.clone().deserialize(deserializer) {
+                Ok(value) => return Ok(value),
+                Err(error) => {
+                    debug!(attempt = state.n_backtracks, %error, "attempt failed");
+                }
+            }
+
+            attempt = match attempt.next_attempt_state_after_failure()? {
+                Some(new_attempt) => new_attempt,
+                None => {
+                    return Err(InternalError::NoPotentialBacktrackPoint {
+                        after_backtracks: state.n_backtracks,
+                    }
+                    .into());
+                }
+            };
+            state.n_backtracks += 1;
+        }
+
+        Err(InternalError::TooManyBacktracks.into())
     }
 }
