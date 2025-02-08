@@ -45,9 +45,11 @@ clippy-allow-dead:
 main-test:
     cargo test --no-fail-fast --all-targets --all-features
 
-test:
+test: && doc-test
     cargo test --no-fail-fast --all-targets --all-features
     cargo test --no-fail-fast --all-targets --no-default-features
+
+doc-test:
     cargo test --no-fail-fast --all-features --doc
 
 insta:

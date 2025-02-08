@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 pub use crate::error::Error;
 use crate::error::InternalError;
-use crate::fallback::DefaultFallbacks;
+use crate::fallback::{DefaultFallbacks, Fallbacks};
 pub use crate::random_trailer::RandomTrailer;
 use crate::random_trailer::{InputPlusTrailer, NoopRandomTrailer, StringLike};
 use crate::state::AttemptState;
@@ -330,6 +330,32 @@ impl<Extra: ExtraOptions> Options<Extra> {
         InputPlusTrailer(input)
     }
 
+    /// Customize internal behavior.
+    ///
+    /// This is meant for data formats where the defaults may not work well, but
+    /// it's unclear if such customization helps anywhere.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// # use deser_incomplete::Options;
+    ///
+    /// let mut behavior : deser_incomplete::unstable::UnstableCustomBehavior
+    ///     = Default::default();
+    /// behavior.fallback_any_as_none = true;
+    ///
+    /// let result =
+    ///     Options::new_json()
+    ///     .custom_behavior(behavior)
+    ///     .deserialize_from_json_str::<serde_json::Value>("".into());
+    ///
+    /// assert_eq!(result.unwrap(), serde_json::Value::Null);
+    ///
+    /// // Normally, this would be Err.
+    /// assert_eq!(
+    ///     deser_incomplete::from_json_str::<serde_json::Value>("").unwrap_err().to_string(),
+    ///     "could not find a potential backtrack point (do you have #[serde(default)] on your top-level type? are your settings too strict?) (after 0 backtracks)");
+    /// ```
     #[cfg(feature = "unstable")]
     pub fn custom_behavior(self, behavior: UnstableCustomBehavior) -> Self {
         Options { behavior, ..self }
@@ -377,6 +403,79 @@ where
             },
         }
     }
+
+    /// Set a way to report progress internally. (The default reporter logs on [`tracing`].)
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// # use deser_incomplete::Options;
+    ///
+    /// let x =
+    ///     Options::new_json()
+    ///     .set_reporter(deser_incomplete::unstable::DefaultReporter::new())
+    ///     .deserialize_from_json_str::<i32>("3".into())
+    ///     .unwrap();
+    ///
+    /// assert_eq!(x, 3);
+    /// ```
+    #[cfg(feature = "unstable")]
+    pub fn set_reporter<R2>(
+        self,
+        reporter: R2,
+    ) -> Options<ExtraOptionsStruct<CustomReporter<R2>, F, RT>>
+    where
+        R2: crate::reporter::Reporter + Clone,
+    {
+        let Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra,
+        } = self;
+
+        Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra: ExtraOptionsStruct {
+                make_reporter: CustomReporter(reporter),
+                make_fallback_provider: extra.make_fallback_provider,
+                random_trailer: extra.random_trailer,
+            },
+        }
+    }
+
+    /// Set a way to provide fallback values. (The default fallback provider
+    /// has tuned defaults that should be reasonable for many data formats,
+    /// and they are good for JSON and YAML.)
+    #[doc(hidden)]
+    #[cfg(feature = "unstable")]
+    pub fn set_fallback_provider<F2>(
+        self,
+        fallback_provider: F2,
+    ) -> Options<ExtraOptionsStruct<R, CustomFallbackProvider<F2>, RT>>
+    where
+        F2: Fallbacks + Clone,
+    {
+        let Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra,
+        } = self;
+
+        Options {
+            random_tag,
+            max_n_backtracks,
+            behavior,
+            extra: ExtraOptionsStruct {
+                make_reporter: extra.make_reporter,
+                make_fallback_provider: CustomFallbackProvider(fallback_provider),
+                random_trailer: extra.random_trailer,
+            },
+        }
+    }
 }
 
 impl<Extra: ExtraOptions> Options<Extra> {
@@ -404,6 +503,8 @@ impl<Extra: ExtraOptions> Options<Extra> {
 /// This is a parameter pack for type parameters.
 ///
 /// All of this is unstable.
+#[doc(hidden)]
+#[allow(private_bounds)]
 pub trait ExtraOptions: ExtraOptionsIsUnstable {
     /// Will only be called once per invocation of a public function in this crate
     fn make_reporter(&mut self) -> Self::Reporter;
@@ -414,7 +515,7 @@ pub trait ExtraOptions: ExtraOptionsIsUnstable {
         &mut self,
         behavior: &UnstableCustomBehavior,
     ) -> Self::FallbackProvider;
-    type FallbackProvider: crate::fallback::Fallbacks;
+    type FallbackProvider: Fallbacks;
 
     fn get_random_trailer(&self) -> &Self::RandomTrailer;
     type RandomTrailer: RandomTrailer;
@@ -435,6 +536,7 @@ pub type YamlExtraOptions = ExtraOptionsStruct<
     crate::random_trailer::yaml::YamlRandomTrailer,
 >;
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default)]
 pub struct ExtraOptionsStruct<MakeReporter, MakeFallbackProvider, RandomTrailer> {
     pub(crate) make_reporter: MakeReporter,
@@ -442,18 +544,21 @@ pub struct ExtraOptionsStruct<MakeReporter, MakeFallbackProvider, RandomTrailer>
     pub(crate) random_trailer: RandomTrailer,
 }
 
+#[doc(hidden)]
 pub trait MakeReporter {
     type Reporter: crate::reporter::Reporter;
     fn make_reporter(&mut self) -> Self::Reporter;
 }
+#[doc(hidden)]
 pub trait MakeFallbackProvider {
-    type FallbackProvider: crate::fallback::Fallbacks;
+    type FallbackProvider: Fallbacks;
     fn make_fallback_provider(
         &mut self,
         behavior: &UnstableCustomBehavior,
     ) -> Self::FallbackProvider;
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default)]
 pub struct MakeDefaultReporter;
 impl MakeReporter for MakeDefaultReporter {
@@ -462,6 +567,7 @@ impl MakeReporter for MakeDefaultReporter {
         DefaultReporter::new()
     }
 }
+#[doc(hidden)]
 #[derive(Debug, Clone, Default)]
 pub struct MakeDefaultFallbacks;
 impl MakeFallbackProvider for MakeDefaultFallbacks {
@@ -473,6 +579,27 @@ impl MakeFallbackProvider for MakeDefaultFallbacks {
         DefaultFallbacks {
             behavior: behavior.clone(),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CustomReporter<T>(T);
+impl<T: crate::reporter::Reporter + Clone> MakeReporter for CustomReporter<T> {
+    type Reporter = T;
+    fn make_reporter(&mut self) -> Self::Reporter {
+        self.0.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CustomFallbackProvider<T>(T);
+impl<T: Fallbacks + Clone> MakeFallbackProvider for CustomFallbackProvider<T> {
+    type FallbackProvider = T;
+    fn make_fallback_provider(
+        &mut self,
+        _behavior: &UnstableCustomBehavior,
+    ) -> Self::FallbackProvider {
+        self.0.clone()
     }
 }
 

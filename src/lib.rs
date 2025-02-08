@@ -276,7 +276,7 @@ mod collection_of_unstable_stuff {
         UnstableCustomBehavior,
     };
     pub use crate::reporter::{DefaultReporter, Reporter};
-    pub trait ExtraOptionsIsUnstable {}
+    pub(crate) trait ExtraOptionsIsUnstable {}
 }
 
 use std::borrow::Cow;

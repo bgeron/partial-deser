@@ -383,6 +383,26 @@ impl Fallbacks for DefaultFallbacks {
             move || (take_visitor)().visit_map(EmptyAccess::default()),
         )
     }
+
+    fn fallback_any<'a, V: Visitor<'a>, E: serde::de::Error>(
+        &self,
+        _context: &FallbackContext,
+        take_visitor: impl FnOnce() -> V,
+    ) -> Result<Option<V::Value>, E> {
+        conditional_fallback(self.behavior.fallback_any_as_none, move || {
+            (take_visitor)().visit_none()
+        })
+    }
+
+    fn fallback_ignored_any<'a, V: Visitor<'a>, E: serde::de::Error>(
+        &self,
+        _context: &FallbackContext,
+        take_visitor: impl FnOnce() -> V,
+    ) -> Result<Option<V::Value>, E> {
+        conditional_fallback(self.behavior.fallback_ignored_any_as_none, move || {
+            (take_visitor)().visit_none()
+        })
+    }
 }
 
 fn conditional_fallback<Value, E>(
