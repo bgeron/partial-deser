@@ -6,12 +6,11 @@
 
 //! # Deserialize incomplete or broken data with Serde
 //!
-//! Wrap Serde [`Deserializer`]s (like serde_json and serde_yaml) so you
-//! can parse incomplete or tolerate broken data.
+//! Parse incomplete or broken data with existing Serde data formats.
 //!
-//! Streaming JSON for instance is technically invalid until the stream is done.
-//! But by tolerating premature end of input, we can do something useful while
-//! the stream is in progress.
+//! This is nice for ingesting streaming JSON, which is technically invalid until
+//! the stream is done. By tolerating premature end of input, we can immediately make use
+//! of the streaming input.
 //!
 //! <img src="https://bgeron.github.io/partial-deser/assets/live-travel-modes.gif" alt='Someone is slowly
 //! typing JSON into a terminal program. The JSON is an array of objects.
@@ -20,7 +19,8 @@
 //! The example program is called "live".' title="Demo that shows parsing JSON as it is typed by the user"
 //! style="max-height: 300px; height: auto; width: auto;">
 //!
-//! Here, we printed the Rust debug representation. We also reserialized to JSON and
+//! Here, we wrapped [`serde_json`] with `deser-incomplete`, and printed the Rust
+//! debug representation of the result. We also reserialized to JSON and
 //! let nushell do its beautiful table formatting.
 //!
 //! The JSON can also come from an external program. Here is a demo program that
@@ -36,8 +36,8 @@
 //! while it is computing.' title='Demo that shows parsing JSON as it is generated live from another program that mimics du'
 //! style="max-height: 350px; height: auto; width: auto;">
 //!
-//! `deser-incomplete` sits between `#[serde(Deserialize)]` and the data format, and
-//! safely halts parsing on parse errors or other errors.
+//! `deser-incomplete` sits between `#[serde(Deserialize)]` and the data format. When a parse
+//! error is detected (presumably because the input ended), it safely halts parsing.
 //!
 //! <img src="https://bgeron.github.io/partial-deser/assets/deser-incomplete-blocks-errors.png" alt='This library sits
 //! in between Deserialize and Deserializer. Information about the parsed data is successfully
